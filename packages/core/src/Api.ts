@@ -84,6 +84,12 @@ export const ApiRoutes = HttpRouter.use((router) =>
       return json(workspace.browse(path))
     })
 
+    yield* router.add("GET", "/api/file", (request) => {
+      const path = searchParams(request).get("path")
+      if (path === null || path.length === 0) return badRequest("missing file path")
+      return json(workspace.readFile(path))
+    })
+
     yield* router.add("GET", "/api/repo", json(git.info))
     yield* router.add("GET", "/api/files", json(git.files))
     yield* router.add("GET", "/api/branches", json(git.branches))

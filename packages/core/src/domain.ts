@@ -84,6 +84,11 @@ export interface BrowsePayload {
   readonly entries: ReadonlyArray<BrowseEntry>;
 }
 
+export interface FileContent {
+  readonly name: string;
+  readonly contents: string;
+}
+
 export interface PullRequestInfo {
   readonly number: number;
   readonly title: string;

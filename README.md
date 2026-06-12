@@ -1,24 +1,26 @@
 # codediff.sh
 
-A local git review tool. Review your working tree, compare branches, inspect
-commits, and read GitHub pull requests — with inline comments — in a clean,
-minimal UI.
+A local git review tool that works like an IDE. A JetBrains-style vertical
+tool rail on the far left switches between three modes; the center is always a
+git diff (or file), the bottom is a git panel with branches and history.
 
-![layout](#) <!-- left: file tree · center: diff · bottom: branches & log -->
+![layout](#) <!-- rail · file tree · center diff/file · bottom branches & log -->
 
-## Features
+## Modes
 
-- **Working tree review** — see uncommitted changes against `HEAD`
-- **Branch compare** — three-dot diff (`base...head`) between any two branches
-- **Commit review** — click any commit in the log to see its patch
-- **GitHub sync** — list open PRs, read PR diffs, and read/write PR review
-  comments (GitLab planned)
-- **Inline comments** — click a line number to leave a comment; local comments
-  are stored in `.codediff/comments.json` inside the reviewed repo, PR comments
-  go to GitHub
-- **JetBrains-style git panel** — branches on the left, commit log on the
-  right, double-click a branch to check it out
-- Light & dark themes, syntax highlighting via Shiki
+Switched from the vertical tool rail (far left), JetBrains-style:
+
+- **Commit** — your uncommitted changes. Changed-files tree with a commit
+  panel (per-file checkboxes + message), `Commit` / `Commit & Push`. Inline
+  comments are stored locally in `.codediff/comments.json`.
+- **Pull Requests** — open GitHub PRs (GitLab planned). Pick a PR from the
+  bottom panel to review its diff and read/write PR review comments.
+- **Browse** — the whole project like an IDE. Click a file in the tree to read
+  it (syntax-highlighted), or a commit in the log to see its patch.
+
+Across all modes: side-by-side (split) or unified diff toggle, push/pull with
+ahead/behind counts, double-click a branch to check it out, light & dark
+themes, syntax highlighting via Shiki.
 
 Built on [`@pierre/trees`](https://trees.software/) for the file tree and
 [`@pierre/diffs`](https://diffs.com/) for diff rendering.
@@ -59,6 +61,7 @@ across restarts.
 | -------------------------------------- | -------------------------------- |
 | `GET/POST /api/workspace`               | Current repo + recents / switch repo |
 | `GET /api/fs/browse?path`               | Browse directories, git repos flagged |
+| `GET /api/file?path`                    | Read a file's contents (browse mode) |
 | `GET /api/repo`                         | Repo info, current branch, GitHub remote |
 | `GET /api/files`                        | Tracked + untracked paths, git status |
 | `GET /api/branches`                     | Local branches with ahead/behind |

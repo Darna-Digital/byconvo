@@ -19,6 +19,7 @@
   --radius: 8px;
   --topbar-h: 48px;
   --bottom-h: 240px;
+  --rail-w: 56px;
 }
 
 [data-theme="dark"] {
@@ -70,12 +71,84 @@ button {
 .app {
   display: grid;
   grid-template-rows: var(--topbar-h) 1fr var(--bottom-h);
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: var(--rail-w) 280px 1fr;
   grid-template-areas:
-    "topbar topbar"
-    "sidebar diff"
-    "bottom bottom";
+    "rail topbar topbar"
+    "rail sidebar diff"
+    "rail bottom bottom";
   height: 100%;
+}
+
+/* ---------- mode rail (JetBrains-style tool stripe) ---------- */
+
+.mode-rail {
+  grid-area: rail;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  background: var(--bg-subtle);
+  border-right: 1px solid var(--border);
+}
+
+.mode-rail-top,
+.mode-rail-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.rail-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: calc(var(--rail-w) - 8px);
+  padding: 9px 0;
+  border-radius: 8px;
+  color: var(--fg-muted);
+  position: relative;
+}
+
+.rail-button:hover {
+  background: var(--bg-hover);
+  color: var(--fg);
+}
+
+.rail-button.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* JetBrains-style active indicator on the left edge. */
+.rail-button.active::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 8px;
+  bottom: 8px;
+  width: 2.5px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.rail-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  line-height: 1.1;
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail-button.icon-only {
+  gap: 0;
+  font-size: 15px;
 }
 
 .topbar {
@@ -125,6 +198,39 @@ button {
   color: var(--accent);
 }
 
+.context-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.seg-toggle {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+.seg-toggle button {
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-size: 11.5px;
+  font-weight: 550;
+  color: var(--fg-muted);
+}
+
+.seg-toggle button.active {
+  background: var(--bg-panel);
+  color: var(--fg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
 .repo-chip {
   display: flex;
   align-items: center;
@@ -142,30 +248,6 @@ button {
   font-weight: 550;
 }
 
-.mode-tabs {
-  display: flex;
-  gap: 2px;
-  margin-left: auto;
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 2px;
-}
-
-.mode-tabs button {
-  padding: 4px 12px;
-  border-radius: 6px;
-  color: var(--fg-muted);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.mode-tabs button.active {
-  background: var(--bg-panel);
-  color: var(--fg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-}
-
 .icon-button {
   display: grid;
   place-items: center;
@@ -179,14 +261,6 @@ button {
 .icon-button:hover {
   background: var(--bg-hover);
   color: var(--fg);
-}
-
-.compare-pickers {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--fg-muted);
 }
 
 select {

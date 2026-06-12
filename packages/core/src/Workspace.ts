@@ -9,6 +9,7 @@ import * as FileSystem from "effect/FileSystem"
 import type { PlatformError } from "effect/PlatformError"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import { homedir } from "node:os"
+import { resolve as pathResolve } from "node:path"
 import type { BrowseEntry, BrowsePayload, WorkspaceInfo } from "./domain.js"
 
 export class NoRepoSelected extends Data.TaggedError("NoRepoSelected")<{}> {
@@ -33,6 +34,9 @@ export interface WorkspaceShape {
     path: string
   ) => Effect.Effect<WorkspaceInfo, InvalidRepo | PlatformError>
   readonly browse: (path: string | null) => Effect.Effect<BrowsePayload, PlatformError>
+  readonly readFile: (
+    relPath: string
+  ) => Effect.Effect<{ name: string; contents: string }, NoRepoSelected | PlatformError>
 }
 
 export class Workspace extends Context.Service<Workspace, WorkspaceShape>()("Workspace") {}
@@ -171,7 +175,21 @@ export const make = (initial: InitialSelection | null) =>
         return { path, parent, isGitRepo, entries }
       })
 
-    return Workspace.of({ info, requireCurrent, setCurrent, browse })
+    const readFile: WorkspaceShape["readFile"] = (relPath) =>
+      Effect.gen(function*() {
+        const root = yield* requireCurrent
+        // Resolve and refuse anything that escapes the repository root.
+        const cleaned = relPath.replace(/^\/+/, "")
+        const fullPath = `${root}/${cleaned}`
+        const resolved = pathResolve(fullPath)
+        if (resolved !== root && !resolved.startsWith(`${root}/`)) {
+          return yield* Effect.fail(new NoRepoSelected())
+        }
+        const contents = yield* fs.readFileString(resolved)
+        return { name: cleaned.split("/").at(-1) ?? cleaned, contents }
+      })
+
+    return Workspace.of({ info, requireCurrent, setCurrent, browse, readFile })
   })
 
 export const layer = (

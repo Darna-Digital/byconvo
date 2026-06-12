@@ -7,6 +7,7 @@ import type {
   CommentSide,
   CommitInfo,
   DiffTarget,
+  FileContent,
   FilesPayload,
   PullRequestInfo,
   RepoInfo,
@@ -56,6 +57,7 @@ export const api = {
     getJson<BrowsePayload>(
       path === null ? "/api/fs/browse" : `/api/fs/browse?path=${encodeURIComponent(path)}`
     ),
+  file: (path: string) => getJson<FileContent>(`/api/file?path=${encodeURIComponent(path)}`),
   repo: () => getJson<RepoInfo>("/api/repo"),
   files: () => getJson<FilesPayload>("/api/files"),
   branches: () => getJson<ReadonlyArray<BranchInfo>>("/api/branches"),

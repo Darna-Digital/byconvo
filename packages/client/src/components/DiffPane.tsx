@@ -16,6 +16,7 @@ type AnnotationMeta =
 interface DiffPaneProps {
   files: ReadonlyArray<FileDiffMetadata>
   theme: "light" | "dark"
+  diffStyle: "split" | "unified"
   loading: boolean
   error: string | null
   target: DiffTarget
@@ -128,6 +129,7 @@ const THEMES = { light: "github-light", dark: "github-dark" } as const
 export function DiffPane({
   files,
   theme,
+  diffStyle,
   loading,
   error,
   target,
@@ -236,9 +238,9 @@ export function DiffPane({
             options={{
               theme: THEMES,
               themeType: theme,
-              diffStyle: "unified",
+              diffStyle,
               lineDiffType: "word",
-              overflow: "wrap",
+              overflow: diffStyle === "split" ? "scroll" : "wrap",
               stickyHeader: false,
               enableLineSelection: true,
               onLineNumberClick: (props) => {

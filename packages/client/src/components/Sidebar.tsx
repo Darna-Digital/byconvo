@@ -1,9 +1,10 @@
 import { FileTree, useFileTree } from "@pierre/trees/react"
 import type { ReactNode } from "react"
 import { useEffect, useRef } from "react"
-import type { GitStatusEntry } from "../types"
+import type { AppMode, GitStatusEntry } from "../types"
 
 interface SidebarProps {
+  mode: AppMode
   paths: ReadonlyArray<string>
   gitStatus: ReadonlyArray<GitStatusEntry>
   selectedFile: string | null
@@ -11,7 +12,13 @@ interface SidebarProps {
   footer?: ReactNode
 }
 
-export function Sidebar({ paths, gitStatus, selectedFile, onFileSelect, footer }: SidebarProps) {
+const HEADER_TITLE: Record<AppMode, string> = {
+  commit: "Changed files",
+  review: "Files in this PR",
+  browse: "Project",
+}
+
+export function Sidebar({ mode, paths, gitStatus, selectedFile, onFileSelect, footer }: SidebarProps) {
   const onFileSelectRef = useRef(onFileSelect)
   onFileSelectRef.current = onFileSelect
 
@@ -57,8 +64,12 @@ export function Sidebar({ paths, gitStatus, selectedFile, onFileSelect, footer }
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <span>Files</span>
-        <span>{gitStatus.length > 0 ? `${gitStatus.length} changed` : ""}</span>
+        <span>{HEADER_TITLE[mode]}</span>
+        <span>
+          {mode !== "browse" && gitStatus.length > 0
+            ? `${gitStatus.length} ${mode === "review" ? "files" : "changed"}`
+            : ""}
+        </span>
       </div>
       <div className="sidebar-tree">
         <FileTree model={model} style={{ height: "100%" }} />

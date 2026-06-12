@@ -3,14 +3,18 @@ import type { FileDiffMetadata } from "@pierre/diffs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
 import { BottomPanel } from "./components/BottomPanel";
+import { CommitPanel } from "./components/CommitPanel";
 import { DiffPane } from "./components/DiffPane";
 import type { DraftLocation } from "./components/DiffPane";
-import { CommitPanel } from "./components/CommitPanel";
+import { FileView } from "./components/FileView";
+import { ModeRail } from "./components/ModeRail";
 import { RepoPicker } from "./components/RepoPicker";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 import type {
+  AppMode,
   BranchInfo,
+  BrowseView,
   CommitInfo,
   DiffTarget,
   FilesPayload,
@@ -23,6 +27,7 @@ import { diffTargetKey } from "./types";
 import { Agentation } from "agentation";
 
 type Theme = "light" | "dark";
+type DiffStyle = "split" | "unified";
 
 const initialTheme = (): Theme => {
   const stored = localStorage.getItem("codediff-theme");
@@ -34,6 +39,8 @@ const initialTheme = (): Theme => {
 
 export function App() {
   const [theme, setTheme] = useState<Theme>(initialTheme);
+  const [diffStyle, setDiffStyle] = useState<DiffStyle>("split");
+  const [mode, setMode] = useState<AppMode>("commit");
   const [workspace, setWorkspace] = useState<WorkspaceInfo | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [repo, setRepo] = useState<RepoInfo | null>(null);
@@ -43,10 +50,11 @@ export function App() {
   const [logRef, setLogRef] = useState<string | null>(null);
   const [pulls, setPulls] = useState<ReadonlyArray<PullRequestInfo>>([]);
   const [pullsError, setPullsError] = useState<string | null>(null);
-  const [target, setTarget] = useState<DiffTarget>({ kind: "worktree" });
+  const [selectedPull, setSelectedPull] = useState<PullRequestInfo | null>(null);
+  const [browseView, setBrowseView] = useState<BrowseView | null>(null);
   const [diffText, setDiffText] = useState<string | null>(null);
   const [diffError, setDiffError] = useState<string | null>(null);
-  const [diffLoading, setDiffLoading] = useState(true);
+  const [diffLoading, setDiffLoading] = useState(false);
   const [localComments, setLocalComments] = useState<
     ReadonlyArray<ReviewComment>
   >([]);
@@ -110,18 +118,27 @@ export function App() {
       setWorkspace(info);
       setPickerOpen(false);
       // Reset everything that belonged to the previous repository.
+      setMode("commit");
       setSelectedFile(null);
+      setSelectedPull(null);
+      setBrowseView(null);
       setLogRef(null);
       setCommits([]);
       setPulls([]);
       setPullsError(null);
       setPullComments([]);
       setDraft(null);
-      setTarget({ kind: "worktree" });
       refreshRepoState();
     },
     [refreshRepoState],
   );
+
+  // The review mode only exists for GitHub repos.
+  useEffect(() => {
+    if (mode === "review" && repo !== null && repo.github == null) {
+      setMode("commit");
+    }
+  }, [mode, repo]);
 
   // Branch log follows the selected branch (defaults to the current one);
   // refreshNonce re-fetches it after commits, pushes, and pulls.
@@ -146,11 +163,24 @@ export function App() {
       .catch((error: Error) => setPullsError(error.message));
   }, [repo?.github]);
 
-  // Fetch the diff whenever the review target changes.
-  const targetKey = diffTargetKey(target);
+  // The diff target is fully derived from the current mode and selection.
+  const target = useMemo<DiffTarget | null>(() => {
+    if (mode === "commit") return { kind: "worktree" };
+    if (mode === "review") {
+      return selectedPull === null ? null : { kind: "pull", pull: selectedPull };
+    }
+    if (browseView?.kind === "commit") {
+      return { kind: "commit", sha: browseView.sha, shortSha: browseView.shortSha };
+    }
+    return null;
+  }, [mode, selectedPull, browseView]);
+
+  const targetKey = target === null ? "none" : diffTargetKey(target);
   const currentRepoPath = workspace?.current ?? null;
+
+  // Fetch the diff whenever the derived target changes.
   useEffect(() => {
-    if (currentRepoPath === null) {
+    if (currentRepoPath === null || target === null) {
       setDiffText(null);
       setDiffError(null);
       setDiffLoading(false);
@@ -186,8 +216,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-    // targetKey identifies the target by value; `target` itself is a fresh object per render.
-    // refreshNonce forces a re-fetch on explicit refresh and after git operations.
+    // targetKey identifies the target by value; refreshNonce forces a re-fetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetKey, currentRepoPath, refreshNonce]);
 
@@ -201,14 +230,14 @@ export function App() {
   }, [diffText]);
 
   const visibleComments = useMemo(() => {
-    if (target.kind === "pull") return pullComments;
+    if (target?.kind === "pull") return pullComments;
     return localComments.filter((comment) => comment.target === targetKey);
-  }, [target.kind, targetKey, localComments, pullComments]);
+  }, [target?.kind, targetKey, localComments, pullComments]);
 
   const submitComment = useCallback(
     async (location: DraftLocation, body: string) => {
-      if (target.kind === "pull") {
-        const created = await api.addPullComment(target.pull.number, {
+      if (mode === "review" && selectedPull !== null) {
+        const created = await api.addPullComment(selectedPull.number, {
           filePath: location.filePath,
           side: location.side,
           lineNumber: location.lineNumber,
@@ -228,7 +257,7 @@ export function App() {
       setLocalComments((existing) => [...existing, created]);
       setDraft(null);
     },
-    [target, targetKey],
+    [mode, selectedPull, targetKey],
   );
 
   const deleteComment = useCallback(async (comment: ReviewComment) => {
@@ -241,7 +270,7 @@ export function App() {
     async (branch: string) => {
       await api.checkout(branch);
       refreshRepoState();
-      setTarget({ kind: "worktree" });
+      setMode("commit");
     },
     [refreshRepoState],
   );
@@ -286,97 +315,128 @@ export function App() {
     [refresh, showNotice],
   );
 
-  const pushBranch = useCallback(async () => {
-    setOpBusy(true);
-    try {
-      const { output } = await api.push();
-      showNotice("ok", output.length > 0 ? output : "Pushed");
-      refresh();
-    } catch (cause) {
-      showNotice("err", cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setOpBusy(false);
-    }
-  }, [refresh, showNotice]);
+  const runSync = useCallback(
+    async (action: "push" | "pull") => {
+      setOpBusy(true);
+      try {
+        const { output } = action === "push" ? await api.push() : await api.pull();
+        const fallback = action === "push" ? "Pushed" : "Pulled";
+        showNotice("ok", output.length > 0 ? output : fallback);
+        refresh();
+      } catch (cause) {
+        showNotice(
+          "err",
+          cause instanceof Error ? cause.message : String(cause),
+        );
+      } finally {
+        setOpBusy(false);
+      }
+    },
+    [refresh, showNotice],
+  );
 
-  const pullBranch = useCallback(async () => {
-    setOpBusy(true);
-    try {
-      const { output } = await api.pull();
-      showNotice("ok", output.length > 0 ? output : "Pulled");
-      refresh();
-    } catch (cause) {
-      showNotice("err", cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setOpBusy(false);
-    }
-  }, [refresh, showNotice]);
+  const selectCommit = useCallback((commit: CommitInfo) => {
+    setMode("browse");
+    setBrowseView({ kind: "commit", sha: commit.sha, shortSha: commit.shortSha });
+  }, []);
 
-  // The sidebar shows the whole repo for worktree review, and only the
-  // changed files when reviewing a range, commit, or PR.
+  const selectPull = useCallback((pull: PullRequestInfo) => {
+    setMode("review");
+    setSelectedPull(pull);
+  }, []);
+
+  const onFileSelect = useCallback(
+    (path: string | null) => {
+      if (path === null) return;
+      if (mode === "browse") setBrowseView({ kind: "file", path });
+      else setSelectedFile(path);
+    },
+    [mode],
+  );
+
   // Hide codediff's own comment store from the review surface.
   const isInternalPath = (path: string) =>
     path === ".codediff" || path.startsWith(".codediff/");
 
+  // The sidebar shows changed files in commit/review, and the whole repo
+  // in browse mode so any file can be opened.
   const treePaths = useMemo(() => {
-    if (target.kind === "worktree") {
+    if (mode === "browse") {
       return (files?.paths ?? []).filter((path) => !isInternalPath(path));
     }
+    if (mode === "commit") {
+      return (files?.paths ?? [])
+        .filter((path) => !isInternalPath(path))
+        .filter((path) =>
+          (files?.gitStatus ?? []).some((entry) => entry.path === path),
+        );
+    }
     return parsedFiles.map((file) => file.name);
-  }, [target.kind, files, parsedFiles]);
+  }, [mode, files, parsedFiles]);
 
   const treeGitStatus = useMemo(() => {
-    if (target.kind === "worktree") {
-      return (files?.gitStatus ?? []).filter(
-        (entry) => !isInternalPath(entry.path),
+    if (mode === "review") {
+      return parsedFiles.map((file) => ({
+        path: file.name,
+        status:
+          file.type === "new"
+            ? ("added" as const)
+            : file.type === "deleted"
+              ? ("deleted" as const)
+              : file.type === "rename-pure" || file.type === "rename-changed"
+                ? ("renamed" as const)
+                : ("modified" as const),
+      }));
+    }
+    return (files?.gitStatus ?? []).filter(
+      (entry) => !isInternalPath(entry.path),
+    );
+  }, [mode, files, parsedFiles]);
+
+  const changedFiles = useMemo(
+    () => (files?.gitStatus ?? []).filter((entry) => !isInternalPath(entry.path)),
+    [files],
+  );
+
+  const contextLabel = useMemo(() => {
+    if (mode === "commit") return "Local changes";
+    if (mode === "review") {
+      return selectedPull === null
+        ? "Select a pull request"
+        : `#${selectedPull.number} · ${selectedPull.title}`;
+    }
+    if (browseView?.kind === "file") return browseView.path;
+    if (browseView?.kind === "commit") {
+      return `commit ${browseView.shortSha}`;
+    }
+    return "Select a file or commit";
+  }, [mode, selectedPull, browseView]);
+
+  const renderCenter = () => {
+    if (mode === "browse" && browseView?.kind === "file") {
+      return <FileView path={browseView.path} theme={theme} />;
+    }
+    if (target === null) {
+      const hint =
+        mode === "review"
+          ? "Pick a pull request from the panel below to review it."
+          : "Pick a file from the tree to read it, or a commit from the log to see its diff.";
+      return (
+        <main className="diff-pane">
+          <div className="diff-empty">
+            <div>
+              <div>Nothing open</div>
+              <div className="hint">{hint}</div>
+            </div>
+          </div>
+        </main>
       );
     }
-    return parsedFiles.map((file) => ({
-      path: file.name,
-      status:
-        file.type === "new"
-          ? ("added" as const)
-          : file.type === "deleted"
-            ? ("deleted" as const)
-            : file.type === "rename-pure" || file.type === "rename-changed"
-              ? ("renamed" as const)
-              : ("modified" as const),
-    }));
-  }, [target.kind, files, parsedFiles]);
-
-  return (
-    <div className="app">
-      <TopBar
-        repo={repo}
-        branches={branches}
-        target={target}
-        theme={theme}
-        onTargetChange={setTarget}
-        onThemeToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
-        onRefresh={refresh}
-        onRepoClick={() => setPickerOpen(true)}
-        onPush={() => void pushBranch()}
-        onPull={() => void pullBranch()}
-        opBusy={opBusy}
-      />
-      <Sidebar
-        paths={treePaths}
-        gitStatus={treeGitStatus}
-        selectedFile={selectedFile}
-        onFileSelect={setSelectedFile}
-        footer={
-          target.kind === "worktree" && treeGitStatus.length > 0 ? (
-            <CommitPanel
-              changes={treeGitStatus}
-              busy={opBusy}
-              onCommit={commitChanges}
-            />
-          ) : undefined
-        }
-      />
+    return (
       <DiffPane
         files={parsedFiles}
         theme={theme}
+        diffStyle={diffStyle}
         loading={diffLoading}
         error={diffError}
         target={target}
@@ -388,17 +448,63 @@ export function App() {
         onCommentSubmit={submitComment}
         onCommentDelete={deleteComment}
       />
+    );
+  };
+
+  return (
+    <div className="app">
+      <ModeRail
+        mode={mode}
+        hasGitHub={repo?.github != null}
+        theme={theme}
+        onModeChange={setMode}
+        onThemeToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+      />
+      <TopBar
+        repo={repo}
+        branches={branches}
+        contextLabel={contextLabel}
+        diffStyle={diffStyle}
+        showDiffStyleToggle={
+          !(mode === "browse" && browseView?.kind === "file") && target !== null
+        }
+        opBusy={opBusy}
+        onDiffStyleChange={setDiffStyle}
+        onRepoClick={() => setPickerOpen(true)}
+        onPush={() => void runSync("push")}
+        onPull={() => void runSync("pull")}
+        onRefresh={refresh}
+      />
+      <Sidebar
+        mode={mode}
+        paths={treePaths}
+        gitStatus={treeGitStatus}
+        selectedFile={mode === "browse" ? browseView?.kind === "file" ? browseView.path : null : selectedFile}
+        onFileSelect={onFileSelect}
+        footer={
+          mode === "commit" && changedFiles.length > 0 ? (
+            <CommitPanel
+              changes={changedFiles}
+              busy={opBusy}
+              onCommit={commitChanges}
+            />
+          ) : undefined
+        }
+      />
+      {renderCenter()}
       <BottomPanel
+        mode={mode}
         branches={branches}
         commits={commits}
         pulls={pulls}
         pullsError={pullsError}
-        hasGitHub={repo?.github != null}
         logRef={logRef ?? repo?.currentBranch ?? null}
-        target={target}
+        selectedCommitSha={browseView?.kind === "commit" ? browseView.sha : null}
+        selectedPullNumber={selectedPull?.number ?? null}
         onLogRefChange={setLogRef}
         onBranchCheckout={checkoutBranch}
-        onTargetChange={setTarget}
+        onSelectCommit={selectCommit}
+        onSelectPull={selectPull}
       />
       {pickerOpen && workspace !== null && (
         <RepoPicker
