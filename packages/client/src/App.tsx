@@ -44,6 +44,10 @@ export function App() {
     () => localStorage.getItem("codediff-connectors") !== "off",
   );
   const [mode, setMode] = useState<AppMode>("commit");
+  // The git bottom panel (branches/log/PRs) is collapsible from the rail.
+  const [bottomVisible, setBottomVisible] = useState<boolean>(
+    () => localStorage.getItem("codediff-bottom") !== "off",
+  );
   const [workspace, setWorkspace] = useState<WorkspaceInfo | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [repo, setRepo] = useState<RepoInfo | null>(null);
@@ -90,6 +94,10 @@ export function App() {
   useEffect(() => {
     localStorage.setItem("codediff-connectors", connectors ? "on" : "off");
   }, [connectors]);
+
+  useEffect(() => {
+    localStorage.setItem("codediff-bottom", bottomVisible ? "on" : "off");
+  }, [bottomVisible]);
 
   const refreshRepoState = useCallback(() => {
     api
@@ -485,13 +493,15 @@ export function App() {
   };
 
   return (
-    <div className="app">
+    <div className={`app ${bottomVisible ? "" : "app-no-bottom"}`}>
       <ModeRail
         mode={mode}
         hasGitHub={repo?.github != null}
         theme={theme}
+        bottomVisible={bottomVisible}
         onModeChange={changeMode}
         onThemeToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+        onBottomToggle={() => setBottomVisible((v) => !v)}
       />
       <TopBar
         repo={repo}
@@ -530,20 +540,22 @@ export function App() {
         }
       />
       {renderCenter()}
-      <BottomPanel
-        mode={mode}
-        branches={branches}
-        commits={commits}
-        pulls={pulls}
-        pullsError={pullsError}
-        logRef={logRef ?? repo?.currentBranch ?? null}
-        selectedCommitSha={browseView?.kind === "commit" ? browseView.sha : null}
-        selectedPullNumber={selectedPull?.number ?? null}
-        onLogRefChange={setLogRef}
-        onBranchCheckout={checkoutBranch}
-        onSelectCommit={selectCommit}
-        onSelectPull={selectPull}
-      />
+      {bottomVisible && (
+        <BottomPanel
+          mode={mode}
+          branches={branches}
+          commits={commits}
+          pulls={pulls}
+          pullsError={pullsError}
+          logRef={logRef ?? repo?.currentBranch ?? null}
+          selectedCommitSha={browseView?.kind === "commit" ? browseView.sha : null}
+          selectedPullNumber={selectedPull?.number ?? null}
+          onLogRefChange={setLogRef}
+          onBranchCheckout={checkoutBranch}
+          onSelectCommit={selectCommit}
+          onSelectPull={selectPull}
+        />
+      )}
       {pickerOpen && workspace !== null && (
         <RepoPicker
           workspace={workspace}

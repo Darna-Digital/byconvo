@@ -5,8 +5,10 @@ interface ModeRailProps {
   mode: AppMode;
   hasGitHub: boolean;
   theme: "light" | "dark";
+  bottomVisible: boolean;
   onModeChange: (mode: AppMode) => void;
   onThemeToggle: () => void;
+  onBottomToggle: () => void;
 }
 
 interface ModeDef {
@@ -53,12 +55,37 @@ const BROWSE_ICON = icon(
   </>,
 );
 
+const BOTTOM_PANEL_ICON = icon(
+  <>
+    <rect
+      x="3.5"
+      y="4.5"
+      width="17"
+      height="15"
+      rx="1.8"
+      stroke="currentColor"
+      strokeWidth="1.7"
+    />
+    <path
+      d="M3.5 15h17"
+      stroke="currentColor"
+      strokeWidth="1.7"
+    />
+    <path
+      d="M3.5 16.5h17v1.2A1.8 1.8 0 0 1 18.7 19.5H5.3A1.8 1.8 0 0 1 3.5 17.7z"
+      fill="currentColor"
+    />
+  </>,
+);
+
 export function ModeRail({
   mode,
   hasGitHub,
   theme,
+  bottomVisible,
   onModeChange,
   onThemeToggle,
+  onBottomToggle,
 }: ModeRailProps) {
   const modes: ReadonlyArray<ModeDef> = [
     { id: "commit", label: "Commit", icon: COMMIT_ICON },
@@ -86,6 +113,16 @@ export function ModeRail({
         ))}
       </div>
       <div className="mode-rail-bottom">
+        <button
+          type="button"
+          className={`rail-button ${bottomVisible ? "active" : ""}`}
+          onClick={onBottomToggle}
+          title={bottomVisible ? "Hide git panel" : "Show git panel"}
+          aria-pressed={bottomVisible}
+        >
+          {BOTTOM_PANEL_ICON}
+          <span className="rail-label">Git</span>
+        </button>
         <button
           type="button"
           className="rail-button icon-only"
