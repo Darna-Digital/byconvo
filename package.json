@@ -1,0 +1,12 @@
+{
+  "name": "codediff",
+  "private": true,
+  "version": "0.1.0",
+  "description": "codediff.sh — local git review tool",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @codediff/core --filter @codediff/client dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "packageManager": "pnpm@10.33.4"
+}

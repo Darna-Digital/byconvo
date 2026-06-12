@@ -1,0 +1,90 @@
+/**
+ * Typed client for the @codediff/core HTTP API.
+ */
+import type {
+  BranchInfo,
+  CommentSide,
+  CommitInfo,
+  DiffTarget,
+  FilesPayload,
+  PullRequestInfo,
+  RepoInfo,
+  ReviewComment
+} from "./types"
+
+class ApiError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message)
+    this.name = "ApiError"
+  }
+}
+
+const request = async (path: string, init?: RequestInit): Promise<Response> => {
+  const response = await fetch(path, init)
+  if (!response.ok) {
+    let detail = response.statusText
+    try {
+      const body = await response.json()
+      if (typeof body?.error === "string") detail = body.error
+    } catch {
+      // not JSON — keep the status text
+    }
+    throw new ApiError(detail, response.status)
+  }
+  return response
+}
+
+const getJson = async <T>(path: string): Promise<T> => (await request(path)).json()
+
+const getText = async (path: string): Promise<string> => (await request(path)).text()
+
+const postJson = async <T>(path: string, body: unknown): Promise<T> => {
+  const response = await request(path, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body)
+  })
+  return response.json()
+}
+
+export const api = {
+  repo: () => getJson<RepoInfo>("/api/repo"),
+  files: () => getJson<FilesPayload>("/api/files"),
+  branches: () => getJson<ReadonlyArray<BranchInfo>>("/api/branches"),
+  log: (ref: string, limit = 60) =>
+    getJson<ReadonlyArray<CommitInfo>>(
+      `/api/log?ref=${encodeURIComponent(ref)}&limit=${limit}`
+    ),
+  diff: (target: DiffTarget): Promise<string> => {
+    switch (target.kind) {
+      case "worktree":
+        return getText("/api/diff")
+      case "range":
+        return getText(
+          `/api/diff?base=${encodeURIComponent(target.base)}&head=${encodeURIComponent(target.head)}`
+        )
+      case "commit":
+        return getText(`/api/diff?commit=${encodeURIComponent(target.sha)}`)
+      case "pull":
+        return getText(`/api/github/pulls/${target.pull.number}/diff`)
+    }
+  },
+  checkout: (branch: string) => postJson<{ ok: boolean }>("/api/checkout", { branch }),
+  comments: () => getJson<ReadonlyArray<ReviewComment>>("/api/comments"),
+  addComment: (comment: {
+    filePath: string
+    side: CommentSide
+    lineNumber: number
+    body: string
+    target: string
+  }) => postJson<ReviewComment>("/api/comments", comment),
+  deleteComment: (id: string) =>
+    request(`/api/comments/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  pulls: () => getJson<ReadonlyArray<PullRequestInfo>>("/api/github/pulls"),
+  pullComments: (pullNumber: number) =>
+    getJson<ReadonlyArray<ReviewComment>>(`/api/github/pulls/${pullNumber}/comments`),
+  addPullComment: (
+    pullNumber: number,
+    comment: { filePath: string; side: CommentSide; lineNumber: number; body: string }
+  ) => postJson<ReviewComment>(`/api/github/pulls/${pullNumber}/comments`, comment)
+}

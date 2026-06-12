@@ -1,0 +1,583 @@
+:root {
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  --bg: #fafafa;
+  --bg-panel: #ffffff;
+  --bg-subtle: #f1f1f3;
+  --bg-hover: #ececef;
+  --fg: #1c1c21;
+  --fg-muted: #6e6e78;
+  --fg-faint: #9a9aa4;
+  --border: #e3e3e8;
+  --accent: #4f6ef7;
+  --accent-soft: rgba(79, 110, 247, 0.1);
+  --green: #2da160;
+  --red: #d4453a;
+  --amber: #b58a23;
+
+  --radius: 8px;
+  --topbar-h: 48px;
+  --bottom-h: 240px;
+}
+
+[data-theme="dark"] {
+  --bg: #131316;
+  --bg-panel: #1a1a1f;
+  --bg-subtle: #202027;
+  --bg-hover: #26262e;
+  --fg: #e8e8ec;
+  --fg-muted: #9a9aa4;
+  --fg-faint: #6e6e78;
+  --border: #2a2a32;
+  --accent: #7a93ff;
+  --accent-soft: rgba(122, 147, 255, 0.14);
+  --green: #4cc38a;
+  --red: #f2645a;
+  --amber: #d9a93c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* ---------- layout ---------- */
+
+.app {
+  display: grid;
+  grid-template-rows: var(--topbar-h) 1fr var(--bottom-h);
+  grid-template-columns: 280px 1fr;
+  grid-template-areas:
+    "topbar topbar"
+    "sidebar diff"
+    "bottom bottom";
+  height: 100%;
+}
+
+.topbar {
+  grid-area: topbar;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar {
+  grid-area: sidebar;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+}
+
+.diff-pane {
+  grid-area: diff;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 16px 20px 48px;
+}
+
+.bottom-panel {
+  grid-area: bottom;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  min-height: 0;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+}
+
+/* ---------- top bar ---------- */
+
+.brand {
+  font-weight: 650;
+  font-size: 14px;
+  letter-spacing: -0.2px;
+}
+
+.brand .dot {
+  color: var(--accent);
+}
+
+.repo-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.repo-chip .branch {
+  color: var(--fg);
+  font-weight: 550;
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px;
+}
+
+.mode-tabs button {
+  padding: 4px 12px;
+  border-radius: 6px;
+  color: var(--fg-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.mode-tabs button.active {
+  background: var(--bg-panel);
+  color: var(--fg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--fg-muted);
+  font-size: 14px;
+}
+
+.icon-button:hover {
+  background: var(--bg-hover);
+  color: var(--fg);
+}
+
+.compare-pickers {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+select {
+  font: inherit;
+  font-size: 12px;
+  color: var(--fg);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+/* ---------- sidebar ---------- */
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--fg-faint);
+}
+
+.sidebar-tree {
+  flex: 1;
+  min-height: 0;
+  padding: 0 6px 10px;
+
+  /* Theme the shadow-DOM file tree to match the app. */
+  --trees-bg-override: var(--bg-panel);
+  --trees-bg-muted-override: var(--bg-subtle);
+  --trees-fg-override: var(--fg);
+  --trees-fg-muted-override: var(--fg-muted);
+  --trees-border-color-override: var(--border);
+  --trees-accent-override: var(--accent);
+  --trees-selected-bg-override: var(--accent-soft);
+  --trees-selected-fg-override: var(--fg);
+  --trees-focus-ring-color-override: var(--accent);
+  --trees-search-bg-override: var(--bg-subtle);
+  --trees-search-fg-override: var(--fg);
+}
+
+.sidebar-tree file-tree {
+  height: 100%;
+}
+
+/* ---------- diff pane ---------- */
+
+.diff-file {
+  margin: 0 auto 16px;
+  max-width: 1200px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  overflow: hidden;
+}
+
+.diff-empty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--fg-faint);
+  font-size: 13px;
+}
+
+.diff-empty .hint {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.diff-loading {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--fg-faint);
+}
+
+.diff-error {
+  margin: 24px auto;
+  max-width: 640px;
+  padding: 14px 16px;
+  border: 1px solid var(--red);
+  border-radius: var(--radius);
+  color: var(--red);
+  background: var(--bg-panel);
+  font-size: 12.5px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ---------- annotations / comments ---------- */
+
+.annotation {
+  font-family: var(--font-ui);
+  padding: 8px 12px;
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.comment-card {
+  max-width: 720px;
+  padding: 8px 12px;
+  margin: 4px 0;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.comment-card .meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 11.5px;
+  color: var(--fg-muted);
+}
+
+.comment-card .meta .author {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.comment-card .meta .source-badge {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.comment-card .meta .delete {
+  margin-left: auto;
+  color: var(--fg-faint);
+  font-size: 11px;
+}
+
+.comment-card .meta .delete:hover {
+  color: var(--red);
+}
+
+.comment-card .body {
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.composer {
+  max-width: 720px;
+  margin: 4px 0;
+}
+
+.composer textarea {
+  width: 100%;
+  min-height: 64px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--fg);
+  background: var(--bg-panel);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  outline: none;
+  resize: vertical;
+}
+
+.composer .actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.composer .actions button {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.composer .actions .submit {
+  background: var(--accent);
+  color: #fff;
+}
+
+.composer .actions .submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.composer .actions .cancel {
+  color: var(--fg-muted);
+}
+
+.composer .actions .cancel:hover {
+  color: var(--fg);
+}
+
+/* ---------- bottom panel (branches / log) ---------- */
+
+.branches-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--fg-faint);
+}
+
+.branch-list,
+.commit-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 2px 6px 8px;
+}
+
+.branch-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: 6px;
+  text-align: left;
+  font-size: 12.5px;
+}
+
+.branch-row:hover {
+  background: var(--bg-hover);
+}
+
+.branch-row.selected {
+  background: var(--accent-soft);
+}
+
+.branch-row .git-icon {
+  color: var(--fg-faint);
+  flex-shrink: 0;
+}
+
+.branch-row .name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.branch-row.current .name {
+  font-weight: 700;
+}
+
+.branch-row .current-badge {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 10.5px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.branch-row .track {
+  margin-left: auto;
+  color: var(--fg-faint);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.commits-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.commit-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: 6px;
+  text-align: left;
+  font-size: 12.5px;
+}
+
+.commit-row:hover {
+  background: var(--bg-hover);
+}
+
+.commit-row.selected {
+  background: var(--accent-soft);
+}
+
+.commit-row .sha {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.commit-row .subject {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.commit-row .refs {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.commit-row .ref-badge {
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--fg-muted);
+  font-size: 10.5px;
+}
+
+.commit-row .author,
+.commit-row .date {
+  margin-left: auto;
+  color: var(--fg-faint);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.commit-row .date {
+  margin-left: 0;
+  min-width: 72px;
+  text-align: right;
+}
+
+.pull-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  text-align: left;
+  font-size: 12.5px;
+}
+
+.pull-row:hover {
+  background: var(--bg-hover);
+}
+
+.pull-row.selected {
+  background: var(--accent-soft);
+}
+
+.pull-row .number {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.pull-row .title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pull-row .branches {
+  margin-left: auto;
+  color: var(--fg-faint);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.empty-note {
+  padding: 12px 14px;
+  color: var(--fg-faint);
+  font-size: 12px;
+}
