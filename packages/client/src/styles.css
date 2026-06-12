@@ -79,6 +79,14 @@ button {
   height: 100%;
 }
 
+/* When the git bottom panel is collapsed, drop its row entirely. */
+.app.app-no-bottom {
+  grid-template-rows: var(--topbar-h) 1fr;
+  grid-template-areas:
+    "rail topbar topbar"
+    "rail sidebar diff";
+}
+
 .mode-rail {
   grid-area: rail;
   display: flex;
