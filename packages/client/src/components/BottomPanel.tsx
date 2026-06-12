@@ -44,6 +44,9 @@ export function BottomPanel({
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const showPulls = mode === "review";
 
+
+  
+
   return (
     <footer className="bottom-panel">
       <div className="branches-pane">

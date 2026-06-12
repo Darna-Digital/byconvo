@@ -1,7 +1,8 @@
 import type { DiffLineAnnotation, FileDiffMetadata } from "@pierre/diffs"
 import { FileDiff } from "@pierre/diffs/react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { CommentSide, DiffTarget, ReviewComment } from "../types"
+import { connectorGutterCSS, DiffConnectors } from "./DiffConnectors"
 
 export interface DraftLocation {
   readonly filePath: string
@@ -17,6 +18,7 @@ interface DiffPaneProps {
   files: ReadonlyArray<FileDiffMetadata>
   theme: "light" | "dark"
   diffStyle: "split" | "unified"
+  connectors: boolean
   loading: boolean
   error: string | null
   target: DiffTarget
@@ -127,10 +129,121 @@ function CommentCard({
 
 const THEMES = { light: "github-light", dark: "github-dark" } as const
 
+interface FileDiffSectionProps {
+  file: FileDiffMetadata
+  theme: "light" | "dark"
+  diffStyle: "split" | "unified"
+  connectorsEnabled: boolean
+  annotations: ReadonlyArray<DiffLineAnnotation<AnnotationMeta>>
+  onDraftOpen: (draft: DraftLocation) => void
+  onDraftCancel: () => void
+  onEditFile: (path: string) => void
+  onCommentSubmit: (location: DraftLocation, body: string) => Promise<void>
+  onCommentDelete: (comment: ReviewComment) => Promise<void>
+}
+
+function FileDiffSection({
+  file,
+  theme,
+  diffStyle,
+  connectorsEnabled,
+  annotations,
+  onDraftOpen,
+  onDraftCancel,
+  onEditFile,
+  onCommentSubmit,
+  onCommentDelete,
+}: FileDiffSectionProps) {
+  // Hold the section as state via a callback ref, not a ref object: DiffConnectors
+  // reads it in a layout effect, and layout effects fire bottom-up, so a child
+  // would see a parent ref object as null. A stable setter only fires on mount.
+  const [sectionEl, setSectionEl] = useState<HTMLElement | null>(null)
+  // Pierre renders the shadow DOM imperatively; onPostRender is our signal to
+  // re-measure connector geometry. It must be stable and must NOT re-render the
+  // FileDiff (that would re-fire onPostRender in a loop), so it pokes the
+  // overlay through a ref instead of component state.
+  const recomputeConnectors = useRef<() => void>(() => {})
+  const onPostRender = useCallback(() => recomputeConnectors.current(), [])
+
+  return (
+    <section ref={setSectionEl} className="diff-file" data-file-anchor={file.name}>
+      <FileDiff<AnnotationMeta>
+        fileDiff={file}
+        disableWorkerPool
+        options={{
+          theme: THEMES,
+          themeType: theme,
+          diffStyle,
+          lineDiffType: "word",
+          overflow: diffStyle === "split" ? "scroll" : "wrap",
+          stickyHeader: false,
+          enableLineSelection: true,
+          // Widen the seam between columns so connectors have room to draw.
+          unsafeCSS: connectorsEnabled ? connectorGutterCSS : undefined,
+          onPostRender: connectorsEnabled ? onPostRender : undefined,
+          onLineNumberClick: (props) => {
+            onDraftOpen({
+              filePath: file.name,
+              side: props.annotationSide,
+              lineNumber: props.lineNumber,
+            })
+          },
+        }}
+        renderHeaderMetadata={(meta) =>
+          meta.type === "deleted" ? null : (
+            <button
+              type="button"
+              className="edit-file-button"
+              onClick={() => onEditFile(meta.name)}
+              title={`Edit ${meta.name}`}
+            >
+              Edit
+            </button>
+          )}
+        lineAnnotations={annotations as Array<DiffLineAnnotation<AnnotationMeta>>}
+        renderAnnotation={(annotation) => {
+          const meta = annotation.metadata
+          if (meta.kind === "draft") {
+            return (
+              <div className="annotation">
+                <Composer
+                  onCancel={onDraftCancel}
+                  onSubmit={(body) =>
+                    onCommentSubmit(
+                      {
+                        filePath: file.name,
+                        side: annotation.side,
+                        lineNumber: annotation.lineNumber,
+                      },
+                      body,
+                    )}
+                />
+              </div>
+            )
+          }
+          return (
+            <div className="annotation">
+              {meta.comments.map((comment) => (
+                <CommentCard key={comment.id} comment={comment} onDelete={onCommentDelete} />
+              ))}
+            </div>
+          )
+        }}
+      />
+      <DiffConnectors
+        section={sectionEl}
+        recomputeRef={recomputeConnectors}
+        enabled={connectorsEnabled}
+      />
+    </section>
+  )
+}
+
 export function DiffPane({
   files,
   theme,
   diffStyle,
+  connectors,
   loading,
   error,
   target,
@@ -143,6 +256,7 @@ export function DiffPane({
   onCommentSubmit,
   onCommentDelete
 }: DiffPaneProps) {
+  const connectorsEnabled = connectors && diffStyle === "split"
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Scroll the selected file's diff into view when picked in the tree.
@@ -229,72 +343,19 @@ export function DiffPane({
   return (
     <main className="diff-pane" ref={containerRef}>
       {files.map((file) => (
-        <section
+        <FileDiffSection
           key={`${target.kind}-${file.prevName ?? ""}-${file.name}`}
-          className="diff-file"
-          data-file-anchor={file.name}
-        >
-          <FileDiff<AnnotationMeta>
-            fileDiff={file}
-            disableWorkerPool
-            options={{
-              theme: THEMES,
-              themeType: theme,
-              diffStyle,
-              lineDiffType: "word",
-              overflow: diffStyle === "split" ? "scroll" : "wrap",
-              stickyHeader: false,
-              enableLineSelection: true,
-              onLineNumberClick: (props) => {
-                onDraftOpen({
-                  filePath: file.name,
-                  side: props.annotationSide,
-                  lineNumber: props.lineNumber
-                })
-              }
-            }}
-            renderHeaderMetadata={(meta) =>
-              meta.type === "deleted" ? null : (
-                <button
-                  type="button"
-                  className="edit-file-button"
-                  onClick={() => onEditFile(meta.name)}
-                  title={`Edit ${meta.name}`}
-                >
-                  Edit
-                </button>
-              )}
-            lineAnnotations={annotationsByFile.get(file.name) ?? []}
-            renderAnnotation={(annotation) => {
-              const meta = annotation.metadata
-              if (meta.kind === "draft") {
-                return (
-                  <div className="annotation">
-                    <Composer
-                      onCancel={onDraftCancel}
-                      onSubmit={(body) =>
-                        onCommentSubmit(
-                          {
-                            filePath: file.name,
-                            side: annotation.side,
-                            lineNumber: annotation.lineNumber
-                          },
-                          body
-                        )}
-                    />
-                  </div>
-                )
-              }
-              return (
-                <div className="annotation">
-                  {meta.comments.map((comment) => (
-                    <CommentCard key={comment.id} comment={comment} onDelete={onCommentDelete} />
-                  ))}
-                </div>
-              )
-            }}
-          />
-        </section>
+          file={file}
+          theme={theme}
+          diffStyle={diffStyle}
+          connectorsEnabled={connectorsEnabled}
+          annotations={annotationsByFile.get(file.name) ?? []}
+          onDraftOpen={onDraftOpen}
+          onDraftCancel={onDraftCancel}
+          onEditFile={onEditFile}
+          onCommentSubmit={onCommentSubmit}
+          onCommentDelete={onCommentDelete}
+        />
       ))}
     </main>
   )

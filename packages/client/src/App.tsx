@@ -39,6 +39,10 @@ const initialTheme = (): Theme => {
 export function App() {
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [diffStyle, setDiffStyle] = useState<DiffStyle>("split");
+  // JetBrains-style connector ribbons in split view; on unless disabled.
+  const [connectors, setConnectors] = useState<boolean>(
+    () => localStorage.getItem("codediff-connectors") !== "off",
+  );
   const [mode, setMode] = useState<AppMode>("commit");
   const [workspace, setWorkspace] = useState<WorkspaceInfo | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -82,6 +86,10 @@ export function App() {
     document.documentElement.dataset["theme"] = theme;
     localStorage.setItem("codediff-theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem("codediff-connectors", connectors ? "on" : "off");
+  }, [connectors]);
 
   const refreshRepoState = useCallback(() => {
     api
@@ -460,6 +468,7 @@ export function App() {
         files={parsedFiles}
         theme={theme}
         diffStyle={diffStyle}
+        connectors={connectors}
         loading={diffLoading}
         error={diffError}
         target={target}
@@ -490,8 +499,11 @@ export function App() {
         contextLabel={contextLabel}
         diffStyle={diffStyle}
         showDiffStyleToggle={editing === null && target !== null}
+        connectors={connectors}
+        showConnectorsToggle={editing === null && target !== null && diffStyle === "split"}
         opBusy={opBusy}
         onDiffStyleChange={setDiffStyle}
+        onConnectorsChange={setConnectors}
         onRepoClick={() => setPickerOpen(true)}
         onPush={() => void runSync("push")}
         onPull={() => void runSync("pull")}

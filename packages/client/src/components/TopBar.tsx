@@ -6,8 +6,11 @@ interface TopBarProps {
   contextLabel: string;
   diffStyle: "split" | "unified";
   showDiffStyleToggle: boolean;
+  connectors: boolean;
+  showConnectorsToggle: boolean;
   opBusy: boolean;
   onDiffStyleChange: (style: "split" | "unified") => void;
+  onConnectorsChange: (enabled: boolean) => void;
   onRepoClick: () => void;
   onPush: () => void;
   onPull: () => void;
@@ -20,8 +23,11 @@ export function TopBar({
   contextLabel,
   diffStyle,
   showDiffStyleToggle,
+  connectors,
+  showConnectorsToggle,
   opBusy,
   onDiffStyleChange,
+  onConnectorsChange,
   onRepoClick,
   onPush,
   onPull,
@@ -74,6 +80,18 @@ export function TopBar({
             Unified
           </button>
         </div>
+      )}
+
+      {showConnectorsToggle && (
+        <button
+          type="button"
+          className={`icon-button connectors-toggle${connectors ? " active" : ""}`}
+          onClick={() => onConnectorsChange(!connectors)}
+          aria-pressed={connectors}
+          title={connectors ? "Hide change connectors" : "Show change connectors"}
+        >
+          ⤳
+        </button>
       )}
 
       {repo !== null && (
