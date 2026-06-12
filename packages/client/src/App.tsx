@@ -413,7 +413,7 @@ export function App() {
         </div>
       )}
 
-      <Agentation />
+      {import.meta.env.DEV && <Agentation />}
     </div>
   );
 }
