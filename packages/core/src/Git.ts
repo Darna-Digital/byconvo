@@ -234,18 +234,20 @@ export const make = Effect.gen(function*() {
     const checkout: GitShape["checkout"] = (branch) =>
       run("checkout", branch).pipe(Effect.asVoid)
 
+    const headShortSha = Effect.map(run("rev-parse", "--short", "HEAD"), (out) => out.trim())
+
     const commit: GitShape["commit"] = (message, paths) =>
       Effect.gen(function*() {
-        if (paths.length > 0) {
-          // `git add` first so untracked files and deletions are included,
-          // then commit only the selected paths.
-          yield* run("add", "--", ...paths)
-          yield* run("commit", "-m", message, "--", ...paths)
-        } else {
+        if (paths.length === 0) {
           yield* run("add", "-A")
           yield* run("commit", "-m", message)
+          return yield* headShortSha
         }
-        return (yield* run("rev-parse", "--short", "HEAD")).trim()
+        // `git add` first so untracked files and deletions are included,
+        // then commit only the selected paths.
+        yield* run("add", "--", ...paths)
+        yield* run("commit", "-m", message, "--", ...paths)
+        return yield* headShortSha
       })
 
     const push: GitShape["push"] = Effect.gen(function*() {

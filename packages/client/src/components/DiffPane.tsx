@@ -161,16 +161,16 @@ export function DiffPane({
     for (const comment of comments) {
       const key = `${comment.side}:${comment.lineNumber}:${comment.filePath}`
       const bucket = grouped.get(key)
-      if (bucket === undefined) {
-        grouped.set(key, {
-          filePath: comment.filePath,
-          side: comment.side,
-          lineNumber: comment.lineNumber,
-          comments: [comment]
-        })
-      } else {
+      if (bucket !== undefined) {
         bucket.comments.push(comment)
+        continue
       }
+      grouped.set(key, {
+        filePath: comment.filePath,
+        side: comment.side,
+        lineNumber: comment.lineNumber,
+        comments: [comment]
+      })
     }
     for (const group of grouped.values()) {
       const annotations = result.get(group.filePath) ?? []

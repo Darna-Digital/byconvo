@@ -215,16 +215,17 @@ export function App() {
           body,
         });
         setPullComments((existing) => [...existing, created]);
-      } else {
-        const created = await api.addComment({
-          filePath: location.filePath,
-          side: location.side,
-          lineNumber: location.lineNumber,
-          body,
-          target: targetKey,
-        });
-        setLocalComments((existing) => [...existing, created]);
+        setDraft(null);
+        return;
       }
+      const created = await api.addComment({
+        filePath: location.filePath,
+        side: location.side,
+        lineNumber: location.lineNumber,
+        body,
+        target: targetKey,
+      });
+      setLocalComments((existing) => [...existing, created]);
       setDraft(null);
     },
     [target, targetKey],

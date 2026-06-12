@@ -35,8 +35,11 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
   const toggle = (path: string) => {
     setDeselected((current) => {
       const next = new Set(current)
-      if (next.has(path)) next.delete(path)
-      else next.add(path)
+      if (next.has(path)) {
+        next.delete(path)
+        return next
+      }
+      next.add(path)
       return next
     })
   }
