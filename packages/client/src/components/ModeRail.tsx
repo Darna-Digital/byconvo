@@ -55,7 +55,6 @@ const BROWSE_ICON = icon(
   </>,
 );
 
-// A panel glyph with a highlighted bottom strip — toggles the git bottom panel.
 const BOTTOM_PANEL_ICON = icon(
   <>
     <rect

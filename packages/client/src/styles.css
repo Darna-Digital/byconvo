@@ -87,6 +87,11 @@ button {
     "rail sidebar diff";
 }
 
+/* Without the bottom row, notices sit against the viewport bottom. */
+.app.app-no-bottom .notice {
+  bottom: 16px;
+}
+
 .mode-rail {
   grid-area: rail;
   display: flex;
