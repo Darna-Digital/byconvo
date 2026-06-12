@@ -3,10 +3,10 @@ import type { FileDiffMetadata } from "@pierre/diffs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
 import { BottomPanel } from "./components/BottomPanel";
+import { CodeEditor } from "./components/CodeEditor";
 import { CommitPanel } from "./components/CommitPanel";
 import { DiffPane } from "./components/DiffPane";
 import type { DraftLocation } from "./components/DiffPane";
-import { FileView } from "./components/FileView";
 import { ModeRail } from "./components/ModeRail";
 import { RepoPicker } from "./components/RepoPicker";
 import { Sidebar } from "./components/Sidebar";
@@ -24,7 +24,6 @@ import type {
   WorkspaceInfo,
 } from "./types";
 import { diffTargetKey } from "./types";
-import { Agentation } from "agentation";
 
 type Theme = "light" | "dark";
 type DiffStyle = "split" | "unified";
@@ -52,6 +51,8 @@ export function App() {
   const [pullsError, setPullsError] = useState<string | null>(null);
   const [selectedPull, setSelectedPull] = useState<PullRequestInfo | null>(null);
   const [browseView, setBrowseView] = useState<BrowseView | null>(null);
+  // The path being edited; when set, an editor overlays the center in any mode.
+  const [editing, setEditing] = useState<string | null>(null);
   const [diffText, setDiffText] = useState<string | null>(null);
   const [diffError, setDiffError] = useState<string | null>(null);
   const [diffLoading, setDiffLoading] = useState(false);
@@ -119,6 +120,7 @@ export function App() {
       setPickerOpen(false);
       // Reset everything that belonged to the previous repository.
       setMode("commit");
+      setEditing(null);
       setSelectedFile(null);
       setSelectedPull(null);
       setBrowseView(null);
@@ -345,14 +347,26 @@ export function App() {
     setSelectedPull(pull);
   }, []);
 
+  // In browse mode a file click opens it for editing; in the diff modes it
+  // scrolls the diff to that file (the diff header has its own Edit button).
   const onFileSelect = useCallback(
     (path: string | null) => {
       if (path === null) return;
-      if (mode === "browse") setBrowseView({ kind: "file", path });
+      if (mode === "browse") setEditing(path);
       else setSelectedFile(path);
     },
     [mode],
   );
+
+  const changeMode = useCallback((next: AppMode) => {
+    setEditing(null);
+    setMode(next);
+  }, []);
+
+  const onSaved = useCallback(() => {
+    showNotice("ok", "Saved");
+    refresh();
+  }, [refresh, showNotice]);
 
   // Hide codediff's own comment store from the review surface.
   const isInternalPath = (path: string) =>
@@ -399,28 +413,37 @@ export function App() {
   );
 
   const contextLabel = useMemo(() => {
+    if (editing !== null) return editing;
     if (mode === "commit") return "Local changes";
     if (mode === "review") {
       return selectedPull === null
         ? "Select a pull request"
         : `#${selectedPull.number} · ${selectedPull.title}`;
     }
-    if (browseView?.kind === "file") return browseView.path;
     if (browseView?.kind === "commit") {
       return `commit ${browseView.shortSha}`;
     }
     return "Select a file or commit";
-  }, [mode, selectedPull, browseView]);
+  }, [editing, mode, selectedPull, browseView]);
 
   const renderCenter = () => {
-    if (mode === "browse" && browseView?.kind === "file") {
-      return <FileView path={browseView.path} theme={theme} />;
+    // The editor overlays the center in every mode.
+    if (editing !== null) {
+      return (
+        <CodeEditor
+          path={editing}
+          theme={theme}
+          onClose={() => setEditing(null)}
+          onSaved={onSaved}
+          onError={(message) => showNotice("err", message)}
+        />
+      );
     }
     if (target === null) {
       const hint =
         mode === "review"
           ? "Pick a pull request from the panel below to review it."
-          : "Pick a file from the tree to read it, or a commit from the log to see its diff.";
+          : "Pick a file from the tree to edit it, or a commit from the log to see its diff.";
       return (
         <main className="diff-pane">
           <div className="diff-empty">
@@ -445,6 +468,7 @@ export function App() {
         selectedFile={selectedFile}
         onDraftOpen={setDraft}
         onDraftCancel={() => setDraft(null)}
+        onEditFile={setEditing}
         onCommentSubmit={submitComment}
         onCommentDelete={deleteComment}
       />
@@ -457,7 +481,7 @@ export function App() {
         mode={mode}
         hasGitHub={repo?.github != null}
         theme={theme}
-        onModeChange={setMode}
+        onModeChange={changeMode}
         onThemeToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
       />
       <TopBar
@@ -465,9 +489,7 @@ export function App() {
         branches={branches}
         contextLabel={contextLabel}
         diffStyle={diffStyle}
-        showDiffStyleToggle={
-          !(mode === "browse" && browseView?.kind === "file") && target !== null
-        }
+        showDiffStyleToggle={editing === null && target !== null}
         opBusy={opBusy}
         onDiffStyleChange={setDiffStyle}
         onRepoClick={() => setPickerOpen(true)}
@@ -475,11 +497,15 @@ export function App() {
         onPull={() => void runSync("pull")}
         onRefresh={refresh}
       />
+
+
+
+      
       <Sidebar
         mode={mode}
         paths={treePaths}
         gitStatus={treeGitStatus}
-        selectedFile={mode === "browse" ? browseView?.kind === "file" ? browseView.path : null : selectedFile}
+        selectedFile={mode === "browse" ? editing : selectedFile}
         onFileSelect={onFileSelect}
         footer={
           mode === "commit" && changedFiles.length > 0 ? (
@@ -519,8 +545,6 @@ export function App() {
           {notice.text}
         </div>
       )}
-
-      {import.meta.env.DEV && <Agentation />}
     </div>
   );
 }

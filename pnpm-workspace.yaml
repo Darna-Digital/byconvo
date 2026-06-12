@@ -4,4 +4,3 @@ packages:
 onlyBuiltDependencies:
   - esbuild
   - msgpackr-extract
-  - better-sqlite3

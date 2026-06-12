@@ -37,6 +37,10 @@ export interface WorkspaceShape {
   readonly readFile: (
     relPath: string
   ) => Effect.Effect<{ name: string; contents: string }, NoRepoSelected | PlatformError>
+  readonly writeFile: (
+    relPath: string,
+    contents: string
+  ) => Effect.Effect<void, NoRepoSelected | PlatformError>
 }
 
 export class Workspace extends Context.Service<Workspace, WorkspaceShape>()("Workspace") {}
@@ -175,21 +179,33 @@ export const make = (initial: InitialSelection | null) =>
         return { path, parent, isGitRepo, entries }
       })
 
-    const readFile: WorkspaceShape["readFile"] = (relPath) =>
+    // Resolve a repo-relative path to an absolute one, refusing anything that
+    // escapes the repository root.
+    const resolveInRepo = (relPath: string) =>
       Effect.gen(function*() {
         const root = yield* requireCurrent
-        // Resolve and refuse anything that escapes the repository root.
         const cleaned = relPath.replace(/^\/+/, "")
-        const fullPath = `${root}/${cleaned}`
-        const resolved = pathResolve(fullPath)
+        const resolved = pathResolve(`${root}/${cleaned}`)
         if (resolved !== root && !resolved.startsWith(`${root}/`)) {
           return yield* Effect.fail(new NoRepoSelected())
         }
-        const contents = yield* fs.readFileString(resolved)
-        return { name: cleaned.split("/").at(-1) ?? cleaned, contents }
+        return { resolved, name: cleaned.split("/").at(-1) ?? cleaned }
       })
 
-    return Workspace.of({ info, requireCurrent, setCurrent, browse, readFile })
+    const readFile: WorkspaceShape["readFile"] = (relPath) =>
+      Effect.gen(function*() {
+        const { name, resolved } = yield* resolveInRepo(relPath)
+        const contents = yield* fs.readFileString(resolved)
+        return { name, contents }
+      })
+
+    const writeFile: WorkspaceShape["writeFile"] = (relPath, contents) =>
+      Effect.gen(function*() {
+        const { resolved } = yield* resolveInRepo(relPath)
+        yield* fs.writeFileString(resolved, contents)
+      })
+
+    return Workspace.of({ info, requireCurrent, setCurrent, browse, readFile, writeFile })
   })
 
 export const layer = (

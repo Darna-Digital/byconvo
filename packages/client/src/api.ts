@@ -41,14 +41,21 @@ const getJson = async <T>(path: string): Promise<T> => (await request(path)).jso
 
 const getText = async (path: string): Promise<string> => (await request(path)).text()
 
-const postJson = async <T>(path: string, body: unknown): Promise<T> => {
+const sendJson = async <T>(
+  method: "POST" | "PUT",
+  path: string,
+  body: unknown
+): Promise<T> => {
   const response = await request(path, {
-    method: "POST",
+    method,
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body)
   })
   return response.json()
 }
+
+const postJson = <T>(path: string, body: unknown): Promise<T> =>
+  sendJson<T>("POST", path, body)
 
 export const api = {
   workspace: () => getJson<WorkspaceInfo>("/api/workspace"),
@@ -58,6 +65,8 @@ export const api = {
       path === null ? "/api/fs/browse" : `/api/fs/browse?path=${encodeURIComponent(path)}`
     ),
   file: (path: string) => getJson<FileContent>(`/api/file?path=${encodeURIComponent(path)}`),
+  saveFile: (path: string, contents: string) =>
+    sendJson<{ ok: boolean }>("PUT", "/api/file", { path, contents }),
   repo: () => getJson<RepoInfo>("/api/repo"),
   files: () => getJson<FilesPayload>("/api/files"),
   branches: () => getJson<ReadonlyArray<BranchInfo>>("/api/branches"),

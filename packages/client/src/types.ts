@@ -100,10 +100,12 @@ export interface FileContent {
 /** The three top-level IDE modes, switched from the vertical tool rail. */
 export type AppMode = "commit" | "review" | "browse"
 
-/** What the center pane shows while in browse mode. */
-export type BrowseView =
-  | { readonly kind: "file"; readonly path: string }
-  | { readonly kind: "commit"; readonly sha: string; readonly shortSha: string }
+/** What the center pane shows while in browse mode (files open in the editor). */
+export type BrowseView = {
+  readonly kind: "commit"
+  readonly sha: string
+  readonly shortSha: string
+}
 
 /** What the center pane is currently diffing. */
 export type DiffTarget =

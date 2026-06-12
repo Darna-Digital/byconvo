@@ -8,11 +8,5 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck"
   },
-  "packageManager": "pnpm@10.33.4",
-  "devDependencies": {
-    "agentation": "^3.0.2"
-  },
-  "dependencies": {
-    "agentation-mcp": "^1.2.0"
-  }
+  "packageManager": "pnpm@10.33.4"
 }

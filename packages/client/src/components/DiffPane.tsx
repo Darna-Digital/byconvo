@@ -25,6 +25,7 @@ interface DiffPaneProps {
   selectedFile: string | null
   onDraftOpen: (draft: DraftLocation) => void
   onDraftCancel: () => void
+  onEditFile: (path: string) => void
   onCommentSubmit: (location: DraftLocation, body: string) => Promise<void>
   onCommentDelete: (comment: ReviewComment) => Promise<void>
 }
@@ -138,6 +139,7 @@ export function DiffPane({
   selectedFile,
   onDraftOpen,
   onDraftCancel,
+  onEditFile,
   onCommentSubmit,
   onCommentDelete
 }: DiffPaneProps) {
@@ -251,6 +253,17 @@ export function DiffPane({
                 })
               }
             }}
+            renderHeaderMetadata={(meta) =>
+              meta.type === "deleted" ? null : (
+                <button
+                  type="button"
+                  className="edit-file-button"
+                  onClick={() => onEditFile(meta.name)}
+                  title={`Edit ${meta.name}`}
+                >
+                  Edit
+                </button>
+              )}
             lineAnnotations={annotationsByFile.get(file.name) ?? []}
             renderAnnotation={(annotation) => {
               const meta = annotation.metadata

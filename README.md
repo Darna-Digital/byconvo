@@ -15,8 +15,13 @@ Switched from the vertical tool rail (far left), JetBrains-style:
   comments are stored locally in `.codediff/comments.json`.
 - **Pull Requests** — open GitHub PRs (GitLab planned). Pick a PR from the
   bottom panel to review its diff and read/write PR review comments.
-- **Browse** — the whole project like an IDE. Click a file in the tree to read
-  it (syntax-highlighted), or a commit in the log to see its patch.
+- **Browse** — the whole project like an IDE. Click a file in the tree to edit
+  it, or a commit in the log to see its patch.
+
+**Edit code in any mode.** Files open in a CodeMirror editor with
+syntax-highlighted editing and save-to-disk (Save / ⌘S). In browse mode a tree
+click opens the editor; in the diff modes each file header has an **Edit**
+button. Saving writes the working-tree file and refreshes the diff/status.
 
 Across all modes: side-by-side (split) or unified diff toggle, push/pull with
 ahead/behind counts, double-click a branch to check it out, light & dark
@@ -61,7 +66,7 @@ across restarts.
 | -------------------------------------- | -------------------------------- |
 | `GET/POST /api/workspace`               | Current repo + recents / switch repo |
 | `GET /api/fs/browse?path`               | Browse directories, git repos flagged |
-| `GET /api/file?path`                    | Read a file's contents (browse mode) |
+| `GET/PUT /api/file?path`                | Read / write a file's contents (editor) |
 | `GET /api/repo`                         | Repo info, current branch, GitHub remote |
 | `GET /api/files`                        | Tracked + untracked paths, git status |
 | `GET /api/branches`                     | Local branches with ahead/behind |

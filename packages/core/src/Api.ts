@@ -90,6 +90,23 @@ export const ApiRoutes = HttpRouter.use((router) =>
       return json(workspace.readFile(path))
     })
 
+    yield* router.add("PUT", "/api/file", (request) =>
+      Effect.gen(function*() {
+        const body = yield* request.json
+        if (typeof body !== "object" || body === null || Array.isArray(body)) {
+          return yield* badRequest("expected { path: string, contents: string }")
+        }
+        const { contents, path } = body as Record<string, unknown>
+        if (typeof path !== "string" || path.length === 0 || typeof contents !== "string") {
+          return yield* badRequest("expected { path: string, contents: string }")
+        }
+        return yield* json(Effect.as(workspace.writeFile(path, contents), { ok: true }))
+      }).pipe(Effect.catch((error) =>
+        Effect.succeed(
+          HttpServerResponse.jsonUnsafe({ error: errorMessage(error) }, { status: 500 })
+        )
+      )))
+
     yield* router.add("GET", "/api/repo", json(git.info))
     yield* router.add("GET", "/api/files", json(git.files))
     yield* router.add("GET", "/api/branches", json(git.branches))
