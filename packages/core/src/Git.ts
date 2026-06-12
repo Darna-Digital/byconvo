@@ -12,6 +12,7 @@ import type {
   GitStatusEntry,
   RepoInfo
 } from "./domain.js"
+import { NoRepoSelected, Workspace } from "./Workspace.js"
 
 export class GitError extends Data.TaggedError("GitError")<{
   readonly args: ReadonlyArray<string>
@@ -23,21 +24,30 @@ export class GitError extends Data.TaggedError("GitError")<{
   }
 }
 
+export type GitFailure = GitError | NoRepoSelected | PlatformError
+
 export interface GitShape {
-  readonly info: Effect.Effect<RepoInfo, GitError | PlatformError>
-  readonly files: Effect.Effect<FilesPayload, GitError | PlatformError>
-  readonly branches: Effect.Effect<ReadonlyArray<BranchInfo>, GitError | PlatformError>
+  readonly info: Effect.Effect<RepoInfo, GitFailure>
+  readonly files: Effect.Effect<FilesPayload, GitFailure>
+  readonly branches: Effect.Effect<ReadonlyArray<BranchInfo>, GitFailure>
   readonly log: (
     ref: string,
     limit: number
-  ) => Effect.Effect<ReadonlyArray<CommitInfo>, GitError | PlatformError>
-  readonly worktreeDiff: Effect.Effect<string, GitError | PlatformError>
+  ) => Effect.Effect<ReadonlyArray<CommitInfo>, GitFailure>
+  readonly worktreeDiff: Effect.Effect<string, GitFailure>
   readonly rangeDiff: (
     base: string,
     head: string
-  ) => Effect.Effect<string, GitError | PlatformError>
-  readonly commitDiff: (sha: string) => Effect.Effect<string, GitError | PlatformError>
-  readonly checkout: (branch: string) => Effect.Effect<void, GitError | PlatformError>
+  ) => Effect.Effect<string, GitFailure>
+  readonly commitDiff: (sha: string) => Effect.Effect<string, GitFailure>
+  readonly checkout: (branch: string) => Effect.Effect<void, GitFailure>
+  /** Commit the given paths (or everything when empty); returns the new short sha. */
+  readonly commit: (
+    message: string,
+    paths: ReadonlyArray<string>
+  ) => Effect.Effect<string, GitFailure>
+  readonly push: Effect.Effect<string, GitFailure>
+  readonly pull: Effect.Effect<string, GitFailure>
 }
 
 export class Git extends Context.Service<Git, GitShape>()("Git") {}
@@ -79,12 +89,13 @@ const parseTrack = (track: string): { ahead: number; behind: number } => ({
   behind: Number(track.match(/behind (\d+)/)?.[1] ?? 0)
 })
 
-export const make = (repoPath: string) =>
-  Effect.gen(function*() {
+export const make = Effect.gen(function*() {
     const spawner = yield* ChildProcessSpawner.ChildProcessSpawner
+    const workspace = yield* Workspace
 
     const run = (...args: ReadonlyArray<string>) =>
       Effect.scoped(Effect.gen(function*() {
+        const repoPath = yield* workspace.requireCurrent
         const handle = yield* spawner.spawn(
           ChildProcess.make("git", args as Array<string>, { cwd: repoPath })
         )
@@ -100,6 +111,27 @@ export const make = (repoPath: string) =>
           return yield* Effect.fail(new GitError({ args, exitCode, stderr }))
         }
         return stdout
+      }))
+
+    // push/pull report progress on stderr — keep it for the UI.
+    const runVerbose = (...args: ReadonlyArray<string>) =>
+      Effect.scoped(Effect.gen(function*() {
+        const repoPath = yield* workspace.requireCurrent
+        const handle = yield* spawner.spawn(
+          ChildProcess.make("git", args as Array<string>, { cwd: repoPath })
+        )
+        const [stdout, stderr, exitCode] = yield* Effect.all(
+          [
+            Stream.mkString(Stream.decodeText(handle.stdout)),
+            Stream.mkString(Stream.decodeText(handle.stderr)),
+            handle.exitCode
+          ],
+          { concurrency: "unbounded" }
+        )
+        if (exitCode !== 0) {
+          return yield* Effect.fail(new GitError({ args, exitCode, stderr }))
+        }
+        return `${stdout}${stderr}`.trim()
       }))
 
     const lines = (...args: ReadonlyArray<string>) =>
@@ -202,6 +234,36 @@ export const make = (repoPath: string) =>
     const checkout: GitShape["checkout"] = (branch) =>
       run("checkout", branch).pipe(Effect.asVoid)
 
+    const commit: GitShape["commit"] = (message, paths) =>
+      Effect.gen(function*() {
+        if (paths.length > 0) {
+          // `git add` first so untracked files and deletions are included,
+          // then commit only the selected paths.
+          yield* run("add", "--", ...paths)
+          yield* run("commit", "-m", message, "--", ...paths)
+        } else {
+          yield* run("add", "-A")
+          yield* run("commit", "-m", message)
+        }
+        return (yield* run("rev-parse", "--short", "HEAD")).trim()
+      })
+
+    const push: GitShape["push"] = Effect.gen(function*() {
+      const upstream = yield* run(
+        "rev-parse",
+        "--abbrev-ref",
+        "--symbolic-full-name",
+        "@{upstream}"
+      ).pipe(Effect.catchTag("GitError", () => Effect.succeed(null)))
+      return upstream === null
+        ? yield* runVerbose("push", "-u", "origin", "HEAD")
+        : yield* runVerbose("push")
+    })
+
+    // Merge on divergence — plain `git pull` refuses to run without a
+    // configured strategy (pull.rebase / pull.ff) on newer git versions.
+    const pull: GitShape["pull"] = runVerbose("pull", "--no-rebase")
+
     return Git.of({
       info,
       files,
@@ -210,9 +272,15 @@ export const make = (repoPath: string) =>
       worktreeDiff,
       rangeDiff,
       commitDiff,
-      checkout
+      checkout,
+      commit,
+      push,
+      pull
     })
   })
 
-export const layer = (repoPath: string): Layer.Layer<Git, never, ChildProcessSpawner.ChildProcessSpawner> =>
-  Layer.effect(Git)(make(repoPath))
+export const layer: Layer.Layer<
+  Git,
+  never,
+  ChildProcessSpawner.ChildProcessSpawner | Workspace
+> = Layer.effect(Git)(make)

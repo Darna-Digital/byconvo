@@ -3,13 +3,15 @@
  */
 import type {
   BranchInfo,
+  BrowsePayload,
   CommentSide,
   CommitInfo,
   DiffTarget,
   FilesPayload,
   PullRequestInfo,
   RepoInfo,
-  ReviewComment
+  ReviewComment,
+  WorkspaceInfo
 } from "./types"
 
 class ApiError extends Error {
@@ -48,6 +50,12 @@ const postJson = async <T>(path: string, body: unknown): Promise<T> => {
 }
 
 export const api = {
+  workspace: () => getJson<WorkspaceInfo>("/api/workspace"),
+  setWorkspace: (path: string) => postJson<WorkspaceInfo>("/api/workspace", { path }),
+  browse: (path: string | null) =>
+    getJson<BrowsePayload>(
+      path === null ? "/api/fs/browse" : `/api/fs/browse?path=${encodeURIComponent(path)}`
+    ),
   repo: () => getJson<RepoInfo>("/api/repo"),
   files: () => getJson<FilesPayload>("/api/files"),
   branches: () => getJson<ReadonlyArray<BranchInfo>>("/api/branches"),
@@ -70,6 +78,10 @@ export const api = {
     }
   },
   checkout: (branch: string) => postJson<{ ok: boolean }>("/api/checkout", { branch }),
+  commit: (message: string, paths: ReadonlyArray<string>) =>
+    postJson<{ sha: string }>("/api/commit", { message, paths }),
+  push: () => postJson<{ output: string }>("/api/push", {}),
+  pull: () => postJson<{ output: string }>("/api/pull", {}),
   comments: () => getJson<ReadonlyArray<ReviewComment>>("/api/comments"),
   addComment: (comment: {
     filePath: string

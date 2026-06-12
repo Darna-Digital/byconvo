@@ -1,8 +1,9 @@
 /**
  * codediff core server entry point.
  *
- * Reviews the repository at CODEDIFF_REPO (default: cwd) and serves the
- * HTTP API on CODEDIFF_PORT (default: 4317).
+ * The repository under review is selected at runtime from the UI and
+ * persisted to ~/.codediff/state.json. CODEDIFF_REPO (or the cwd, if it is
+ * a git repository) seeds the initial selection.
  */
 import { NodeHttpServer, NodeRuntime, NodeServices } from "@effect/platform-node"
 import { Layer } from "effect"
@@ -12,12 +13,17 @@ import { ApiRoutes } from "./Api.js"
 import * as Comments from "./Comments.js"
 import * as Git from "./Git.js"
 import * as GitHub from "./GitHub.js"
+import * as Workspace from "./Workspace.js"
 
-const repoPath = process.env["CODEDIFF_REPO"] ?? process.cwd()
+const envRepo = process.env["CODEDIFF_REPO"]
+const initialRepo = envRepo !== undefined && envRepo.length > 0
+  ? { path: envRepo, explicit: true }
+  : { path: process.cwd(), explicit: false }
 const port = Number(process.env["CODEDIFF_PORT"] ?? 4317)
 
 const ServicesLive = GitHub.layer.pipe(
-  Layer.provideMerge(Layer.mergeAll(Git.layer(repoPath), Comments.layer(repoPath))),
+  Layer.provideMerge(Layer.mergeAll(Git.layer, Comments.layer)),
+  Layer.provideMerge(Workspace.layer(initialRepo)),
   Layer.provideMerge(Layer.mergeAll(NodeServices.layer, FetchHttpClient.layer))
 )
 

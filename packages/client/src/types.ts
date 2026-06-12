@@ -62,6 +62,25 @@ export interface ReviewComment {
   readonly source: "local" | "github"
 }
 
+export interface WorkspaceInfo {
+  readonly current: string | null
+  readonly recents: ReadonlyArray<string>
+  readonly home: string
+}
+
+export interface BrowseEntry {
+  readonly name: string
+  readonly path: string
+  readonly isGitRepo: boolean
+}
+
+export interface BrowsePayload {
+  readonly path: string
+  readonly parent: string | null
+  readonly isGitRepo: boolean
+  readonly entries: ReadonlyArray<BrowseEntry>
+}
+
 export interface PullRequestInfo {
   readonly number: number
   readonly title: string

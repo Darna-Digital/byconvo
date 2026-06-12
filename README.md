@@ -39,16 +39,17 @@ exposing `/api/*`; the Vite dev server proxies to it.
 
 ```bash
 pnpm install
-
-# Point the backend at the repo you want to review (defaults to cwd)
-CODEDIFF_REPO=/path/to/your/repo pnpm dev
+pnpm dev
 ```
 
-Then open http://localhost:5173.
+Then open http://localhost:5173 and pick a repository: click the repo chip in
+the top bar to open the repository picker — recent repos plus a directory
+browser over your machine. The selection persists in `~/.codediff/state.json`
+across restarts.
 
 | Env var          | Default | Purpose                              |
 | ---------------- | ------- | ------------------------------------ |
-| `CODEDIFF_REPO`  | `cwd`   | Repository to review                 |
+| `CODEDIFF_REPO`  | `cwd`   | Initial repository (UI picker overrides it) |
 | `CODEDIFF_PORT`  | `4317`  | Core API port                        |
 | `GITHUB_TOKEN`   | —       | GitHub auth (falls back to `gh auth token`) |
 
@@ -56,6 +57,8 @@ Then open http://localhost:5173.
 
 | Route                                  | Purpose                          |
 | -------------------------------------- | -------------------------------- |
+| `GET/POST /api/workspace`               | Current repo + recents / switch repo |
+| `GET /api/fs/browse?path`               | Browse directories, git repos flagged |
 | `GET /api/repo`                         | Repo info, current branch, GitHub remote |
 | `GET /api/files`                        | Tracked + untracked paths, git status |
 | `GET /api/branches`                     | Local branches with ahead/behind |

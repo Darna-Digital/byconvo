@@ -7,6 +7,7 @@ import { Comments } from "./Comments.js"
 import type { CommentSide } from "./domain.js"
 import { Git } from "./Git.js"
 import { GitHub } from "./GitHub.js"
+import { Workspace } from "./Workspace.js"
 
 const errorMessage = (error: unknown): string => {
   if (error instanceof Error) return error.message
@@ -52,6 +53,36 @@ export const ApiRoutes = HttpRouter.use((router) =>
     const git = yield* Git
     const comments = yield* Comments
     const github = yield* GitHub
+    const workspace = yield* Workspace
+
+    yield* router.add("GET", "/api/workspace", json(workspace.info))
+
+    yield* router.add("POST", "/api/workspace", (request) =>
+      Effect.gen(function*() {
+        const body = yield* request.json
+        const path = typeof body === "object" && body !== null && "path" in body
+          ? body.path
+          : null
+        if (typeof path !== "string" || path.length === 0) {
+          return yield* badRequest("expected { path: string }")
+        }
+        return yield* workspace.setCurrent(path).pipe(
+          Effect.map((info) => HttpServerResponse.jsonUnsafe(info)),
+          Effect.catchTag("InvalidRepo", (error) =>
+            Effect.succeed(
+              HttpServerResponse.jsonUnsafe({ error: error.message }, { status: 400 })
+            ))
+        )
+      }).pipe(Effect.catch((error) =>
+        Effect.succeed(
+          HttpServerResponse.jsonUnsafe({ error: errorMessage(error) }, { status: 500 })
+        )
+      )))
+
+    yield* router.add("GET", "/api/fs/browse", (request) => {
+      const path = searchParams(request).get("path")
+      return json(workspace.browse(path))
+    })
 
     yield* router.add("GET", "/api/repo", json(git.info))
     yield* router.add("GET", "/api/files", json(git.files))
@@ -89,6 +120,32 @@ export const ApiRoutes = HttpRouter.use((router) =>
           HttpServerResponse.jsonUnsafe({ error: errorMessage(error) }, { status: 500 })
         )
       )))
+
+    yield* router.add("POST", "/api/commit", (request) =>
+      Effect.gen(function*() {
+        const body = yield* request.json
+        if (typeof body !== "object" || body === null || Array.isArray(body)) {
+          return yield* badRequest("expected { message: string, paths?: string[] }")
+        }
+        const { message, paths } = body as Record<string, unknown>
+        if (typeof message !== "string" || message.trim().length === 0) {
+          return yield* badRequest("commit message must not be empty")
+        }
+        const pathList = Array.isArray(paths)
+          ? paths.filter((entry): entry is string => typeof entry === "string")
+          : []
+        return yield* json(
+          Effect.map(git.commit(message.trim(), pathList), (sha) => ({ sha }))
+        )
+      }).pipe(Effect.catch((error) =>
+        Effect.succeed(
+          HttpServerResponse.jsonUnsafe({ error: errorMessage(error) }, { status: 500 })
+        )
+      )))
+
+    yield* router.add("POST", "/api/push", json(Effect.map(git.push, (output) => ({ output }))))
+
+    yield* router.add("POST", "/api/pull", json(Effect.map(git.pull, (output) => ({ output }))))
 
     yield* router.add("GET", "/api/comments", json(comments.list))
 

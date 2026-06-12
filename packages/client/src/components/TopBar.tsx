@@ -8,6 +8,10 @@ interface TopBarProps {
   onTargetChange: (target: DiffTarget) => void
   onThemeToggle: () => void
   onRefresh: () => void
+  onRepoClick: () => void
+  onPush: () => void
+  onPull: () => void
+  opBusy: boolean
 }
 
 export function TopBar({
@@ -17,9 +21,14 @@ export function TopBar({
   theme,
   onTargetChange,
   onThemeToggle,
-  onRefresh
+  onRefresh,
+  onRepoClick,
+  onPush,
+  onPull,
+  opBusy
 }: TopBarProps) {
   const mode = target.kind === "commit" ? "worktree" : target.kind
+  const current = branches.find((branch) => branch.isCurrent)
 
   const defaultBase = branches.find((b) => b.name === "main" || b.name === "master")?.name
     ?? branches.at(0)?.name
@@ -30,13 +39,22 @@ export function TopBar({
       <div className="brand">
         codediff<span className="dot">.sh</span>
       </div>
-      {repo !== null && (
-        <div className="repo-chip">
-          <span>{repo.name}</span>
-          <span aria-hidden>·</span>
-          <span className="branch">{repo.currentBranch}</span>
-        </div>
-      )}
+      <button
+        type="button"
+        className="repo-chip"
+        onClick={onRepoClick}
+        title="Switch repository"
+      >
+        {repo !== null
+          ? (
+            <>
+              <span>{repo.name}</span>
+              <span aria-hidden>·</span>
+              <span className="branch">{repo.currentBranch}</span>
+            </>
+          )
+          : <span>Open repository…</span>}
+      </button>
       {target.kind === "range" && (
         <div className="compare-pickers">
           <select
@@ -95,6 +113,28 @@ export function TopBar({
           </button>
         )}
       </nav>
+      {repo !== null && (
+        <>
+          <button
+            type="button"
+            className="sync-button"
+            onClick={onPull}
+            disabled={opBusy}
+            title="Pull"
+          >
+            ↓{current !== undefined && current.behind > 0 ? ` ${current.behind}` : ""}
+          </button>
+          <button
+            type="button"
+            className="sync-button"
+            onClick={onPush}
+            disabled={opBusy}
+            title="Push"
+          >
+            ↑{current !== undefined && current.ahead > 0 ? ` ${current.ahead}` : ""}
+          </button>
+        </>
+      )}
       <button type="button" className="icon-button" onClick={onRefresh} title="Refresh">
         ⟳
       </button>

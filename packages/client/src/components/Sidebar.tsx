@@ -1,4 +1,5 @@
 import { FileTree, useFileTree } from "@pierre/trees/react"
+import type { ReactNode } from "react"
 import { useEffect, useRef } from "react"
 import type { GitStatusEntry } from "../types"
 
@@ -7,9 +8,10 @@ interface SidebarProps {
   gitStatus: ReadonlyArray<GitStatusEntry>
   selectedFile: string | null
   onFileSelect: (path: string | null) => void
+  footer?: ReactNode
 }
 
-export function Sidebar({ paths, gitStatus, selectedFile, onFileSelect }: SidebarProps) {
+export function Sidebar({ paths, gitStatus, selectedFile, onFileSelect, footer }: SidebarProps) {
   const onFileSelectRef = useRef(onFileSelect)
   onFileSelectRef.current = onFileSelect
 
@@ -61,6 +63,7 @@ export function Sidebar({ paths, gitStatus, selectedFile, onFileSelect }: Sideba
       <div className="sidebar-tree">
         <FileTree model={model} style={{ height: "100%" }} />
       </div>
+      {footer}
     </aside>
   )
 }
