@@ -2,7 +2,9 @@
  * HTTP API — routes the client talks to, mounted under /api.
  */
 import { Effect } from "effect"
+import * as FileSystem from "effect/FileSystem"
 import { HttpRouter, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
+import { resolve as pathResolve } from "node:path"
 import { Comments } from "./Comments.js"
 import type { CommentSide } from "./domain.js"
 import { Git } from "./Git.js"
@@ -262,5 +264,35 @@ export const ApiRoutes = HttpRouter.use((router) =>
           HttpServerResponse.jsonUnsafe({ error: errorMessage(error) }, { status: 500 })
         )
       )))
+
+    // When a built client is provided (desktop/production), serve it from the
+    // same origin so the app can load over http://localhost:PORT with no CORS.
+    const clientDir = process.env["CODEDIFF_CLIENT_DIR"]
+    if (clientDir !== undefined && clientDir.length > 0) {
+      const fs = yield* FileSystem.FileSystem
+      const root = pathResolve(clientDir)
+      const indexHtml = `${root}/index.html`
+
+      const serveStatic = (request: HttpServerRequest.HttpServerRequest) =>
+        Effect.gen(function*() {
+          const pathname = new URL(request.url, "http://localhost").pathname
+          const candidate = pathResolve(`${root}${pathname}`)
+          // Serve the requested asset when it exists and stays within the
+          // client dir; otherwise fall back to index.html for SPA routes.
+          const useFile = candidate !== root &&
+            (candidate === indexHtml || candidate.startsWith(`${root}/`)) &&
+            (yield* fs.exists(candidate).pipe(Effect.catch(() => Effect.succeed(false)))) &&
+            (yield* fs.stat(candidate).pipe(
+              Effect.map((info) => info.type === "File"),
+              Effect.catch(() => Effect.succeed(false))
+            ))
+          return yield* HttpServerResponse.file(useFile ? candidate : indexHtml)
+        }).pipe(Effect.catch(() =>
+          Effect.succeed(HttpServerResponse.text("not found", { status: 404 }))
+        ))
+
+      yield* router.add("GET", "/", serveStatic)
+      yield* router.add("GET", "/*", serveStatic)
+    }
   })
 )

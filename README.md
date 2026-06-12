@@ -34,15 +34,20 @@ Built on [`@pierre/trees`](https://trees.software/) for the file tree and
 
 ```
 packages/
-  client/   React 19 + Vite + TypeScript UI
-  core/     Effect v4 backend — wraps the git CLI and the GitHub REST API,
-            serves the HTTP API consumed by the client
+  client/    React 19 + Vite + TypeScript UI
+  core/      Effect v4 backend — wraps the git CLI and the GitHub REST API,
+             serves the HTTP API (and, in production, the built client)
+  desktop/   Electron shell that runs the client as a native app
 ```
 
 The core is a small HTTP server (`effect/unstable/http` + `@effect/platform-node`)
-exposing `/api/*`; the Vite dev server proxies to it.
+exposing `/api/*`; the Vite dev server proxies to it. When `CODEDIFF_CLIENT_DIR`
+is set, the core also serves the built client from `/` (same-origin), which is
+how the desktop app loads it in production.
 
 ## Getting started
+
+### In the browser
 
 ```bash
 pnpm install
@@ -54,10 +59,22 @@ the top bar to open the repository picker — recent repos plus a directory
 browser over your machine. The selection persists in `~/.codediff/state.json`
 across restarts.
 
+### As a desktop app
+
+```bash
+pnpm dev:desktop   # dev: Electron loads the Vite server, spawns the core
+pnpm desktop       # production-like: builds client + core, core serves the UI
+```
+
+The Electron shell is self-contained — it makes sure the core is running
+(spawning it if nothing answers on the API port) and then opens the app in a
+native window.
+
 | Env var          | Default | Purpose                              |
 | ---------------- | ------- | ------------------------------------ |
 | `CODEDIFF_REPO`  | `cwd`   | Initial repository (UI picker overrides it) |
 | `CODEDIFF_PORT`  | `4317`  | Core API port                        |
+| `CODEDIFF_CLIENT_DIR` | — | Built client dir for the core to serve (set by the desktop app) |
 | `GITHUB_TOKEN`   | —       | GitHub auth (falls back to `gh auth token`) |
 
 ## API overview
