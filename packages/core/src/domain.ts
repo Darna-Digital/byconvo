@@ -56,6 +56,48 @@ export interface CommitInfo {
   readonly authoredAt: string;
   readonly subject: string;
   readonly refs: ReadonlyArray<string>;
+  /** Full parent SHAs — drives the commit-graph lane layout. */
+  readonly parents: ReadonlyArray<string>;
+}
+
+/** One file touched by a commit, with its change kind. */
+export interface CommitFileChange {
+  readonly path: string;
+  readonly status: GitFileStatus;
+  /** The previous path for renames/copies; null otherwise. */
+  readonly oldPath: string | null;
+}
+
+/** Everything the commit-details panel shows for a single commit. */
+export interface CommitDetail {
+  readonly sha: string;
+  readonly shortSha: string;
+  readonly author: string;
+  readonly authorEmail: string;
+  readonly authoredAt: string;
+  readonly subject: string;
+  readonly body: string;
+  readonly refs: ReadonlyArray<string>;
+  readonly parents: ReadonlyArray<string>;
+  readonly files: ReadonlyArray<CommitFileChange>;
+  /** Local and remote branches whose history contains this commit. */
+  readonly containingBranches: ReadonlyArray<string>;
+}
+
+/** Filters applied to a `git log` query from the log toolbar. */
+export interface LogQuery {
+  readonly ref: string;
+  readonly limit: number;
+  readonly author: string | null;
+  readonly grep: string | null;
+  /** Treat `grep` as a regular expression rather than a fixed string. */
+  readonly regex: boolean;
+  readonly caseSensitive: boolean;
+  /** Git-parseable date bounds, e.g. "2026-01-01" or "2 weeks ago". */
+  readonly after: string | null;
+  readonly before: string | null;
+  /** Limit history to commits touching this path. */
+  readonly path: string | null;
 }
 
 export interface FilesPayload {

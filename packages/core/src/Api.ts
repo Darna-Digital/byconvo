@@ -161,12 +161,103 @@ export const ApiRoutes = HttpRouter.use((router) =>
         )
       )))
 
+    yield* router.add("POST", "/api/branch/rename", (request) =>
+      Effect.gen(function*() {
+        const body = yield* request.json
+        if (typeof body !== "object" || body === null || Array.isArray(body)) {
+          return yield* badRequest("expected { from: string, to: string }")
+        }
+        const { from, to } = body as Record<string, unknown>
+        if (
+          typeof from !== "string" || from.length === 0 ||
+          typeof to !== "string" || to.trim().length === 0
+        ) {
+          return yield* badRequest("expected { from: string, to: string }")
+        }
+        return yield* json(Effect.as(git.renameBranch(from, to.trim()), { ok: true }))
+      }).pipe(Effect.catch((error) =>
+        Effect.succeed(
+          HttpServerResponse.jsonUnsafe({ error: errorMessage(error) }, { status: 500 })
+        )
+      )))
+
+    yield* router.add("POST", "/api/branch/delete", (request) =>
+      Effect.gen(function*() {
+        const body = yield* request.json
+        if (typeof body !== "object" || body === null || Array.isArray(body)) {
+          return yield* badRequest("expected { name: string, force?: boolean }")
+        }
+        const { name, force } = body as Record<string, unknown>
+        if (typeof name !== "string" || name.length === 0) {
+          return yield* badRequest("branch name must not be empty")
+        }
+        return yield* json(Effect.as(git.deleteBranch(name, force === true), { ok: true }))
+      }).pipe(Effect.catch((error) =>
+        Effect.succeed(
+          HttpServerResponse.jsonUnsafe({ error: errorMessage(error) }, { status: 500 })
+        )
+      )))
+
+    yield* router.add("POST", "/api/fetch", json(Effect.map(git.fetch, (output) => ({ output }))))
+
+    yield* router.add("POST", "/api/merge", (request) =>
+      Effect.gen(function*() {
+        const body = yield* request.json
+        const branch = typeof body === "object" && body !== null && "branch" in body
+          ? body.branch
+          : null
+        if (typeof branch !== "string" || branch.length === 0) {
+          return yield* badRequest("expected { branch: string }")
+        }
+        return yield* json(Effect.map(git.merge(branch), (output) => ({ output })))
+      }).pipe(Effect.catch((error) =>
+        Effect.succeed(
+          HttpServerResponse.jsonUnsafe({ error: errorMessage(error) }, { status: 500 })
+        )
+      )))
+
+    yield* router.add("POST", "/api/rebase", (request) =>
+      Effect.gen(function*() {
+        const body = yield* request.json
+        const onto = typeof body === "object" && body !== null && "onto" in body
+          ? body.onto
+          : null
+        if (typeof onto !== "string" || onto.length === 0) {
+          return yield* badRequest("expected { onto: string }")
+        }
+        return yield* json(Effect.map(git.rebase(onto), (output) => ({ output })))
+      }).pipe(Effect.catch((error) =>
+        Effect.succeed(
+          HttpServerResponse.jsonUnsafe({ error: errorMessage(error) }, { status: 500 })
+        )
+      )))
+
     yield* router.add("GET", "/api/log", (request) => {
       const params = searchParams(request)
-      const ref = params.get("ref") ?? "HEAD"
-      const limit = Math.min(Number(params.get("limit") ?? 50) || 50, 200)
-      return json(git.log(ref, limit))
+      const trimmed = (key: string): string | null => {
+        const value = params.get(key)
+        return value !== null && value.trim().length > 0 ? value.trim() : null
+      }
+      return json(git.log({
+        ref: params.get("ref") ?? "HEAD",
+        limit: Math.min(Number(params.get("limit") ?? 50) || 50, 200),
+        author: trimmed("author"),
+        grep: trimmed("grep"),
+        regex: params.get("regex") === "1",
+        caseSensitive: params.get("case") === "1",
+        after: trimmed("after"),
+        before: trimmed("before"),
+        path: trimmed("path")
+      }))
     })
+
+    yield* router.add("GET", "/api/commit/:sha", () =>
+      Effect.gen(function*() {
+        const routeParams = yield* HttpRouter.params
+        const sha = routeParams["sha"]
+        if (sha === undefined || sha.length === 0) return yield* badRequest("missing commit sha")
+        return yield* json(git.commitDetail(sha))
+      }))
 
     yield* router.add("GET", "/api/diff", (request) => {
       const params = searchParams(request)

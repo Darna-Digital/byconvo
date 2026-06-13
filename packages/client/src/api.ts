@@ -5,10 +5,12 @@ import type {
   BranchInfo,
   BrowsePayload,
   CommentSide,
+  CommitDetail,
   CommitInfo,
   DiffTarget,
   FileContent,
   FilesPayload,
+  LogQuery,
   PullRequestInfo,
   RemoteBranchInfo,
   RepoInfo,
@@ -81,10 +83,28 @@ export const api = {
     getJson<ReadonlyArray<RemoteBranchInfo>>("/api/remote-branches"),
   createBranch: (name: string, startPoint: string | null = null) =>
     postJson<{ ok: boolean }>("/api/branch", { name, startPoint }),
-  log: (ref: string, limit = 60) =>
-    getJson<ReadonlyArray<CommitInfo>>(
-      `/api/log?ref=${encodeURIComponent(ref)}&limit=${limit}`
-    ),
+  renameBranch: (from: string, to: string) =>
+    postJson<{ ok: boolean }>("/api/branch/rename", { from, to }),
+  deleteBranch: (name: string, force = false) =>
+    postJson<{ ok: boolean }>("/api/branch/delete", { name, force }),
+  fetch: () => postJson<{ output: string }>("/api/fetch", {}),
+  merge: (branch: string) => postJson<{ output: string }>("/api/merge", { branch }),
+  rebase: (onto: string) => postJson<{ output: string }>("/api/rebase", { onto }),
+  log: (ref: string, filters?: LogQuery, limit = 80) => {
+    const params = new URLSearchParams({ ref, limit: String(limit) })
+    if (filters) {
+      if (filters.author !== null) params.set("author", filters.author)
+      if (filters.grep !== null) params.set("grep", filters.grep)
+      if (filters.regex) params.set("regex", "1")
+      if (filters.caseSensitive) params.set("case", "1")
+      if (filters.after !== null) params.set("after", filters.after)
+      if (filters.before !== null) params.set("before", filters.before)
+      if (filters.path !== null) params.set("path", filters.path)
+    }
+    return getJson<ReadonlyArray<CommitInfo>>(`/api/log?${params.toString()}`)
+  },
+  commitDetail: (sha: string) =>
+    getJson<CommitDetail>(`/api/commit/${encodeURIComponent(sha)}`),
   diff: (target: DiffTarget): Promise<string> => {
     switch (target.kind) {
       case "worktree":

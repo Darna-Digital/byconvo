@@ -17,7 +17,14 @@ interface TopBarProps {
   onConnectorsChange: (enabled: boolean) => void;
   onRepoClick: () => void;
   onCheckout: (ref: string) => void;
+  onCheckoutAndUpdate: (ref: string) => void;
   onCreateBranch: (name: string, startPoint: string | null) => void;
+  onCompare: (base: string, head: string) => void;
+  onMerge: (branch: string) => void;
+  onRebase: (onto: string) => void;
+  onFetch: () => void;
+  onRenameBranch: (name: string) => void;
+  onDeleteBranch: (name: string) => void;
   onCommitMode: () => void;
   onReviewMode: () => void;
   onPush: () => void;
@@ -41,7 +48,14 @@ export function TopBar({
   onConnectorsChange,
   onRepoClick,
   onCheckout,
+  onCheckoutAndUpdate,
   onCreateBranch,
+  onCompare,
+  onMerge,
+  onRebase,
+  onFetch,
+  onRenameBranch,
+  onDeleteBranch,
   onCommitMode,
   onReviewMode,
   onPush,
@@ -81,7 +95,14 @@ export function TopBar({
           prLabel={prLabel}
           opBusy={opBusy}
           onCheckout={onCheckout}
+          onCheckoutAndUpdate={onCheckoutAndUpdate}
           onCreateBranch={onCreateBranch}
+          onCompare={onCompare}
+          onMerge={onMerge}
+          onRebase={onRebase}
+          onFetch={onFetch}
+          onRenameBranch={onRenameBranch}
+          onDeleteBranch={onDeleteBranch}
           onCommitMode={onCommitMode}
           onReviewMode={onReviewMode}
           onPush={onPush}

@@ -27,9 +27,11 @@ import type {
   AppMode,
   BranchInfo,
   BrowseView,
+  CommitDetail,
   CommitInfo,
   DiffTarget,
   FilesPayload,
+  LogQuery,
   PullRequestInfo,
   RemoteBranchInfo,
   RepoInfo,
@@ -37,7 +39,7 @@ import type {
   ReviewComment,
   WorkspaceInfo,
 } from "./types";
-import { diffTargetKey } from "./types";
+import { diffTargetKey, emptyLogQuery } from "./types";
 
 type Theme = "light" | "dark";
 type DiffStyle = "split" | "unified";
@@ -78,6 +80,9 @@ export function App() {
   >([]);
   const [commits, setCommits] = useState<ReadonlyArray<CommitInfo>>([]);
   const [logRef, setLogRef] = useState<string | null>(null);
+  const [logQuery, setLogQuery] = useState<LogQuery>(emptyLogQuery);
+  const [commitDetail, setCommitDetail] = useState<CommitDetail | null>(null);
+  const [commitDetailLoading, setCommitDetailLoading] = useState(false);
   const [pulls, setPulls] = useState<ReadonlyArray<PullRequestInfo>>([]);
   const [pullsError, setPullsError] = useState<string | null>(null);
   const [selectedPull, setSelectedPull] = useState<PullRequestInfo | null>(null);
@@ -222,16 +227,41 @@ export function App() {
     }
   }, [mode, repo]);
 
-  // Branch log follows the selected branch (defaults to the current one);
-  // refreshNonce re-fetches it after commits, pushes, and pulls.
+  // Branch log follows the selected branch (defaults to the current one) and
+  // the active filters; refreshNonce re-fetches after commits, pushes, pulls.
   useEffect(() => {
     const ref = logRef ?? repo?.currentBranch;
     if (ref === undefined) return;
     api
-      .log(ref)
+      .log(ref, logQuery)
       .then(setCommits)
       .catch(() => setCommits([]));
-  }, [logRef, repo?.currentBranch, refreshNonce]);
+  }, [logRef, logQuery, repo?.currentBranch, refreshNonce]);
+
+  // Load the selected commit's details for the panel on the right.
+  useEffect(() => {
+    const sha = browseView?.kind === "commit" ? browseView.sha : null;
+    if (sha === null) {
+      setCommitDetail(null);
+      return;
+    }
+    let cancelled = false;
+    setCommitDetailLoading(true);
+    api
+      .commitDetail(sha)
+      .then((detail) => {
+        if (!cancelled) setCommitDetail(detail);
+      })
+      .catch(() => {
+        if (!cancelled) setCommitDetail(null);
+      })
+      .finally(() => {
+        if (!cancelled) setCommitDetailLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [browseView]);
 
   // Load PRs lazily once the repo is known to live on GitHub.
   useEffect(() => {
@@ -253,6 +283,9 @@ export function App() {
     }
     if (browseView?.kind === "commit") {
       return { kind: "commit", sha: browseView.sha, shortSha: browseView.shortSha };
+    }
+    if (browseView?.kind === "range") {
+      return { kind: "range", base: browseView.base, head: browseView.head };
     }
     return null;
   }, [mode, selectedPull, browseView]);
@@ -351,11 +384,22 @@ export function App() {
 
   const checkoutBranch = useCallback(
     async (branch: string) => {
-      await api.checkout(branch);
-      refreshRepoState();
-      setMode("commit");
+      setOpBusy(true);
+      try {
+        await api.checkout(branch);
+        refreshRepoState();
+        setRefreshNonce((nonce) => nonce + 1);
+        setMode("commit");
+        showNotice("ok", `Checked out ${branch}`);
+      } catch (cause) {
+        // Surface the reason — most often "local changes would be overwritten"
+        // on a dirty tree — instead of silently staying on the old branch.
+        showNotice("err", cause instanceof Error ? cause.message : String(cause));
+      } finally {
+        setOpBusy(false);
+      }
     },
-    [refreshRepoState],
+    [refreshRepoState, showNotice],
   );
 
   const createBranch = useCallback(
@@ -379,6 +423,78 @@ export function App() {
     refreshRepoState();
     setRefreshNonce((nonce) => nonce + 1);
   }, [refreshRepoState]);
+
+  // Run a git branch operation (merge/rebase/fetch/rename/delete), reporting the
+  // outcome and resyncing the repo afterwards.
+  const runBranchOp = useCallback(
+    async (label: string, op: () => Promise<{ output?: string } | unknown>) => {
+      setOpBusy(true);
+      try {
+        const result = (await op()) as { output?: string } | undefined;
+        const output =
+          result !== undefined &&
+          typeof result.output === "string" &&
+          result.output.length > 0
+            ? result.output
+            : label;
+        showNotice("ok", output);
+        refresh();
+      } catch (cause) {
+        showNotice("err", cause instanceof Error ? cause.message : String(cause));
+      } finally {
+        setOpBusy(false);
+      }
+    },
+    [refresh, showNotice],
+  );
+
+  // Compare a branch against another ref in a read-only range diff.
+  const compareBranch = useCallback((base: string, head: string) => {
+    setEditing(null);
+    setViewing(null);
+    setSelectedFile(null);
+    setMode("browse");
+    setBrowseView({ kind: "range", base, head });
+  }, []);
+
+  // Checkout a branch, then bring it up to date with its upstream.
+  const checkoutAndUpdate = useCallback(
+    async (branch: string) => {
+      setOpBusy(true);
+      try {
+        await api.checkout(branch);
+        const { output } = await api.pull();
+        showNotice("ok", output.length > 0 ? output : `Checked out and updated ${branch}`);
+        refreshRepoState();
+        setRefreshNonce((nonce) => nonce + 1);
+        setMode("commit");
+      } catch (cause) {
+        showNotice("err", cause instanceof Error ? cause.message : String(cause));
+      } finally {
+        setOpBusy(false);
+      }
+    },
+    [refreshRepoState, showNotice],
+  );
+
+  const renameBranch = useCallback(
+    (from: string) => {
+      const to = window.prompt(`Rename branch "${from}" to:`, from);
+      if (to === null || to.trim().length === 0 || to.trim() === from) return;
+      void runBranchOp(`Renamed ${from} → ${to.trim()}`, () =>
+        api.renameBranch(from, to.trim()),
+      );
+    },
+    [runBranchOp],
+  );
+
+  const deleteBranch = useCallback(
+    (name: string) => {
+      if (!window.confirm(`Delete branch "${name}"? This cannot be undone.`)) return;
+      void runBranchOp(`Deleted ${name}`, () => api.deleteBranch(name));
+    },
+    [runBranchOp],
+  );
 
   // Read the latest height inside the drag handler without re-subscribing it.
   const bottomHeightRef = useRef(bottomHeight);
@@ -594,6 +710,9 @@ export function App() {
     if (browseView?.kind === "commit") {
       return `commit ${browseView.shortSha}`;
     }
+    if (browseView?.kind === "range") {
+      return `${browseView.base} → ${browseView.head}`;
+    }
     return "Select a file or commit";
   }, [editing, viewing, mode, selectedPull, browseView, workspace]);
 
@@ -708,7 +827,18 @@ export function App() {
         onConnectorsChange={setConnectors}
         onRepoClick={() => setPickerOpen(true)}
         onCheckout={(ref) => void checkoutBranch(ref)}
+        onCheckoutAndUpdate={(ref) => void checkoutAndUpdate(ref)}
         onCreateBranch={(name, startPoint) => void createBranch(name, startPoint)}
+        onCompare={compareBranch}
+        onMerge={(branch) =>
+          void runBranchOp(`Merged ${branch}`, () => api.merge(branch))
+        }
+        onRebase={(onto) =>
+          void runBranchOp(`Rebased onto ${onto}`, () => api.rebase(onto))
+        }
+        onFetch={() => void runBranchOp("Fetched", () => api.fetch())}
+        onRenameBranch={renameBranch}
+        onDeleteBranch={deleteBranch}
         onCommitMode={() => changeMode("commit")}
         onReviewMode={() => changeMode("review")}
         onPush={() => void runSync("push")}
@@ -743,16 +873,23 @@ export function App() {
         <BottomPanel
           mode={mode}
           branches={branches}
+          remoteBranches={remoteBranches}
+          currentBranch={repo?.currentBranch ?? null}
           commits={commits}
           pulls={pulls}
           pullsError={pullsError}
           logRef={logRef ?? repo?.currentBranch ?? null}
+          logQuery={logQuery}
           selectedCommitSha={browseView?.kind === "commit" ? browseView.sha : null}
           selectedPullNumber={selectedPull?.number ?? null}
+          commitDetail={commitDetail}
+          commitDetailLoading={commitDetailLoading}
           onLogRefChange={setLogRef}
+          onLogQueryChange={setLogQuery}
           onBranchCheckout={checkoutBranch}
           onSelectCommit={selectCommit}
           onSelectPull={selectPull}
+          onSelectCommitFile={(path) => setSelectedFile(path)}
           onResizeStart={startBottomResize}
         />
       )}

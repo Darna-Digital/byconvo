@@ -53,6 +53,49 @@ export interface CommitInfo {
   readonly authoredAt: string
   readonly subject: string
   readonly refs: ReadonlyArray<string>
+  /** Full parent SHAs — drives the commit-graph lane layout. */
+  readonly parents: ReadonlyArray<string>
+}
+
+export interface CommitFileChange {
+  readonly path: string
+  readonly status: GitFileStatus
+  readonly oldPath: string | null
+}
+
+export interface CommitDetail {
+  readonly sha: string
+  readonly shortSha: string
+  readonly author: string
+  readonly authorEmail: string
+  readonly authoredAt: string
+  readonly subject: string
+  readonly body: string
+  readonly refs: ReadonlyArray<string>
+  readonly parents: ReadonlyArray<string>
+  readonly files: ReadonlyArray<CommitFileChange>
+  readonly containingBranches: ReadonlyArray<string>
+}
+
+/** Log filter state shared by the toolbar and the API client. */
+export interface LogQuery {
+  readonly author: string | null
+  readonly grep: string | null
+  readonly regex: boolean
+  readonly caseSensitive: boolean
+  readonly after: string | null
+  readonly before: string | null
+  readonly path: string | null
+}
+
+export const emptyLogQuery: LogQuery = {
+  author: null,
+  grep: null,
+  regex: false,
+  caseSensitive: false,
+  after: null,
+  before: null,
+  path: null
 }
 
 export interface FilesPayload {
@@ -136,11 +179,18 @@ export interface FileContent {
 export type AppMode = "commit" | "review" | "browse"
 
 /** What the center pane shows while in browse mode (files open in the editor). */
-export type BrowseView = {
-  readonly kind: "commit"
-  readonly sha: string
-  readonly shortSha: string
-}
+export type BrowseView =
+  | {
+      readonly kind: "commit"
+      readonly sha: string
+      readonly shortSha: string
+    }
+  | {
+      /** Compare two refs, e.g. a branch against the current one. */
+      readonly kind: "range"
+      readonly base: string
+      readonly head: string
+    }
 
 /** What the center pane is currently diffing. */
 export type DiffTarget =

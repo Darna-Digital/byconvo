@@ -6,10 +6,13 @@ import type { PlatformError } from "effect/PlatformError"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import type {
   BranchInfo,
+  CommitDetail,
+  CommitFileChange,
   CommitInfo,
   FilesPayload,
   GitFileStatus,
   GitStatusEntry,
+  LogQuery,
   RemoteBranchInfo,
   RepoInfo,
   RepoStatus
@@ -34,10 +37,8 @@ export interface GitShape {
   readonly status: Effect.Effect<RepoStatus, GitFailure>
   readonly branches: Effect.Effect<ReadonlyArray<BranchInfo>, GitFailure>
   readonly remoteBranches: Effect.Effect<ReadonlyArray<RemoteBranchInfo>, GitFailure>
-  readonly log: (
-    ref: string,
-    limit: number
-  ) => Effect.Effect<ReadonlyArray<CommitInfo>, GitFailure>
+  readonly log: (query: LogQuery) => Effect.Effect<ReadonlyArray<CommitInfo>, GitFailure>
+  readonly commitDetail: (sha: string) => Effect.Effect<CommitDetail, GitFailure>
   readonly worktreeDiff: Effect.Effect<string, GitFailure>
   readonly rangeDiff: (
     base: string,
@@ -57,6 +58,20 @@ export interface GitShape {
   ) => Effect.Effect<string, GitFailure>
   readonly push: Effect.Effect<string, GitFailure>
   readonly pull: Effect.Effect<string, GitFailure>
+  /** Fetch all remotes, pruning deleted upstream branches. */
+  readonly fetch: Effect.Effect<string, GitFailure>
+  /** Merge a branch into the current branch. */
+  readonly merge: (branch: string) => Effect.Effect<string, GitFailure>
+  /** Rebase the current branch onto another ref. */
+  readonly rebase: (onto: string) => Effect.Effect<string, GitFailure>
+  readonly renameBranch: (
+    from: string,
+    to: string
+  ) => Effect.Effect<void, GitFailure>
+  readonly deleteBranch: (
+    name: string,
+    force: boolean
+  ) => Effect.Effect<void, GitFailure>
 }
 
 export class Git extends Context.Service<Git, GitShape>()("Git") {}
@@ -299,13 +314,35 @@ export const make = Effect.gen(function*() {
       })
     })
 
-    const logFormat = ["%H", "%h", "%an", "%aI", "%s", "%D"].join(FIELD_SEP)
+    const parseRefs = (refs: string | undefined): Array<string> =>
+      refs === undefined || refs === ""
+        ? []
+        : refs.split(", ").map((r) => r.replace(/^HEAD -> /, "")).filter((r) => r.length > 0)
 
-    const log: GitShape["log"] = (ref, limit) =>
-      lines("log", `--max-count=${limit}`, `--format=${logFormat}`, ref, "--").pipe(
+    const parseParents = (parents: string | undefined): Array<string> =>
+      parents === undefined || parents === "" ? [] : parents.split(" ").filter((p) => p.length > 0)
+
+    // %P appends the space-separated parent SHAs that the graph layout needs.
+    const logFormat = ["%H", "%h", "%an", "%aI", "%s", "%D", "%P"].join(FIELD_SEP)
+
+    const log: GitShape["log"] = (query) =>
+      Effect.suspend(() => {
+        const args = ["log", `--max-count=${query.limit}`, `--format=${logFormat}`]
+        if (query.author !== null) args.push(`--author=${query.author}`)
+        if (query.grep !== null) {
+          args.push(`--grep=${query.grep}`)
+          args.push(query.regex ? "--extended-regexp" : "--fixed-strings")
+          if (!query.caseSensitive) args.push("--regexp-ignore-case")
+        }
+        if (query.after !== null) args.push(`--after=${query.after}`)
+        if (query.before !== null) args.push(`--before=${query.before}`)
+        args.push(query.ref, "--")
+        if (query.path !== null && query.path.length > 0) args.push(query.path)
+        return lines(...args)
+      }).pipe(
         Effect.map((logLines) =>
           logLines.flatMap((line): Array<CommitInfo> => {
-            const [sha, shortSha, author, authoredAt, subject, refs] = line.split(FIELD_SEP)
+            const [sha, shortSha, author, authoredAt, subject, refs, parents] = line.split(FIELD_SEP)
             if (sha === undefined || shortSha === undefined) return []
             return [{
               sha,
@@ -313,13 +350,76 @@ export const make = Effect.gen(function*() {
               author: author ?? "",
               authoredAt: authoredAt ?? "",
               subject: subject ?? "",
-              refs: refs === undefined || refs === ""
-                ? []
-                : refs.split(", ").filter((r) => r.length > 0)
+              refs: parseRefs(refs),
+              parents: parseParents(parents)
             }]
           })
         )
       )
+
+    // Rename/copy lines carry a similarity score (e.g. "R096"); the first letter
+    // is the change kind and the trailing paths give old → new.
+    const parseNameStatus = (line: string): CommitFileChange | null => {
+      const parts = line.split("\t")
+      const code = parts[0]?.[0]
+      if (code === "R" || code === "C") {
+        const oldPath = parts[1] ?? null
+        const path = parts[2] ?? parts[1] ?? ""
+        return { path, oldPath, status: code === "R" ? "renamed" : "added" }
+      }
+      const path = parts[1] ?? ""
+      if (path === "") return null
+      const status: GitFileStatus | null = code === "A"
+        ? "added"
+        : code === "D"
+        ? "deleted"
+        : code === "M" || code === "T"
+        ? "modified"
+        : null
+      return status === null ? null : { path, oldPath: null, status }
+    }
+
+    // A non-tab unit separator keeps multi-line commit bodies in one field.
+    const US = "\x1f"
+    const detailFormat = ["%H", "%h", "%an", "%ae", "%aI", "%s", "%D", "%P", "%b"].join(US)
+
+    const commitDetail: GitShape["commitDetail"] = (sha) =>
+      Effect.gen(function*() {
+        const raw = yield* run("show", "-s", `--format=${detailFormat}`, sha)
+        const [full, short, author, email, authoredAt, subject, refs, parents, ...rest] =
+          raw.split(US)
+        // -M detects renames; --no-commit-id keeps the diff machine-readable.
+        const fileLines = yield* lines(
+          "diff-tree",
+          "-r",
+          "-M",
+          "--no-commit-id",
+          "--name-status",
+          sha
+        )
+        const branchLines = yield* lines(
+          "branch",
+          "-a",
+          "--contains",
+          sha,
+          "--format=%(refname:short)"
+        ).pipe(Effect.catchTag("GitError", () => Effect.succeed<Array<string>>([])))
+        return {
+          sha: (full ?? sha).trim(),
+          shortSha: (short ?? "").trim(),
+          author: author ?? "",
+          authorEmail: email ?? "",
+          authoredAt: authoredAt ?? "",
+          subject: subject ?? "",
+          body: rest.join(US).trim(),
+          refs: parseRefs(refs),
+          parents: parseParents(parents),
+          files: fileLines
+            .map(parseNameStatus)
+            .filter((entry): entry is CommitFileChange => entry !== null),
+          containingBranches: branchLines.filter((b) => b.length > 0 && !b.startsWith("("))
+        }
+      })
 
     const worktreeDiff: GitShape["worktreeDiff"] = run("diff", "HEAD").pipe(
       // An empty repository has no HEAD yet — show nothing rather than failing.
@@ -372,6 +472,18 @@ export const make = Effect.gen(function*() {
     // configured strategy (pull.rebase / pull.ff) on newer git versions.
     const pull: GitShape["pull"] = runVerbose("pull", "--no-rebase")
 
+    const fetch: GitShape["fetch"] = runVerbose("fetch", "--all", "--prune")
+
+    const merge: GitShape["merge"] = (branch) => runVerbose("merge", branch)
+
+    const rebase: GitShape["rebase"] = (onto) => runVerbose("rebase", onto)
+
+    const renameBranch: GitShape["renameBranch"] = (from, to) =>
+      run("branch", "-m", from, to).pipe(Effect.asVoid)
+
+    const deleteBranch: GitShape["deleteBranch"] = (name, force) =>
+      run("branch", force ? "-D" : "-d", name).pipe(Effect.asVoid)
+
     return Git.of({
       info,
       files,
@@ -379,6 +491,7 @@ export const make = Effect.gen(function*() {
       branches,
       remoteBranches,
       log,
+      commitDetail,
       worktreeDiff,
       rangeDiff,
       commitDiff,
@@ -386,7 +499,12 @@ export const make = Effect.gen(function*() {
       createBranch,
       commit,
       push,
-      pull
+      pull,
+      fetch,
+      merge,
+      rebase,
+      renameBranch,
+      deleteBranch
     })
   })
 

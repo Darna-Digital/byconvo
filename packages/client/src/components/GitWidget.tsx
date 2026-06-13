@@ -10,7 +10,14 @@ interface GitWidgetProps {
   prLabel: string | null;
   opBusy: boolean;
   onCheckout: (ref: string) => void;
+  onCheckoutAndUpdate: (ref: string) => void;
   onCreateBranch: (name: string, startPoint: string | null) => void;
+  onCompare: (base: string, head: string) => void;
+  onMerge: (branch: string) => void;
+  onRebase: (onto: string) => void;
+  onFetch: () => void;
+  onRenameBranch: (name: string) => void;
+  onDeleteBranch: (name: string) => void;
   onCommitMode: () => void;
   onReviewMode: () => void;
   onPush: () => void;
@@ -59,6 +66,22 @@ interface ActionItem {
   readonly run: () => void;
 }
 
+/** A branch the second-level menu acts on, normalised across local and remote. */
+interface BranchTarget {
+  /** Full display name, e.g. "task/BMB-207" or "origin/feature". */
+  readonly display: string;
+  /** The ref to check out — a local name, or a remote's short name (tracking). */
+  readonly ref: string;
+  readonly isCurrent: boolean;
+  readonly isRemote: boolean;
+}
+
+interface SubmenuState {
+  readonly target: BranchTarget;
+  readonly top: number;
+  readonly left: number;
+}
+
 /** Split a branch name into a folder prefix and leaf, e.g. "task/BMB-1" → ["task", "BMB-1"]. */
 const splitFolder = (name: string): [string | null, string] => {
   const slash = name.indexOf("/");
@@ -91,6 +114,8 @@ const groupByFolder = <T,>(
   return groups;
 };
 
+const SUBMENU_WIDTH = 320;
+
 export function GitWidget({
   repo,
   branches,
@@ -99,7 +124,14 @@ export function GitWidget({
   prLabel,
   opBusy,
   onCheckout,
+  onCheckoutAndUpdate,
   onCreateBranch,
+  onCompare,
+  onMerge,
+  onRebase,
+  onFetch,
+  onRenameBranch,
+  onDeleteBranch,
   onCommitMode,
   onReviewMode,
   onPush,
@@ -113,10 +145,12 @@ export function GitWidget({
     local: false,
     remote: true,
   });
+  const [submenu, setSubmenu] = useState<SubmenuState | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const current = branches.find((branch) => branch.isCurrent);
+  const currentName = current?.name ?? repo.currentBranch;
 
   // Close on outside click or Escape; focus the search box on open.
   useEffect(() => {
@@ -125,7 +159,10 @@ export function GitWidget({
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        if (submenu !== null) setSubmenu(null);
+        else setOpen(false);
+      }
     };
     window.addEventListener("mousedown", onClick);
     window.addEventListener("keydown", onKey);
@@ -134,16 +171,12 @@ export function GitWidget({
       window.removeEventListener("mousedown", onClick);
       window.removeEventListener("keydown", onKey);
     };
-  }, [open]);
+  }, [open, submenu]);
 
   const close = () => {
     setOpen(false);
+    setSubmenu(null);
     setQuery("");
-  };
-
-  const checkout = (ref: string) => {
-    onCheckout(ref);
-    close();
   };
 
   const hasGitHub = repo.github != null;
@@ -221,6 +254,18 @@ export function GitWidget({
     [remoteBranches, q],
   );
 
+  // Anchor the second-level menu to the clicked row, flipping to the left and
+  // shifting up when it would spill past the viewport edges.
+  const openSubmenu = (target: BranchTarget, event: React.MouseEvent) => {
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    let left = rect.right + 4;
+    if (left + SUBMENU_WIDTH > window.innerWidth) {
+      left = Math.max(8, rect.left - SUBMENU_WIDTH - 4);
+    }
+    const top = Math.min(rect.top, Math.max(8, window.innerHeight - 380));
+    setSubmenu({ target, top, left });
+  };
+
   const newBranch = () => {
     const name = window.prompt("New branch name:");
     if (name === null || name.trim().length === 0) return;
@@ -231,13 +276,14 @@ export function GitWidget({
   const checkoutRevision = () => {
     const ref = window.prompt("Checkout branch, tag, or revision:");
     if (ref === null || ref.trim().length === 0) return;
-    checkout(ref.trim());
+    onCheckout(ref.trim());
+    close();
   };
 
   const triggerLabel =
     prLabel !== null && mode === "review"
-      ? `${prLabel} on ${current?.name ?? repo.currentBranch}`
-      : (current?.name ?? repo.currentBranch);
+      ? `${prLabel} on ${currentName}`
+      : currentName;
 
   const toggleSection = (id: string) =>
     setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -247,12 +293,70 @@ export function GitWidget({
   const showNew = matches("New Branch");
   const showRevision = matches("Checkout Tag or Revision");
 
+  // The JetBrains-style action list for the focused branch.
+  const submenuActions = (target: BranchTarget): ReadonlyArray<ActionItem> => {
+    const run = (fn: () => void): (() => void) => () => {
+      fn();
+      close();
+    };
+    const items: Array<ActionItem & { sep?: boolean }> = [];
+    if (!target.isCurrent) {
+      items.push({ id: "checkout", label: "Checkout", run: run(() => onCheckout(target.ref)) });
+    }
+    items.push({
+      id: "new-from",
+      label: `New Branch from '${target.display}'…`,
+      run: () => {
+        const name = window.prompt(`New branch from '${target.display}':`);
+        if (name === null || name.trim().length === 0) return;
+        onCreateBranch(name.trim(), target.ref);
+        close();
+      },
+    });
+    if (!target.isCurrent) {
+      items.push({
+        id: "checkout-update",
+        label: "Checkout and Update",
+        run: run(() => onCheckoutAndUpdate(target.ref)),
+      });
+      items.push({
+        id: "compare",
+        label: `Compare with '${currentName}'`,
+        run: run(() => onCompare(currentName, target.ref)),
+      });
+      items.push({
+        id: "merge",
+        label: `Merge '${target.display}' into '${currentName}'`,
+        run: run(() => onMerge(target.ref)),
+      });
+      items.push({
+        id: "rebase",
+        label: `Rebase '${currentName}' onto '${target.display}'`,
+        run: run(() => onRebase(target.ref)),
+      });
+    }
+    items.push({ id: "update", label: "Update", run: run(onFetch) });
+    items.push({ id: "push", label: "Push…", run: run(onPush) });
+    if (!target.isRemote) {
+      items.push({
+        id: "rename",
+        label: "Rename…",
+        shortcut: "F2",
+        run: run(() => onRenameBranch(target.ref)),
+      });
+      if (!target.isCurrent) {
+        items.push({ id: "delete", label: "Delete", run: run(() => onDeleteBranch(target.ref)) });
+      }
+    }
+    return items;
+  };
+
   return (
     <div className="git-widget" ref={rootRef}>
       <button
         type="button"
         className={`git-trigger${open ? " open" : ""}`}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => (open ? close() : setOpen(true))}
         title="Git branches and actions"
       >
         <span className="git-trigger-icon">
@@ -350,7 +454,13 @@ export function GitWidget({
               onToggle={() => toggleSection("recent")}
             >
               {recent.map((branch) => (
-                <LocalRow key={`r-${branch.name}`} branch={branch} onCheckout={checkout} flat />
+                <LocalRow
+                  key={`r-${branch.name}`}
+                  branch={branch}
+                  active={submenu?.target.ref === branch.name}
+                  onOpen={openSubmenu}
+                  flat
+                />
               ))}
             </Section>
 
@@ -371,7 +481,8 @@ export function GitWidget({
                     <LocalRow
                       key={branch.name}
                       branch={branch}
-                      onCheckout={checkout}
+                      active={submenu?.target.ref === branch.name}
+                      onOpen={openSubmenu}
                       nested={group.folder !== null}
                     />
                   ))}
@@ -396,21 +507,69 @@ export function GitWidget({
                     <button
                       key={branch.name}
                       type="button"
-                      className="git-branch-row nested"
+                      className={`git-branch-row nested${
+                        submenu?.target.display === branch.name ? " active" : ""
+                      }`}
                       title={branch.subject}
-                      onClick={() => checkout(branch.shortName)}
+                      onClick={(event) =>
+                        openSubmenu(
+                          {
+                            display: branch.name,
+                            ref: branch.shortName,
+                            isCurrent: false,
+                            isRemote: true,
+                          },
+                          event,
+                        )
+                      }
                     >
                       <span className="git-branch-icon">
                         <BranchIcon />
                       </span>
                       <span className="name">{splitFolder(branch.name)[1]}</span>
                       <span className="upstream">{branch.remote}</span>
+                      <Chevron open={false} />
                     </button>
                   ))}
                 </BranchFolder>
               ))}
             </Section>
           </div>
+        </div>
+      )}
+
+      {open && submenu !== null && (
+        <div
+          className="git-submenu"
+          role="menu"
+          style={{ top: submenu.top, left: submenu.left, width: SUBMENU_WIDTH }}
+        >
+          {submenuActions(submenu.target).map((action, index, all) => {
+            // Group separators the way JetBrains does: after checkout actions,
+            // after the merge/rebase block, and before rename/delete.
+            const prev = all[index - 1];
+            const sep =
+              prev !== undefined &&
+              ((action.id === "update" && prev.id !== "update") ||
+                (action.id === "rename") ||
+                (action.id === "compare"));
+            return (
+              <div key={action.id}>
+                {sep && <div className="git-menu-sep" />}
+                <button
+                  type="button"
+                  className="git-menu-action"
+                  onClick={action.run}
+                  disabled={opBusy}
+                >
+                  <span className="label">{action.label}</span>
+                  {action.shortcut !== undefined && (
+                    <span className="shortcut">{action.shortcut}</span>
+                  )}
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -475,12 +634,14 @@ function BranchFolder({
 
 function LocalRow({
   branch,
-  onCheckout,
+  active,
+  onOpen,
   nested = false,
   flat = false,
 }: {
   branch: BranchInfo;
-  onCheckout: (ref: string) => void;
+  active: boolean;
+  onOpen: (target: BranchTarget, event: React.MouseEvent) => void;
   nested?: boolean;
   flat?: boolean;
 }) {
@@ -488,9 +649,21 @@ function LocalRow({
   return (
     <button
       type="button"
-      className={`git-branch-row${nested ? " nested" : ""}${branch.isCurrent ? " current" : ""}`}
+      className={`git-branch-row${nested ? " nested" : ""}${
+        branch.isCurrent ? " current" : ""
+      }${active ? " active" : ""}`}
       title={`${branch.subject}${branch.upstream !== null ? `\nupstream: ${branch.upstream}` : ""}`}
-      onClick={() => onCheckout(branch.name)}
+      onClick={(event) =>
+        onOpen(
+          {
+            display: branch.name,
+            ref: branch.name,
+            isCurrent: branch.isCurrent,
+            isRemote: false,
+          },
+          event,
+        )
+      }
     >
       <span className="git-branch-icon">
         {branch.isCurrent ? <StarIcon /> : <BranchIcon />}
@@ -503,6 +676,7 @@ function LocalRow({
         </span>
       )}
       {branch.upstream !== null && <span className="upstream">{branch.upstream}</span>}
+      <Chevron open={false} />
     </button>
   );
 }
