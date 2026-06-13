@@ -28,6 +28,12 @@ export interface PrCommentInput {
   readonly body: string
 }
 
+export interface PrCommentReplyInput {
+  readonly pullNumber: number
+  readonly commentId: number
+  readonly body: string
+}
+
 export interface GitHubShape {
   readonly pulls: Effect.Effect<ReadonlyArray<PullRequestInfo>, GitHubFailure>
   readonly pullDiff: (pullNumber: number) => Effect.Effect<string, GitHubFailure>
@@ -36,6 +42,9 @@ export interface GitHubShape {
   ) => Effect.Effect<ReadonlyArray<ReviewComment>, GitHubFailure>
   readonly createPullComment: (
     input: PrCommentInput
+  ) => Effect.Effect<ReviewComment, GitHubFailure>
+  readonly replyToPullComment: (
+    input: PrCommentReplyInput
   ) => Effect.Effect<ReviewComment, GitHubFailure>
 }
 
@@ -204,9 +213,29 @@ export const make = Effect.gen(function*() {
         source: "github"
       } satisfies ReviewComment
     })
+
+  const replyToPullComment: GitHubShape["replyToPullComment"] = (input) =>
+    Effect.gen(function*() {
+      const { owner, repo: name } = yield* repo
+      const created = (yield* postJson(
+        `/repos/${owner}/${name}/pulls/${input.pullNumber}/comments/${input.commentId}/replies`,
+        { body: input.body }
+      )) as any
+      return {
+        id: `gh-${created.id}`,
+        filePath: created.path ?? "",
+        side: created.side === "LEFT" ? "deletions" : "additions",
+        lineNumber: typeof created.line === "number" ? created.line : 0,
+        body: created.body ?? input.body,
+        author: created.user?.login ?? "",
+        createdAt: created.created_at ?? new Date().toISOString(),
+        target: `pr-${input.pullNumber}`,
+        source: "github"
+      } satisfies ReviewComment
+    })
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
-  return GitHub.of({ pulls, pullDiff, pullComments, createPullComment })
+  return GitHub.of({ pulls, pullDiff, pullComments, createPullComment, replyToPullComment })
 })
 
 export const layer: Layer.Layer<

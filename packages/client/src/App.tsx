@@ -391,6 +391,31 @@ export function App() {
     setLocalComments((existing) => existing.filter((c) => c.id !== comment.id));
   }, []);
 
+  const replyToComment = useCallback(
+    async (comment: ReviewComment, body: string) => {
+      if (selectedPull === null || comment.source !== "github") return;
+      const commentId = Number(comment.id.replace(/^gh-/, ""));
+      if (!Number.isInteger(commentId)) return;
+      const created = await api.replyToPullComment(
+        selectedPull.number,
+        commentId,
+        body,
+      );
+      // Anchor the reply to the parent's line so it lands in the same thread,
+      // even when GitHub reports a null position for an outdated diff.
+      setPullComments((existing) => [
+        ...existing,
+        {
+          ...created,
+          filePath: comment.filePath,
+          side: comment.side,
+          lineNumber: comment.lineNumber,
+        },
+      ]);
+    },
+    [selectedPull],
+  );
+
   const checkoutBranch = useCallback(
     async (branch: string) => {
       setOpBusy(true);
@@ -821,6 +846,7 @@ export function App() {
         onEditFile={setEditing}
         onCommentSubmit={submitComment}
         onCommentDelete={deleteComment}
+        onCommentReply={replyToComment}
       />
     );
   };

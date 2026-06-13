@@ -404,6 +404,28 @@ export const ApiRoutes = HttpRouter.use((router) =>
         )
       )))
 
+    yield* router.add("POST", "/api/github/pulls/:number/comments/:commentId/replies", (request) =>
+      Effect.gen(function*() {
+        const params = yield* HttpRouter.params
+        const pullNumber = Number(params["number"])
+        if (!Number.isInteger(pullNumber)) return yield* badRequest("invalid PR number")
+        const commentId = Number(params["commentId"])
+        if (!Number.isInteger(commentId)) return yield* badRequest("invalid comment id")
+        const body = yield* request.json
+        if (typeof body !== "object" || body === null || Array.isArray(body)) {
+          return yield* badRequest("expected a reply object")
+        }
+        const { body: replyBody } = body as Record<string, unknown>
+        if (typeof replyBody !== "string") {
+          return yield* badRequest("expected { body: string }")
+        }
+        return yield* json(github.replyToPullComment({ pullNumber, commentId, body: replyBody }))
+      }).pipe(Effect.catch((error) =>
+        Effect.succeed(
+          HttpServerResponse.jsonUnsafe({ error: errorMessage(error) }, { status: 500 })
+        )
+      )))
+
     // When a built client is provided (desktop/production), serve it from the
     // same origin so the app can load over http://localhost:PORT with no CORS.
     const clientDir = process.env["CODEDIFF_CLIENT_DIR"]

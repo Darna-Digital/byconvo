@@ -140,5 +140,10 @@ export const api = {
   addPullComment: (
     pullNumber: number,
     comment: { filePath: string; side: CommentSide; lineNumber: number; body: string }
-  ) => postJson<ReviewComment>(`/api/github/pulls/${pullNumber}/comments`, comment)
+  ) => postJson<ReviewComment>(`/api/github/pulls/${pullNumber}/comments`, comment),
+  replyToPullComment: (pullNumber: number, commentId: number, body: string) =>
+    postJson<ReviewComment>(
+      `/api/github/pulls/${pullNumber}/comments/${commentId}/replies`,
+      { body }
+    )
 }

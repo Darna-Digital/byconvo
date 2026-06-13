@@ -33,6 +33,7 @@ interface DiffPaneProps {
   onEditFile: (path: string) => void
   onCommentSubmit: (location: DraftLocation, body: string) => Promise<void>
   onCommentDelete: (comment: ReviewComment) => Promise<void>
+  onCommentReply: (comment: ReviewComment, body: string) => Promise<void>
 }
 
 const emptyHint = (target: DiffTarget): string => {
@@ -108,11 +109,15 @@ function Composer({
 
 function CommentCard({
   comment,
-  onDelete
+  onDelete,
+  onReply
 }: {
   comment: ReviewComment
   onDelete: (comment: ReviewComment) => Promise<void>
+  onReply?: (comment: ReviewComment, body: string) => Promise<void>
 }) {
+  const [replying, setReplying] = useState(false)
+  const canReply = comment.source === "github" && onReply !== undefined
   return (
     <div className="comment-card">
       <div className="meta">
@@ -124,12 +129,26 @@ function CommentCard({
             Delete
           </button>
         )}
+        {canReply && (
+          <button type="button" className="reply" onClick={() => setReplying((open) => !open)}>
+            Reply
+          </button>
+        )}
       </div>
       <div className="body markdown">
         <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
           {comment.body}
         </Markdown>
       </div>
+      {replying && onReply !== undefined && (
+        <Composer
+          onCancel={() => setReplying(false)}
+          onSubmit={async (body) => {
+            await onReply(comment, body)
+            setReplying(false)
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -147,6 +166,7 @@ interface FileDiffSectionProps {
   onEditFile: (path: string) => void
   onCommentSubmit: (location: DraftLocation, body: string) => Promise<void>
   onCommentDelete: (comment: ReviewComment) => Promise<void>
+  onCommentReply: (comment: ReviewComment, body: string) => Promise<void>
 }
 
 function FileDiffSection({
@@ -160,6 +180,7 @@ function FileDiffSection({
   onEditFile,
   onCommentSubmit,
   onCommentDelete,
+  onCommentReply,
 }: FileDiffSectionProps) {
   // Hold the section as state via a callback ref, not a ref object: DiffConnectors
   // reads it in a layout effect, and layout effects fire bottom-up, so a child
@@ -231,7 +252,12 @@ function FileDiffSection({
           return (
             <div className="annotation">
               {meta.comments.map((comment) => (
-                <CommentCard key={comment.id} comment={comment} onDelete={onCommentDelete} />
+                <CommentCard
+                  key={comment.id}
+                  comment={comment}
+                  onDelete={onCommentDelete}
+                  onReply={onCommentReply}
+                />
               ))}
             </div>
           )
@@ -261,7 +287,8 @@ export function DiffPane({
   onDraftCancel,
   onEditFile,
   onCommentSubmit,
-  onCommentDelete
+  onCommentDelete,
+  onCommentReply
 }: DiffPaneProps) {
   const connectorsEnabled = connectors && diffStyle === "split"
   const containerRef = useRef<HTMLDivElement>(null)
@@ -362,6 +389,7 @@ export function DiffPane({
           onEditFile={onEditFile}
           onCommentSubmit={onCommentSubmit}
           onCommentDelete={onCommentDelete}
+          onCommentReply={onCommentReply}
         />
       ))}
     </main>

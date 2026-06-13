@@ -17,6 +17,9 @@
     --red: #d4453a;
     --amber: #b58a23;
 
+    --scrollbar-thumb: rgba(110, 110, 120, 0.35);
+    --scrollbar-thumb-hover: rgba(110, 110, 120, 0.55);
+
     --radius: 8px;
     --topbar-h: 48px;
     --bottom-h: 240px;
@@ -39,10 +42,44 @@
     --green: #4cc38a;
     --red: #f2645a;
     --amber: #d9a93c;
+
+    --scrollbar-thumb: rgba(255, 255, 255, 0.16);
+    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.28);
 }
 
 * {
     box-sizing: border-box;
+}
+
+/* ---------- scrollbars ---------- */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
 }
 
 html,
@@ -1122,6 +1159,16 @@ select {
 
 .comment-card .meta .delete:hover {
     color: var(--red);
+}
+
+.comment-card .meta .reply {
+    margin-left: auto;
+    color: var(--fg-faint);
+    font-size: 11px;
+}
+
+.comment-card .meta .reply:hover {
+    color: var(--accent);
 }
 
 .comment-card .body {
