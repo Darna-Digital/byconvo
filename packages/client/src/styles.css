@@ -263,6 +263,12 @@ button {
   font-size: 12.5px;
 }
 
+.code-view-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .edit-file-button {
   padding: 2px 10px;
   border-radius: 5px;
