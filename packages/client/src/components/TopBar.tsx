@@ -66,9 +66,6 @@ export function TopBar({
 
   return (
     <header className="topbar">
-      <div className="brand">
-        codediff<span className="dot">.sh</span>
-      </div>
       <button
         type="button"
         className="repo-chip"
@@ -78,8 +75,6 @@ export function TopBar({
         {repo !== null ? (
           <>
             <span>{repo.name}</span>
-            <span aria-hidden>·</span>
-            <span className="branch">{repo.currentBranch}</span>
           </>
         ) : (
           <span>Open repository…</span>
@@ -141,7 +136,9 @@ export function TopBar({
           className={`icon-button connectors-toggle${connectors ? " active" : ""}`}
           onClick={() => onConnectorsChange(!connectors)}
           aria-pressed={connectors}
-          title={connectors ? "Hide change connectors" : "Show change connectors"}
+          title={
+            connectors ? "Hide change connectors" : "Show change connectors"
+          }
         >
           ⤳
         </button>
@@ -156,7 +153,10 @@ export function TopBar({
             disabled={opBusy}
             title="Pull"
           >
-            ↓{current !== undefined && current.behind > 0 ? ` ${current.behind}` : ""}
+            ↓
+            {current !== undefined && current.behind > 0
+              ? ` ${current.behind}`
+              : ""}
           </button>
           <button
             type="button"
@@ -165,7 +165,10 @@ export function TopBar({
             disabled={opBusy}
             title="Push"
           >
-            ↑{current !== undefined && current.ahead > 0 ? ` ${current.ahead}` : ""}
+            ↑
+            {current !== undefined && current.ahead > 0
+              ? ` ${current.ahead}`
+              : ""}
           </button>
         </>
       )}
