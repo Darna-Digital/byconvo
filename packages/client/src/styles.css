@@ -172,6 +172,57 @@ button {
   border-bottom: 1px solid var(--border);
 }
 
+/* ---------- Electron desktop chrome ----------
+   Frameless window (titleBarStyle: hiddenInset): leave room for the macOS
+   traffic lights at the top-left and make the top bar / rail drag the window,
+   while keeping their controls clickable. */
+[data-platform="desktop"] .topbar,
+[data-platform="desktop"] .mode-rail {
+  -webkit-app-region: drag;
+}
+
+/* The traffic-light cluster sits over the top of the rail and the start of the
+   top bar; push their content clear of it. */
+[data-platform="desktop"] .mode-rail {
+  padding-top: 44px;
+  position: relative;
+  /* The full-height divider would otherwise cut between the lights — drop it
+     here and redraw it below the title strip (::after). */
+  border-right: none;
+}
+
+/* Continuous title-bar strip: paint the rail's top with the top bar's colour so
+   the lights sit on one seamless surface, no divider and no panel/rail seam. */
+[data-platform="desktop"] .mode-rail::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: var(--topbar-h);
+  background: var(--bg-panel);
+  pointer-events: none;
+}
+
+[data-platform="desktop"] .mode-rail::after {
+  content: "";
+  position: absolute;
+  inset: var(--topbar-h) 0 0 auto;
+  width: 1px;
+  background: var(--border);
+  pointer-events: none;
+}
+
+[data-platform="desktop"] .topbar {
+  padding-left: 34px;
+}
+
+[data-platform="desktop"] .topbar button,
+[data-platform="desktop"] .topbar input,
+[data-platform="desktop"] .topbar .seg-toggle,
+[data-platform="desktop"] .topbar .repo-chip,
+[data-platform="desktop"] .rail-button {
+  -webkit-app-region: no-drag;
+}
+
 .sidebar {
   grid-area: sidebar;
   display: flex;
