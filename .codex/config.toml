@@ -1,6 +1,0 @@
-[mcp_servers.agentation]
-args = [
-    "agentation-mcp",
-    "server",
-]
-command = "npx"

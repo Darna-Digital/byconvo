@@ -414,6 +414,48 @@ export function App() {
     refresh();
   }, [refresh, showNotice]);
 
+  // Delete a file or folder from the tree. Throws on failure so the tree can
+  // resync; the working tree is the source of truth via refresh().
+  const deletePath = useCallback(
+    async (path: string, isDirectory: boolean) => {
+      const ok = window.confirm(
+        `Delete ${isDirectory ? "folder" : "file"} "${path}"? This cannot be undone.`,
+      );
+      if (!ok) return;
+      try {
+        await api.deletePath(path);
+        if (editing === path) setEditing(null);
+        if (viewing === path) setViewing(null);
+        if (selectedFile === path) setSelectedFile(null);
+        showNotice("ok", `Deleted ${path}`);
+        refresh();
+      } catch (cause) {
+        showNotice("err", cause instanceof Error ? cause.message : String(cause));
+      }
+    },
+    [editing, viewing, selectedFile, refresh, showNotice],
+  );
+
+  // Rename/move a path on disk. Rethrows so the Sidebar reverts its optimistic
+  // tree update when the disk operation fails.
+  const renamePath = useCallback(
+    async (from: string, to: string) => {
+      if (from === to) return;
+      try {
+        await api.renamePath(from, to);
+        if (editing === from) setEditing(to);
+        if (viewing === from) setViewing(to);
+        if (selectedFile === from) setSelectedFile(to);
+        showNotice("ok", `Renamed to ${to}`);
+        refresh();
+      } catch (cause) {
+        showNotice("err", cause instanceof Error ? cause.message : String(cause));
+        throw cause;
+      }
+    },
+    [editing, viewing, selectedFile, refresh, showNotice],
+  );
+
   // Hide codediff's own comment store from the review surface.
   const isInternalPath = (path: string) =>
     path === ".codediff" || path.startsWith(".codediff/");
@@ -589,6 +631,9 @@ export function App() {
         gitStatus={treeGitStatus}
         selectedFile={mode === "browse" ? (viewing ?? editing) : selectedFile}
         onFileSelect={onFileSelect}
+        onDeletePath={mode === "review" ? undefined : deletePath}
+        onRenamePath={mode === "review" ? undefined : renamePath}
+        onError={(message) => showNotice("err", message)}
         footer={
           mode === "commit" && changedFiles.length > 0 ? (
             <CommitPanel

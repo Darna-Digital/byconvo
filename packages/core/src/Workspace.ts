@@ -41,6 +41,13 @@ export interface WorkspaceShape {
     relPath: string,
     contents: string
   ) => Effect.Effect<void, NoRepoSelected | PlatformError>
+  readonly deletePath: (
+    relPath: string
+  ) => Effect.Effect<void, NoRepoSelected | PlatformError>
+  readonly renamePath: (
+    fromRel: string,
+    toRel: string
+  ) => Effect.Effect<void, NoRepoSelected | PlatformError>
 }
 
 export class Workspace extends Context.Service<Workspace, WorkspaceShape>()("Workspace") {}
@@ -268,7 +275,33 @@ export const make = (initial: InitialSelection | null) =>
         yield* fs.writeFileString(resolved, contents)
       })
 
-    return Workspace.of({ info, requireCurrent, setCurrent, browse, readFile, writeFile })
+    const deletePath: WorkspaceShape["deletePath"] = (relPath) =>
+      Effect.gen(function*() {
+        const { resolved } = yield* resolveInRepo(relPath)
+        yield* fs.remove(resolved, { recursive: true })
+      })
+
+    const renamePath: WorkspaceShape["renamePath"] = (fromRel, toRel) =>
+      Effect.gen(function*() {
+        const from = yield* resolveInRepo(fromRel)
+        const to = yield* resolveInRepo(toRel)
+        // Create the destination's parent so a rename can also move into a new
+        // folder (e.g. "a/x.ts" → "b/x.ts").
+        const parent = to.resolved.slice(0, to.resolved.lastIndexOf("/"))
+        if (parent.length > 0) yield* fs.makeDirectory(parent, { recursive: true })
+        yield* fs.rename(from.resolved, to.resolved)
+      })
+
+    return Workspace.of({
+      info,
+      requireCurrent,
+      setCurrent,
+      browse,
+      readFile,
+      writeFile,
+      deletePath,
+      renamePath
+    })
   })
 
 export const layer = (

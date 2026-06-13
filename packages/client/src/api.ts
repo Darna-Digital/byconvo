@@ -67,6 +67,10 @@ export const api = {
   file: (path: string) => getJson<FileContent>(`/api/file?path=${encodeURIComponent(path)}`),
   saveFile: (path: string, contents: string) =>
     sendJson<{ ok: boolean }>("PUT", "/api/file", { path, contents }),
+  deletePath: (path: string) =>
+    request(`/api/file?path=${encodeURIComponent(path)}`, { method: "DELETE" }),
+  renamePath: (from: string, to: string) =>
+    postJson<{ ok: boolean }>("/api/file/rename", { from, to }),
   repo: () => getJson<RepoInfo>("/api/repo"),
   files: () => getJson<FilesPayload>("/api/files"),
   branches: () => getJson<ReadonlyArray<BranchInfo>>("/api/branches"),

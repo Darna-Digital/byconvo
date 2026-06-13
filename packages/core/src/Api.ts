@@ -109,6 +109,32 @@ export const ApiRoutes = HttpRouter.use((router) =>
         )
       )))
 
+    yield* router.add("DELETE", "/api/file", (request) => {
+      const path = searchParams(request).get("path")
+      if (path === null || path.length === 0) return badRequest("missing file path")
+      return json(Effect.as(workspace.deletePath(path), { ok: true }))
+    })
+
+    yield* router.add("POST", "/api/file/rename", (request) =>
+      Effect.gen(function*() {
+        const body = yield* request.json
+        if (typeof body !== "object" || body === null || Array.isArray(body)) {
+          return yield* badRequest("expected { from: string, to: string }")
+        }
+        const { from, to } = body as Record<string, unknown>
+        if (
+          typeof from !== "string" || from.length === 0 ||
+          typeof to !== "string" || to.length === 0
+        ) {
+          return yield* badRequest("expected { from: string, to: string }")
+        }
+        return yield* json(Effect.as(workspace.renamePath(from, to), { ok: true }))
+      }).pipe(Effect.catch((error) =>
+        Effect.succeed(
+          HttpServerResponse.jsonUnsafe({ error: errorMessage(error) }, { status: 500 })
+        )
+      )))
+
     yield* router.add("GET", "/api/repo", json(git.info))
     yield* router.add("GET", "/api/files", json(git.files))
     yield* router.add("GET", "/api/branches", json(git.branches))

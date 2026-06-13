@@ -545,6 +545,49 @@ select {
   height: 100%;
 }
 
+/* Right-click menu for tree rows (slotted into the file-tree's light DOM). */
+.tree-context-menu {
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  font-family: var(--font-ui);
+}
+
+.tree-context-menu-item {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tree-context-menu-item:hover,
+.tree-context-menu-item:focus-visible {
+  background: var(--bg-hover);
+  outline: none;
+}
+
+.tree-context-menu-danger {
+  color: var(--red);
+}
+
+.tree-context-menu-danger:hover,
+.tree-context-menu-danger:focus-visible {
+  background: var(--red);
+  color: #fff;
+}
+
 /* ---------- diff pane ---------- */
 
 .diff-file {

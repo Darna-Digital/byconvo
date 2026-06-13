@@ -9,6 +9,11 @@ interface SidebarProps {
   gitStatus: ReadonlyArray<GitStatusEntry>
   selectedFile: string | null
   onFileSelect: (path: string | null) => void
+  /** Delete a file or folder on disk. When omitted, the menu hides Delete. */
+  onDeletePath?: (path: string, isDirectory: boolean) => Promise<void>
+  /** Rename/move a path on disk. When omitted, inline rename is disabled. */
+  onRenamePath?: (from: string, to: string) => Promise<void>
+  onError?: (message: string) => void
   footer?: ReactNode
 }
 
@@ -18,9 +23,27 @@ const HEADER_TITLE: Record<AppMode, string> = {
   browse: "Project",
 }
 
-export function Sidebar({ mode, paths, gitStatus, selectedFile, onFileSelect, footer }: SidebarProps) {
+export function Sidebar({
+  mode,
+  paths,
+  gitStatus,
+  selectedFile,
+  onFileSelect,
+  onDeletePath,
+  onRenamePath,
+  onError,
+  footer
+}: SidebarProps) {
   const onFileSelectRef = useRef(onFileSelect)
   onFileSelectRef.current = onFileSelect
+
+  // The tree model is created once, so live props are read through refs.
+  const onRenamePathRef = useRef(onRenamePath)
+  onRenamePathRef.current = onRenamePath
+  const onErrorRef = useRef(onError)
+  onErrorRef.current = onError
+  const pathsRef = useRef(paths)
+  pathsRef.current = paths
 
   const { model } = useFileTree({
     paths: [...paths],
@@ -35,6 +58,19 @@ export function Sidebar({ mode, paths, gitStatus, selectedFile, onFileSelect, fo
         if (item != null && !item.isDirectory()) {
           onFileSelectRef.current(first)
         }
+      }
+    },
+    renaming: {
+      canRename: () => onRenamePathRef.current !== undefined,
+      onError: (message) => onErrorRef.current?.(message),
+      onRename: ({ destinationPath, sourcePath }) => {
+        // Restore the tree from the source of truth if the disk op fails;
+        // the library has already moved the row optimistically.
+        const revert = () => modelRef.current?.resetPaths([...pathsRef.current])
+        const handler = onRenamePathRef.current
+        if (handler === undefined) return revert()
+        if (destinationPath === sourcePath) return
+        void handler(sourcePath, destinationPath).catch(revert)
       }
     }
   })
@@ -61,6 +97,42 @@ export function Sidebar({ mode, paths, gitStatus, selectedFile, onFileSelect, fo
     }
   }, [selectedFile, model])
 
+  // A context menu is offered only when at least one operation is available.
+  const hasMenu = onDeletePath !== undefined || onRenamePath !== undefined
+  const renderContextMenu = hasMenu
+    ? (item: { kind: "directory" | "file"; path: string }, context: { close: (options?: { restoreFocus?: boolean }) => void }) => (
+      <div className="tree-context-menu" role="menu">
+        {onRenamePath !== undefined && (
+          <button
+            type="button"
+            role="menuitem"
+            className="tree-context-menu-item"
+            onClick={() => {
+              // Hand focus straight to the inline rename input.
+              context.close({ restoreFocus: false })
+              modelRef.current?.startRenaming(item.path)
+            }}
+          >
+            Rename…
+          </button>
+        )}
+        {onDeletePath !== undefined && (
+          <button
+            type="button"
+            role="menuitem"
+            className="tree-context-menu-item tree-context-menu-danger"
+            onClick={() => {
+              context.close()
+              void onDeletePath(item.path, item.kind === "directory")
+            }}
+          >
+            Delete
+          </button>
+        )}
+      </div>
+    )
+    : undefined
+
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -72,7 +144,7 @@ export function Sidebar({ mode, paths, gitStatus, selectedFile, onFileSelect, fo
         </span>
       </div>
       <div className="sidebar-tree">
-        <FileTree model={model} style={{ height: "100%" }} />
+        <FileTree model={model} renderContextMenu={renderContextMenu} style={{ height: "100%" }} />
       </div>
       {footer}
     </aside>
