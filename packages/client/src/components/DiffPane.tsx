@@ -1,6 +1,9 @@
 import type { DiffLineAnnotation, FileDiffMetadata } from "@pierre/diffs"
 import { FileDiff } from "@pierre/diffs/react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import Markdown from "react-markdown"
+import rehypeHighlight from "rehype-highlight"
+import remarkGfm from "remark-gfm"
 import type { CommentSide, DiffTarget, ReviewComment } from "../types"
 import { connectorGutterCSS, DiffConnectors } from "./DiffConnectors"
 
@@ -122,7 +125,11 @@ function CommentCard({
           </button>
         )}
       </div>
-      <div className="body">{comment.body}</div>
+      <div className="body markdown">
+        <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+          {comment.body}
+        </Markdown>
+      </div>
     </div>
   )
 }
