@@ -288,11 +288,32 @@ button {
 
 /* ---------- code editor ---------- */
 
+/* The editor sits in the same file-card as the Pierre views, on a matching
+   Shiki (github) surface so editing looks like browsing/diffing. */
+.editor-card {
+  --pierre-bg: #ffffff;
+  --pierre-fg: #24292e;
+}
+
+[data-theme="dark"] .editor-card {
+  --pierre-bg: #24292e;
+  --pierre-fg: #e1e4e8;
+}
+
 .editor-pane {
   grid-area: diff;
   display: flex;
-  flex-direction: column;
   min-height: 0;
+  padding: 16px 20px;
+}
+
+.editor-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  background: var(--pierre-bg);
 }
 
 .editor-header {
@@ -300,9 +321,10 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 14px;
+  height: 40px;
+  padding: 0 12px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg-panel);
+  background: var(--pierre-bg);
 }
 
 .editor-path {
@@ -311,7 +333,7 @@ button {
   gap: 8px;
   font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--fg);
+  color: var(--pierre-fg);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -356,9 +378,12 @@ button {
   height: 100%;
 }
 
-.editor-body .cm-scroller {
-  font-family: var(--font-mono);
-  font-size: 12.5px;
+/* Force the editor surface onto the Pierre (Shiki github) background; the @uiw
+   github theme otherwise paints the editor root its own colour. Fonts, gutters
+   and token colours come from the extensions in CodeEditor.tsx. */
+.editor-card .cm-editor,
+.editor-card .cm-scroller {
+  background: var(--pierre-bg) !important;
 }
 
 .code-view-actions {

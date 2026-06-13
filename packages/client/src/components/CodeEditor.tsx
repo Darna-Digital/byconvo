@@ -1,10 +1,36 @@
 import { langs } from "@uiw/codemirror-extensions-langs";
 import type { LanguageName } from "@uiw/codemirror-extensions-langs";
 import { githubDark, githubLight } from "@uiw/codemirror-theme-github";
-import CodeMirror from "@uiw/react-codemirror";
+import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import type { Extension } from "@uiw/react-codemirror";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api";
+
+// Match the Pierre (Shiki github) surface so editing looks like browsing/diffing.
+// @uiw's github theme ships a different background, so we override the base
+// surface, fonts and gutters while keeping its token colours.
+const MONO =
+  '"SF Mono", Monaco, Consolas, "Ubuntu Mono", "Liberation Mono", "Courier New", monospace';
+
+const SURFACE = {
+  light: { bg: "#ffffff", fg: "#24292e", gutter: "#afb8c1", active: "rgba(0,0,0,0.03)" },
+  dark: { bg: "#24292e", fg: "#e1e4e8", gutter: "#545d68", active: "rgba(255,255,255,0.04)" },
+} as const;
+
+const pierreSurface = (theme: "light" | "dark"): Extension => {
+  const c = SURFACE[theme];
+  return EditorView.theme(
+    {
+      "&": { backgroundColor: c.bg, color: c.fg },
+      ".cm-content": { caretColor: c.fg, fontFamily: MONO },
+      ".cm-scroller": { fontFamily: MONO, fontSize: "13px", lineHeight: "20px" },
+      ".cm-gutters": { backgroundColor: c.bg, color: c.gutter, border: "none" },
+      ".cm-activeLine": { backgroundColor: c.active },
+      ".cm-activeLineGutter": { backgroundColor: c.active, color: c.fg },
+    },
+    { dark: theme === "dark" },
+  );
+};
 
 interface CodeEditorProps {
   path: string;
@@ -56,8 +82,10 @@ export function CodeEditor({ path, theme, onClose, onSaved, onError }: CodeEdito
 
   const extensions = useMemo(() => {
     const lang = languageForPath(path);
-    return lang === null ? [] : [lang];
-  }, [path]);
+    // github theme first for token colours, then our surface override on top.
+    const base = [theme === "dark" ? githubDark : githubLight, pierreSurface(theme)];
+    return lang === null ? base : [lang, ...base];
+  }, [path, theme]);
 
   const dirty = value !== null && value !== original;
 
@@ -90,47 +118,49 @@ export function CodeEditor({ path, theme, onClose, onSaved, onError }: CodeEdito
 
   return (
     <main className="editor-pane">
-      <div className="editor-header">
-        <span className="editor-path">
-          {path}
-          {dirty && <span className="dirty-dot" title="Unsaved changes" />}
-        </span>
-        <div className="editor-actions">
-          <button
-            type="button"
-            className="editor-save"
-            disabled={!dirty || saving}
-            onClick={() => void save()}
-          >
-            {saving ? "Saving…" : "Save"}
-          </button>
-          <button
-            type="button"
-            className="icon-button"
-            onClick={onClose}
-            title="Close editor"
-          >
-            ✕
-          </button>
+      <section className="diff-file editor-card">
+        <div className="editor-header">
+          <span className="editor-path">
+            {path}
+            {dirty && <span className="dirty-dot" title="Unsaved changes" />}
+          </span>
+          <div className="editor-actions">
+            <button
+              type="button"
+              className="editor-save"
+              disabled={!dirty || saving}
+              onClick={() => void save()}
+            >
+              {saving ? "Saving…" : "Save"}
+            </button>
+            <button
+              type="button"
+              className="icon-button"
+              onClick={onClose}
+              title="Close editor"
+            >
+              ✕
+            </button>
+          </div>
         </div>
-      </div>
-      <div className="editor-body">
-        {value === null ? (
-          <div className="diff-loading">Loading {path}…</div>
-        ) : (
-          <CodeMirror
-            value={value}
-            theme={theme === "dark" ? githubDark : githubLight}
-            extensions={extensions}
-            height="100%"
-            style={{ height: "100%" }}
-            onChange={(next) => {
-              valueRef.current = next;
-              setValue(next);
-            }}
-          />
-        )}
-      </div>
+        <div className="editor-body">
+          {value === null ? (
+            <div className="diff-loading">Loading {path}…</div>
+          ) : (
+            <CodeMirror
+              value={value}
+              theme="none"
+              extensions={extensions}
+              height="100%"
+              style={{ height: "100%" }}
+              onChange={(next) => {
+                valueRef.current = next;
+                setValue(next);
+              }}
+            />
+          )}
+        </div>
+      </section>
     </main>
   );
 }
