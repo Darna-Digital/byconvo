@@ -2,9 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "codediff-client",
+      "name": "reviewer-client",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@codediff/client", "dev"],
+      "runtimeArgs": ["--filter", "@reviewer/client", "dev"],
       "port": 5173,
       "autoPort": true
     }

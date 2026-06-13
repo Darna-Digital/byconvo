@@ -1,6 +1,6 @@
 /**
  * Comments service — inline review comments persisted to
- * `.codediff/comments.json` inside the currently selected repository.
+ * `.reviewer/comments.json` inside the currently selected repository.
  */
 import { Context, Effect, Layer } from "effect"
 import * as FileSystem from "effect/FileSystem"
@@ -33,7 +33,7 @@ export const make = Effect.gen(function*() {
 
   const commentsFile = Effect.map(
     workspace.requireCurrent,
-    (repoPath) => ({ dir: `${repoPath}/.codediff`, file: `${repoPath}/.codediff/comments.json` })
+    (repoPath) => ({ dir: `${repoPath}/.reviewer`, file: `${repoPath}/.reviewer/comments.json` })
   )
 
   const read: Effect.Effect<Array<ReviewComment>, CommentsFailure> = Effect.gen(function*() {

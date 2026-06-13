@@ -45,7 +45,7 @@ type Theme = "light" | "dark";
 type DiffStyle = "split" | "unified";
 
 const initialTheme = (): Theme => {
-  const stored = localStorage.getItem("codediff-theme");
+  const stored = localStorage.getItem("reviewer-theme");
   if (stored === "light" || stored === "dark") return stored;
   return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
@@ -57,21 +57,21 @@ export function App() {
   const [diffStyle, setDiffStyle] = useState<DiffStyle>("split");
   // JetBrains-style connector ribbons in split view; on unless disabled.
   const [connectors, setConnectors] = useState<boolean>(
-    () => localStorage.getItem("codediff-connectors") !== "off",
+    () => localStorage.getItem("reviewer-connectors") !== "off",
   );
   const [mode, setMode] = useState<AppMode>("commit");
   // The git bottom panel (branches/log/PRs) is collapsible from the rail.
   const [bottomVisible, setBottomVisible] = useState<boolean>(
-    () => localStorage.getItem("codediff-bottom") !== "off",
+    () => localStorage.getItem("reviewer-bottom") !== "off",
   );
   // The bottom panel's height is drag-resizable; persist it across sessions.
   const [bottomHeight, setBottomHeight] = useState<number>(() => {
-    const stored = Number(localStorage.getItem("codediff-bottom-h"));
+    const stored = Number(localStorage.getItem("reviewer-bottom-h"));
     return Number.isFinite(stored) && stored >= 120 ? stored : 240;
   });
   // The left sidebar's width is drag-resizable; persist it across sessions.
   const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
-    const stored = Number(localStorage.getItem("codediff-sidebar-w"));
+    const stored = Number(localStorage.getItem("reviewer-sidebar-w"));
     return Number.isFinite(stored) && stored >= 180 ? stored : 280;
   });
   const [workspace, setWorkspace] = useState<WorkspaceInfo | null>(null);
@@ -125,23 +125,23 @@ export function App() {
 
   useEffect(() => {
     document.documentElement.dataset["theme"] = theme;
-    localStorage.setItem("codediff-theme", theme);
+    localStorage.setItem("reviewer-theme", theme);
   }, [theme]);
 
   useEffect(() => {
-    localStorage.setItem("codediff-connectors", connectors ? "on" : "off");
+    localStorage.setItem("reviewer-connectors", connectors ? "on" : "off");
   }, [connectors]);
 
   useEffect(() => {
-    localStorage.setItem("codediff-bottom", bottomVisible ? "on" : "off");
+    localStorage.setItem("reviewer-bottom", bottomVisible ? "on" : "off");
   }, [bottomVisible]);
 
   useEffect(() => {
-    localStorage.setItem("codediff-bottom-h", String(Math.round(bottomHeight)));
+    localStorage.setItem("reviewer-bottom-h", String(Math.round(bottomHeight)));
   }, [bottomHeight]);
 
   useEffect(() => {
-    localStorage.setItem("codediff-sidebar-w", String(Math.round(sidebarWidth)));
+    localStorage.setItem("reviewer-sidebar-w", String(Math.round(sidebarWidth)));
   }, [sidebarWidth]);
 
   // A plain folder of repos has no git state of its own — clear it so nothing
@@ -710,9 +710,9 @@ export function App() {
     [editing, viewing, selectedFile, refresh, showNotice],
   );
 
-  // Hide codediff's own comment store from the review surface.
+  // Hide reviewer's own comment store from the review surface.
   const isInternalPath = (path: string) =>
-    path === ".codediff" || path.startsWith(".codediff/");
+    path === ".reviewer" || path.startsWith(".reviewer/");
 
   // The sidebar shows changed files in commit/review, and the whole repo
   // in browse mode so any file can be opened.

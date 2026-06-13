@@ -1,5 +1,5 @@
 /**
- * Typed client for the @codediff/core HTTP API.
+ * Typed client for the @reviewer/core HTTP API.
  */
 import type {
   BranchInfo,

@@ -1,9 +1,9 @@
 {
-  "name": "@codediff/core",
+  "name": "@reviewer/core",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "codediff core — Effect backend for git and GitHub",
+  "description": "reviewer core — Effect backend for git and GitHub",
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "start": "tsx src/main.ts",

@@ -1,5 +1,5 @@
 /**
- * API payload types — mirror of @codediff/core's domain.ts.
+ * API payload types — mirror of @reviewer/core's domain.ts.
  */
 
 export type GitFileStatus =

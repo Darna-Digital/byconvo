@@ -428,7 +428,7 @@ export const ApiRoutes = HttpRouter.use((router) =>
 
     // When a built client is provided (desktop/production), serve it from the
     // same origin so the app can load over http://localhost:PORT with no CORS.
-    const clientDir = process.env["CODEDIFF_CLIENT_DIR"]
+    const clientDir = process.env["REVIEWER_CLIENT_DIR"]
     if (clientDir !== undefined && clientDir.length > 0) {
       const fs = yield* FileSystem.FileSystem
       const root = pathResolve(clientDir)

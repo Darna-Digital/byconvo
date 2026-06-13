@@ -1,4 +1,4 @@
-# codediff.sh
+# reviewer.sh
 
 A local git review tool that works like an IDE. A JetBrains-style vertical
 tool rail on the far left switches between three modes; the center is always a
@@ -12,7 +12,7 @@ Switched from the vertical tool rail (far left), JetBrains-style:
 
 - **Commit** — your uncommitted changes. Changed-files tree with a commit
   panel (per-file checkboxes + message), `Commit` / `Commit & Push`. Inline
-  comments are stored locally in `.codediff/comments.json`.
+  comments are stored locally in `.reviewer/comments.json`.
 - **Pull Requests** — open GitHub PRs (GitLab planned). Pick a PR from the
   bottom panel to review its diff and read/write PR review comments.
 - **Browse** — the whole project like an IDE. Click a file in the tree to edit
@@ -41,7 +41,7 @@ packages/
 ```
 
 The core is a small HTTP server (`effect/unstable/http` + `@effect/platform-node`)
-exposing `/api/*`; the Vite dev server proxies to it. When `CODEDIFF_CLIENT_DIR`
+exposing `/api/*`; the Vite dev server proxies to it. When `REVIEWER_CLIENT_DIR`
 is set, the core also serves the built client from `/` (same-origin), which is
 how the desktop app loads it in production.
 
@@ -56,7 +56,7 @@ pnpm dev
 
 Then open http://localhost:5173 and pick a repository: click the repo chip in
 the top bar to open the repository picker — recent repos plus a directory
-browser over your machine. The selection persists in `~/.codediff/state.json`
+browser over your machine. The selection persists in `~/.reviewer/state.json`
 across restarts.
 
 ### As a desktop app
@@ -72,9 +72,9 @@ native window.
 
 | Env var          | Default | Purpose                              |
 | ---------------- | ------- | ------------------------------------ |
-| `CODEDIFF_REPO`  | `cwd`   | Initial repository (UI picker overrides it) |
-| `CODEDIFF_PORT`  | `4317`  | Core API port                        |
-| `CODEDIFF_CLIENT_DIR` | — | Built client dir for the core to serve (set by the desktop app) |
+| `REVIEWER_REPO`  | `cwd`   | Initial repository (UI picker overrides it) |
+| `REVIEWER_PORT`  | `4317`  | Core API port                        |
+| `REVIEWER_CLIENT_DIR` | — | Built client dir for the core to serve (set by the desktop app) |
 | `GITHUB_TOKEN`   | —       | GitHub auth (falls back to `gh auth token`) |
 
 ## API overview

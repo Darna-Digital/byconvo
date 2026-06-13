@@ -1,7 +1,7 @@
 /**
  * Workspace service — tracks which repository on this machine is being
  * reviewed. The selection is mutable at runtime (set from the UI), validated
- * against git, and persisted to ~/.codediff/state.json together with a list
+ * against git, and persisted to ~/.reviewer/state.json together with a list
  * of recently opened repositories.
  */
 import { Context, Data, Effect, Layer, Ref, Stream } from "effect"
@@ -52,7 +52,7 @@ export interface WorkspaceShape {
 
 export class Workspace extends Context.Service<Workspace, WorkspaceShape>()("Workspace") {}
 
-const STATE_DIR = `${homedir()}/.codediff`
+const STATE_DIR = `${homedir()}/.reviewer`
 const STATE_FILE = `${STATE_DIR}/state.json`
 const MAX_RECENTS = 10
 
@@ -63,7 +63,7 @@ interface PersistedState {
 
 export interface InitialSelection {
   readonly path: string
-  /** Explicit (CODEDIFF_REPO) beats persisted state; a cwd guess does not. */
+  /** Explicit (REVIEWER_REPO) beats persisted state; a cwd guess does not. */
   readonly explicit: boolean
 }
 
@@ -173,7 +173,7 @@ export const make = (initial: InitialSelection | null) =>
         yield* fs.writeFileString(STATE_FILE, JSON.stringify(state, null, 2))
       }).pipe(Effect.catch(() => Effect.void))
 
-    // Boot order: explicit CODEDIFF_REPO > last workspace used > cwd guess.
+    // Boot order: explicit REVIEWER_REPO > last workspace used > cwd guess.
     // A workspace may be a git repo or a plain folder of repos, so any existing
     // directory is acceptable here.
     const persisted = yield* readState

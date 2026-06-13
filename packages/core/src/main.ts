@@ -1,8 +1,8 @@
 /**
- * codediff core server entry point.
+ * reviewer core server entry point.
  *
  * The repository under review is selected at runtime from the UI and
- * persisted to ~/.codediff/state.json. CODEDIFF_REPO (or the cwd, if it is
+ * persisted to ~/.reviewer/state.json. REVIEWER_REPO (or the cwd, if it is
  * a git repository) seeds the initial selection.
  */
 import { NodeHttpServer, NodeRuntime, NodeServices } from "@effect/platform-node"
@@ -15,11 +15,11 @@ import * as Git from "./Git.js"
 import * as GitHub from "./GitHub.js"
 import * as Workspace from "./Workspace.js"
 
-const envRepo = process.env["CODEDIFF_REPO"]
+const envRepo = process.env["REVIEWER_REPO"]
 const initialRepo = envRepo !== undefined && envRepo.length > 0
   ? { path: envRepo, explicit: true }
   : { path: process.cwd(), explicit: false }
-const port = Number(process.env["CODEDIFF_PORT"] ?? 4317)
+const port = Number(process.env["REVIEWER_PORT"] ?? 4317)
 
 const ServicesLive = GitHub.layer.pipe(
   Layer.provideMerge(Layer.mergeAll(Git.layer, Comments.layer)),

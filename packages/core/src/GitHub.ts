@@ -82,7 +82,7 @@ export const make = Effect.gen(function*() {
     Effect.map(resolveToken, (token) => ({
       accept,
       "x-github-api-version": "2022-11-28",
-      "user-agent": "codediff.sh",
+      "user-agent": "reviewer.sh",
       ...(token === null ? {} : { authorization: `Bearer ${token}` })
     }))
 

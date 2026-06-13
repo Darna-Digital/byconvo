@@ -1,13 +1,13 @@
 {
-  "name": "@codediff/desktop",
+  "name": "@reviewer/desktop",
   "private": true,
   "version": "0.1.0",
-  "description": "codediff desktop — Electron shell around the client",
+  "description": "reviewer desktop — Electron shell around the client",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "dev": "tsc -p tsconfig.json && CODEDIFF_DESKTOP_DEV=1 electron .",
+    "dev": "tsc -p tsconfig.json && REVIEWER_DESKTOP_DEV=1 electron .",
     "start": "tsc -p tsconfig.json && electron ."
   },
   "devDependencies": {

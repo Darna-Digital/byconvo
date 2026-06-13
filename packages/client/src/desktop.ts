@@ -1,5 +1,5 @@
 /**
- * Bridge to the Electron desktop shell, exposed on `window.codediff` by the
+ * Bridge to the Electron desktop shell, exposed on `window.reviewer` by the
  * preload script (see packages/desktop/src/preload.ts). It is absent when the
  * client runs in a plain browser, so callers must null-check `desktop`.
  */
@@ -10,9 +10,9 @@ interface DesktopBridge {
 
 declare global {
   interface Window {
-    codediff?: DesktopBridge
+    reviewer?: DesktopBridge
   }
 }
 
 export const desktop: DesktopBridge | null =
-  typeof window !== "undefined" && window.codediff ? window.codediff : null
+  typeof window !== "undefined" && window.reviewer ? window.reviewer : null

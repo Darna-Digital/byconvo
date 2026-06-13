@@ -1,24 +1,24 @@
 /**
- * codediff desktop — Electron main process.
+ * reviewer desktop — Electron main process.
  *
  * Wraps the React client in a native window. The app is self-contained: it
  * makes sure the core API server is running (spawning it if necessary) and
  * then loads the client.
  *
- * - Dev   (`CODEDIFF_DESKTOP_DEV=1`): loads the Vite dev server and spawns the
- *   core via `pnpm --filter @codediff/core start` if nothing answers on the
+ * - Dev   (`REVIEWER_DESKTOP_DEV=1`): loads the Vite dev server and spawns the
+ *   core via `pnpm --filter @reviewer/core start` if nothing answers on the
  *   API port yet.
- * - Prod: spawns the built core with `CODEDIFF_CLIENT_DIR` pointing at the
+ * - Prod: spawns the built core with `REVIEWER_CLIENT_DIR` pointing at the
  *   built client, so the core serves the UI same-origin, then loads it.
  */
 import { type ChildProcess, spawn } from "node:child_process";
 import { resolve } from "node:path";
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 
-const isDev = process.env["CODEDIFF_DESKTOP_DEV"] === "1";
-const corePort = Number(process.env["CODEDIFF_PORT"] ?? 4317);
+const isDev = process.env["REVIEWER_DESKTOP_DEV"] === "1";
+const corePort = Number(process.env["REVIEWER_PORT"] ?? 4317);
 const coreUrl = `http://localhost:${corePort}`;
-const devClientUrl = process.env["CODEDIFF_DEV_URL"] ?? "http://localhost:5173";
+const devClientUrl = process.env["REVIEWER_DEV_URL"] ?? "http://localhost:5173";
 
 // packages/desktop/dist/main.js → repository root.
 const repoRoot = resolve(__dirname, "..", "..", "..");
@@ -64,12 +64,12 @@ async function ensureCore(): Promise<void> {
 
   const env = {
     ...process.env,
-    CODEDIFF_PORT: String(corePort),
-    ...(isDev ? {} : { CODEDIFF_CLIENT_DIR: resolve(repoRoot, "packages/client/dist") }),
+    REVIEWER_PORT: String(corePort),
+    ...(isDev ? {} : { REVIEWER_CLIENT_DIR: resolve(repoRoot, "packages/client/dist") }),
   };
 
   coreProcess = isDev
-    ? spawn("pnpm", ["--filter", "@codediff/core", "start"], {
+    ? spawn("pnpm", ["--filter", "@reviewer/core", "start"], {
         cwd: repoRoot,
         env,
         stdio: "inherit",
@@ -98,7 +98,7 @@ async function createWindow(): Promise<void> {
     minWidth: 900,
     minHeight: 600,
     backgroundColor: "#131316",
-    title: "codediff",
+    title: "reviewer",
     titleBarStyle: "hiddenInset",
     webPreferences: {
       preload: resolve(__dirname, "preload.js"),
@@ -139,7 +139,7 @@ app.whenReady().then(async () => {
     await ensureCore();
     await createWindow();
   } catch (cause) {
-    console.error("failed to start codediff desktop:", cause);
+    console.error("failed to start reviewer desktop:", cause);
     app.quit();
   }
 

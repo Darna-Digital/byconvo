@@ -1,8 +1,8 @@
 /**
- * Shared domain types for the codediff API.
+ * Shared domain types for the reviewer API.
  *
  * These types describe the JSON payloads exchanged between
- * `@codediff/core` (the Effect backend) and `@codediff/client`.
+ * `@reviewer/core` (the Effect backend) and `@reviewer/client`.
  */
 
 export type GitFileStatus =

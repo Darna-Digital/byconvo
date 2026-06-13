@@ -29,7 +29,7 @@ interface Folder {
 
 type TreeItem = Leaf | Folder;
 
-const FAV_KEY = "codediff-fav-branches";
+const FAV_KEY = "reviewer-fav-branches";
 
 const loadFavorites = (): Set<string> => {
   try {

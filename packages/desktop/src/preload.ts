@@ -13,4 +13,4 @@ const bridge = {
 
 export type DesktopBridge = typeof bridge;
 
-contextBridge.exposeInMainWorld("codediff", bridge);
+contextBridge.exposeInMainWorld("reviewer", bridge);
