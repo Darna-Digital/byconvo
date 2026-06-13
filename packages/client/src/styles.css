@@ -420,8 +420,8 @@ select {
 
 .diff-file {
   position: relative;
-  margin: 0 auto 16px;
-  max-width: 1200px;
+  margin: 0 0 16px;
+  width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-panel);
