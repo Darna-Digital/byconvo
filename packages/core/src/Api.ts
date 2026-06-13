@@ -137,7 +137,29 @@ export const ApiRoutes = HttpRouter.use((router) =>
 
     yield* router.add("GET", "/api/repo", json(git.info))
     yield* router.add("GET", "/api/files", json(git.files))
+    yield* router.add("GET", "/api/status", json(git.status))
     yield* router.add("GET", "/api/branches", json(git.branches))
+    yield* router.add("GET", "/api/remote-branches", json(git.remoteBranches))
+
+    yield* router.add("POST", "/api/branch", (request) =>
+      Effect.gen(function*() {
+        const body = yield* request.json
+        if (typeof body !== "object" || body === null || Array.isArray(body)) {
+          return yield* badRequest("expected { name: string, startPoint?: string }")
+        }
+        const { name, startPoint } = body as Record<string, unknown>
+        if (typeof name !== "string" || name.trim().length === 0) {
+          return yield* badRequest("branch name must not be empty")
+        }
+        const from = typeof startPoint === "string" && startPoint.length > 0
+          ? startPoint
+          : null
+        return yield* json(Effect.as(git.createBranch(name.trim(), from), { ok: true }))
+      }).pipe(Effect.catch((error) =>
+        Effect.succeed(
+          HttpServerResponse.jsonUnsafe({ error: errorMessage(error) }, { status: 500 })
+        )
+      )))
 
     yield* router.add("GET", "/api/log", (request) => {
       const params = searchParams(request)

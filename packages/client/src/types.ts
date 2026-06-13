@@ -34,6 +34,18 @@ export interface BranchInfo {
   readonly subject: string
 }
 
+export interface RemoteBranchInfo {
+  /** Full short ref, e.g. "origin/feature". */
+  readonly name: string;
+  /** The remote it belongs to, e.g. "origin". */
+  readonly remote: string;
+  /** The branch name without the remote prefix, e.g. "feature". */
+  readonly shortName: string;
+  readonly sha: string;
+  readonly committedAt: string;
+  readonly subject: string;
+}
+
 export interface CommitInfo {
   readonly sha: string
   readonly shortSha: string
@@ -46,6 +58,20 @@ export interface CommitInfo {
 export interface FilesPayload {
   readonly paths: ReadonlyArray<string>
   readonly gitStatus: ReadonlyArray<GitStatusEntry>
+}
+
+/** Compact working-tree snapshot for the status bar (see core's domain.ts). */
+export interface RepoStatus {
+  readonly branch: string
+  readonly upstream: string | null
+  readonly ahead: number
+  readonly behind: number
+  readonly headSha: string
+  readonly changed: number
+  readonly staged: number
+  readonly unstaged: number
+  readonly untracked: number
+  readonly conflicted: number
 }
 
 export type CommentSide = "deletions" | "additions"

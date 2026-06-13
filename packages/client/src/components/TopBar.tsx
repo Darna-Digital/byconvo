@@ -1,8 +1,12 @@
-import type { BranchInfo, RepoInfo } from "../types";
+import type { AppMode, BranchInfo, RemoteBranchInfo, RepoInfo } from "../types";
+import { GitWidget } from "./GitWidget";
 
 interface TopBarProps {
   repo: RepoInfo | null;
   branches: ReadonlyArray<BranchInfo>;
+  remoteBranches: ReadonlyArray<RemoteBranchInfo>;
+  mode: AppMode;
+  prLabel: string | null;
   contextLabel: string;
   diffStyle: "split" | "unified";
   showDiffStyleToggle: boolean;
@@ -12,6 +16,10 @@ interface TopBarProps {
   onDiffStyleChange: (style: "split" | "unified") => void;
   onConnectorsChange: (enabled: boolean) => void;
   onRepoClick: () => void;
+  onCheckout: (ref: string) => void;
+  onCreateBranch: (name: string, startPoint: string | null) => void;
+  onCommitMode: () => void;
+  onReviewMode: () => void;
   onPush: () => void;
   onPull: () => void;
   onRefresh: () => void;
@@ -20,6 +28,9 @@ interface TopBarProps {
 export function TopBar({
   repo,
   branches,
+  remoteBranches,
+  mode,
+  prLabel,
   contextLabel,
   diffStyle,
   showDiffStyleToggle,
@@ -29,6 +40,10 @@ export function TopBar({
   onDiffStyleChange,
   onConnectorsChange,
   onRepoClick,
+  onCheckout,
+  onCreateBranch,
+  onCommitMode,
+  onReviewMode,
   onPush,
   onPull,
   onRefresh,
@@ -56,6 +71,23 @@ export function TopBar({
           <span>Open repository…</span>
         )}
       </button>
+
+      {repo !== null && (
+        <GitWidget
+          repo={repo}
+          branches={branches}
+          remoteBranches={remoteBranches}
+          mode={mode}
+          prLabel={prLabel}
+          opBusy={opBusy}
+          onCheckout={onCheckout}
+          onCreateBranch={onCreateBranch}
+          onCommitMode={onCommitMode}
+          onReviewMode={onReviewMode}
+          onPush={onPush}
+          onPull={onPull}
+        />
+      )}
 
       <span className="context-label" title={contextLabel}>
         {contextLabel}

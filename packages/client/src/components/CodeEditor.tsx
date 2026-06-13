@@ -2,9 +2,10 @@ import { langs } from "@uiw/codemirror-extensions-langs";
 import type { LanguageName } from "@uiw/codemirror-extensions-langs";
 import { githubDark, githubLight } from "@uiw/codemirror-theme-github";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
-import type { Extension } from "@uiw/react-codemirror";
+import type { Extension, ViewUpdate } from "@uiw/react-codemirror";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api";
+import type { CursorPosition } from "./StatusBar";
 
 // Match the Pierre (Shiki github) surface so editing looks like browsing/diffing.
 // @uiw's github theme ships a different background, so we override the base
@@ -39,6 +40,8 @@ interface CodeEditorProps {
   /** Called after a successful save so the app can refresh diffs/status. */
   onSaved: () => void;
   onError: (message: string) => void;
+  /** Reports the caret position to the status bar; null once the editor closes. */
+  onCursor?: (pos: CursorPosition | null) => void;
 }
 
 // A handful of extensions whose CodeMirror language key differs from the ext.
@@ -55,7 +58,7 @@ const languageForPath = (path: string): Extension | null => {
   return typeof loader === "function" ? loader() : null;
 };
 
-export function CodeEditor({ path, theme, onClose, onSaved, onError }: CodeEditorProps) {
+export function CodeEditor({ path, theme, onClose, onSaved, onError, onCursor }: CodeEditorProps) {
   const [value, setValue] = useState<string | null>(null);
   const [original, setOriginal] = useState<string>("");
   const [saving, setSaving] = useState(false);
@@ -88,6 +91,21 @@ export function CodeEditor({ path, theme, onClose, onSaved, onError }: CodeEdito
   }, [path, theme]);
 
   const dirty = value !== null && value !== original;
+
+  // Mirror the caret into the status bar (1-based line/column, like JetBrains),
+  // and clear it when the editor unmounts.
+  const reportCursor = useCallback(
+    (update: ViewUpdate) => {
+      if (onCursor === undefined) return;
+      if (!update.selectionSet && !update.docChanged && !update.focusChanged) return;
+      const head = update.state.selection.main.head;
+      const line = update.state.doc.lineAt(head);
+      onCursor({ line: line.number, col: head - line.from + 1 });
+    },
+    [onCursor],
+  );
+
+  useEffect(() => () => onCursor?.(null), [onCursor]);
 
   const save = useCallback(async () => {
     if (saving) return;
@@ -157,6 +175,7 @@ export function CodeEditor({ path, theme, onClose, onSaved, onError }: CodeEdito
                 valueRef.current = next;
                 setValue(next);
               }}
+              onUpdate={reportCursor}
             />
           )}
         </div>

@@ -10,7 +10,9 @@ import type {
   FilesPayload,
   GitFileStatus,
   GitStatusEntry,
-  RepoInfo
+  RemoteBranchInfo,
+  RepoInfo,
+  RepoStatus
 } from "./domain.js"
 import { NoRepoSelected, Workspace } from "./Workspace.js"
 
@@ -29,7 +31,9 @@ export type GitFailure = GitError | NoRepoSelected | PlatformError
 export interface GitShape {
   readonly info: Effect.Effect<RepoInfo, GitFailure>
   readonly files: Effect.Effect<FilesPayload, GitFailure>
+  readonly status: Effect.Effect<RepoStatus, GitFailure>
   readonly branches: Effect.Effect<ReadonlyArray<BranchInfo>, GitFailure>
+  readonly remoteBranches: Effect.Effect<ReadonlyArray<RemoteBranchInfo>, GitFailure>
   readonly log: (
     ref: string,
     limit: number
@@ -41,6 +45,11 @@ export interface GitShape {
   ) => Effect.Effect<string, GitFailure>
   readonly commitDiff: (sha: string) => Effect.Effect<string, GitFailure>
   readonly checkout: (branch: string) => Effect.Effect<void, GitFailure>
+  /** Create a new branch (optionally from a start point) and switch to it. */
+  readonly createBranch: (
+    name: string,
+    startPoint: string | null
+  ) => Effect.Effect<void, GitFailure>
   /** Commit the given paths (or everything when empty); returns the new short sha. */
   readonly commit: (
     message: string,
@@ -166,6 +175,66 @@ export const make = Effect.gen(function*() {
       return { paths: [...tracked, ...untracked], gitStatus }
     })
 
+    // A single porcelain v2 call yields the branch header (name, upstream,
+    // ahead/behind, HEAD sha) plus one line per changed file, so the whole
+    // status-bar snapshot comes from one git invocation.
+    const emptyStatus: RepoStatus = {
+      branch: "",
+      upstream: null,
+      ahead: 0,
+      behind: 0,
+      headSha: "",
+      changed: 0,
+      staged: 0,
+      unstaged: 0,
+      untracked: 0,
+      conflicted: 0
+    }
+
+    const status: GitShape["status"] = run(
+      "status",
+      "--porcelain=2",
+      "--branch",
+      "--untracked-files=all"
+    ).pipe(
+      Effect.map((out): RepoStatus => {
+        let { ahead, behind, branch, changed, conflicted, headSha, staged, unstaged, untracked, upstream } =
+          emptyStatus
+        for (const line of out.split("\n")) {
+          if (line.startsWith("# branch.head ")) {
+            branch = line.slice(14).trim()
+          } else if (line.startsWith("# branch.oid ")) {
+            const oid = line.slice(13).trim()
+            // An unborn branch reports "(initial)" rather than a sha.
+            headSha = oid.startsWith("(") ? "" : oid.slice(0, 7)
+          } else if (line.startsWith("# branch.upstream ")) {
+            const up = line.slice(18).trim()
+            upstream = up.length > 0 ? up : null
+          } else if (line.startsWith("# branch.ab ")) {
+            const match = line.slice(12).match(/\+(\d+)\s+-(\d+)/)
+            ahead = Number(match?.[1] ?? 0)
+            behind = Number(match?.[2] ?? 0)
+          } else if (line.startsWith("1 ") || line.startsWith("2 ")) {
+            // "<index><worktree>" — a non-"." in either column means staged
+            // or unstaged respectively; the file itself counts once.
+            const xy = line.slice(2, 4)
+            if (xy[0] !== ".") staged++
+            if (xy[1] !== ".") unstaged++
+            changed++
+          } else if (line.startsWith("u ")) {
+            conflicted++
+            changed++
+          } else if (line.startsWith("? ")) {
+            untracked++
+            changed++
+          }
+        }
+        return { ahead, behind, branch, changed, conflicted, headSha, staged, unstaged, untracked, upstream }
+      }),
+      // An empty repository (no HEAD) still has a meaningful — empty — status.
+      Effect.catchTag("GitError", () => Effect.succeed(emptyStatus))
+    )
+
     const FIELD_SEP = "\t"
     const branchFormat = [
       "%(refname:short)",
@@ -193,6 +262,37 @@ export const make = Effect.gen(function*() {
           isCurrent: name === current,
           upstream: upstream === undefined || upstream === "" ? null : upstream,
           ...parseTrack(track ?? ""),
+          committedAt: committedAt ?? "",
+          subject: subject ?? ""
+        }]
+      })
+    })
+
+    const remoteBranchFormat = [
+      "%(refname:short)",
+      "%(objectname:short)",
+      "%(committerdate:iso8601-strict)",
+      "%(subject)"
+    ].join(FIELD_SEP)
+
+    const remoteBranches: GitShape["remoteBranches"] = Effect.gen(function*() {
+      const refLines = yield* lines(
+        "for-each-ref",
+        "refs/remotes",
+        "--sort=-committerdate",
+        `--format=${remoteBranchFormat}`
+      )
+      return refLines.flatMap((line): Array<RemoteBranchInfo> => {
+        const [name, sha, committedAt, subject] = line.split(FIELD_SEP)
+        if (name === undefined || sha === undefined) return []
+        // Skip the symbolic "origin/HEAD" pointer — it's not a real branch.
+        if (name.endsWith("/HEAD")) return []
+        const slash = name.indexOf("/")
+        return [{
+          name,
+          remote: slash >= 0 ? name.slice(0, slash) : name,
+          shortName: slash >= 0 ? name.slice(slash + 1) : name,
+          sha,
           committedAt: committedAt ?? "",
           subject: subject ?? ""
         }]
@@ -234,6 +334,12 @@ export const make = Effect.gen(function*() {
     const checkout: GitShape["checkout"] = (branch) =>
       run("checkout", branch).pipe(Effect.asVoid)
 
+    const createBranch: GitShape["createBranch"] = (name, startPoint) =>
+      (startPoint === null
+        ? run("checkout", "-b", name)
+        : run("checkout", "-b", name, startPoint)
+      ).pipe(Effect.asVoid)
+
     const headShortSha = Effect.map(run("rev-parse", "--short", "HEAD"), (out) => out.trim())
 
     const commit: GitShape["commit"] = (message, paths) =>
@@ -269,12 +375,15 @@ export const make = Effect.gen(function*() {
     return Git.of({
       info,
       files,
+      status,
       branches,
+      remoteBranches,
       log,
       worktreeDiff,
       rangeDiff,
       commitDiff,
       checkout,
+      createBranch,
       commit,
       push,
       pull

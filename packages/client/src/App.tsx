@@ -1,6 +1,14 @@
 import { parsePatchFiles } from "@pierre/diffs";
 import type { FileDiffMetadata } from "@pierre/diffs";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { api } from "./api";
 import { BottomPanel } from "./components/BottomPanel";
 import { CodeEditor } from "./components/CodeEditor";
@@ -12,6 +20,8 @@ import { ModeRail } from "./components/ModeRail";
 import { RepoList } from "./components/RepoList";
 import { RepoPicker } from "./components/RepoPicker";
 import { Sidebar } from "./components/Sidebar";
+import { StatusBar } from "./components/StatusBar";
+import type { CursorPosition } from "./components/StatusBar";
 import { TopBar } from "./components/TopBar";
 import type {
   AppMode,
@@ -21,7 +31,9 @@ import type {
   DiffTarget,
   FilesPayload,
   PullRequestInfo,
+  RemoteBranchInfo,
   RepoInfo,
+  RepoStatus,
   ReviewComment,
   WorkspaceInfo,
 } from "./types";
@@ -50,11 +62,20 @@ export function App() {
   const [bottomVisible, setBottomVisible] = useState<boolean>(
     () => localStorage.getItem("codediff-bottom") !== "off",
   );
+  // The bottom panel's height is drag-resizable; persist it across sessions.
+  const [bottomHeight, setBottomHeight] = useState<number>(() => {
+    const stored = Number(localStorage.getItem("codediff-bottom-h"));
+    return Number.isFinite(stored) && stored >= 120 ? stored : 240;
+  });
   const [workspace, setWorkspace] = useState<WorkspaceInfo | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [repo, setRepo] = useState<RepoInfo | null>(null);
   const [files, setFiles] = useState<FilesPayload | null>(null);
+  const [status, setStatus] = useState<RepoStatus | null>(null);
   const [branches, setBranches] = useState<ReadonlyArray<BranchInfo>>([]);
+  const [remoteBranches, setRemoteBranches] = useState<
+    ReadonlyArray<RemoteBranchInfo>
+  >([]);
   const [commits, setCommits] = useState<ReadonlyArray<CommitInfo>>([]);
   const [logRef, setLogRef] = useState<string | null>(null);
   const [pulls, setPulls] = useState<ReadonlyArray<PullRequestInfo>>([]);
@@ -65,6 +86,8 @@ export function App() {
   const [editing, setEditing] = useState<string | null>(null);
   // The path being previewed read-only (Browse mode); overlays the center.
   const [viewing, setViewing] = useState<string | null>(null);
+  // Caret position reported by the editor, shown in the status bar.
+  const [cursor, setCursor] = useState<CursorPosition | null>(null);
   const [diffText, setDiffText] = useState<string | null>(null);
   const [diffError, setDiffError] = useState<string | null>(null);
   const [diffLoading, setDiffLoading] = useState(false);
@@ -103,12 +126,18 @@ export function App() {
     localStorage.setItem("codediff-bottom", bottomVisible ? "on" : "off");
   }, [bottomVisible]);
 
+  useEffect(() => {
+    localStorage.setItem("codediff-bottom-h", String(Math.round(bottomHeight)));
+  }, [bottomHeight]);
+
   // A plain folder of repos has no git state of its own — clear it so nothing
   // from a previously open repo lingers behind the repo list.
   const clearRepoState = useCallback(() => {
     setRepo(null);
     setFiles(null);
+    setStatus(null);
     setBranches([]);
+    setRemoteBranches([]);
     setLocalComments([]);
     setCommits([]);
   }, []);
@@ -123,9 +152,17 @@ export function App() {
       .then(setFiles)
       .catch(() => setFiles(null));
     api
+      .status()
+      .then(setStatus)
+      .catch(() => setStatus(null));
+    api
       .branches()
       .then(setBranches)
       .catch(() => setBranches([]));
+    api
+      .remoteBranches()
+      .then(setRemoteBranches)
+      .catch(() => setRemoteBranches([]));
     api
       .comments()
       .then(setLocalComments)
@@ -321,10 +358,52 @@ export function App() {
     [refreshRepoState],
   );
 
+  const createBranch = useCallback(
+    async (name: string, startPoint: string | null) => {
+      setOpBusy(true);
+      try {
+        await api.createBranch(name, startPoint);
+        refreshRepoState();
+        setMode("commit");
+        showNotice("ok", `Created branch ${name}`);
+      } catch (cause) {
+        showNotice("err", cause instanceof Error ? cause.message : String(cause));
+      } finally {
+        setOpBusy(false);
+      }
+    },
+    [refreshRepoState, showNotice],
+  );
+
   const refresh = useCallback(() => {
     refreshRepoState();
     setRefreshNonce((nonce) => nonce + 1);
   }, [refreshRepoState]);
+
+  // Read the latest height inside the drag handler without re-subscribing it.
+  const bottomHeightRef = useRef(bottomHeight);
+  bottomHeightRef.current = bottomHeight;
+
+  // Drag the bottom panel's top edge to resize it. Clamp between a usable
+  // minimum and most of the viewport so the diff area never disappears.
+  const startBottomResize = useCallback((event: ReactPointerEvent) => {
+    event.preventDefault();
+    const startY = event.clientY;
+    const startHeight = bottomHeightRef.current;
+    document.body.classList.add("is-resizing-row");
+    const onMove = (move: PointerEvent) => {
+      const next = startHeight + (startY - move.clientY);
+      const max = Math.max(160, window.innerHeight - 200);
+      setBottomHeight(Math.min(Math.max(next, 120), max));
+    };
+    const onUp = () => {
+      document.body.classList.remove("is-resizing-row");
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }, []);
 
   const commitChanges = useCallback(
     async (message: string, paths: ReadonlyArray<string>, andPush: boolean) => {
@@ -540,6 +619,7 @@ export function App() {
           onClose={() => setEditing(null)}
           onSaved={onSaved}
           onError={(message) => showNotice("err", message)}
+          onCursor={setCursor}
         />
       );
     }
@@ -593,7 +673,10 @@ export function App() {
   };
 
   return (
-    <div className={`app ${bottomVisible ? "" : "app-no-bottom"}`}>
+    <div
+      className={`app ${bottomVisible ? "" : "app-no-bottom"}`}
+      style={{ "--bottom-h": `${bottomHeight}px` } as CSSProperties}
+    >
       <ModeRail
         mode={mode}
         hasGitHub={repo?.github != null}
@@ -606,6 +689,13 @@ export function App() {
       <TopBar
         repo={repo}
         branches={branches}
+        remoteBranches={remoteBranches}
+        mode={mode}
+        prLabel={
+          mode === "review" && selectedPull !== null
+            ? `#${selectedPull.number}`
+            : null
+        }
         contextLabel={contextLabel}
         diffStyle={diffStyle}
         showDiffStyleToggle={editing === null && viewing === null && target !== null}
@@ -617,6 +707,10 @@ export function App() {
         onDiffStyleChange={setDiffStyle}
         onConnectorsChange={setConnectors}
         onRepoClick={() => setPickerOpen(true)}
+        onCheckout={(ref) => void checkoutBranch(ref)}
+        onCreateBranch={(name, startPoint) => void createBranch(name, startPoint)}
+        onCommitMode={() => changeMode("commit")}
+        onReviewMode={() => changeMode("review")}
         onPush={() => void runSync("push")}
         onPull={() => void runSync("pull")}
         onRefresh={refresh}
@@ -659,8 +753,17 @@ export function App() {
           onBranchCheckout={checkoutBranch}
           onSelectCommit={selectCommit}
           onSelectPull={selectPull}
+          onResizeStart={startBottomResize}
         />
       )}
+      <StatusBar
+        repo={repo}
+        status={status}
+        busy={opBusy}
+        openPath={editing ?? viewing}
+        cursor={editing !== null ? cursor : null}
+        onRepoClick={() => setPickerOpen(true)}
+      />
       {pickerOpen && workspace !== null && (
         <RepoPicker
           workspace={workspace}

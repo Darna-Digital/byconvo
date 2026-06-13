@@ -10,7 +10,9 @@ import type {
   FileContent,
   FilesPayload,
   PullRequestInfo,
+  RemoteBranchInfo,
   RepoInfo,
+  RepoStatus,
   ReviewComment,
   WorkspaceInfo
 } from "./types"
@@ -73,7 +75,12 @@ export const api = {
     postJson<{ ok: boolean }>("/api/file/rename", { from, to }),
   repo: () => getJson<RepoInfo>("/api/repo"),
   files: () => getJson<FilesPayload>("/api/files"),
+  status: () => getJson<RepoStatus>("/api/status"),
   branches: () => getJson<ReadonlyArray<BranchInfo>>("/api/branches"),
+  remoteBranches: () =>
+    getJson<ReadonlyArray<RemoteBranchInfo>>("/api/remote-branches"),
+  createBranch: (name: string, startPoint: string | null = null) =>
+    postJson<{ ok: boolean }>("/api/branch", { name, startPoint }),
   log: (ref: string, limit = 60) =>
     getJson<ReadonlyArray<CommitInfo>>(
       `/api/log?ref=${encodeURIComponent(ref)}&limit=${limit}`

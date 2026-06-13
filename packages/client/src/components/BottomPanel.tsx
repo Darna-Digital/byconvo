@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type PointerEvent as ReactPointerEvent, useState } from "react";
 import type {
   AppMode,
   BranchInfo,
@@ -19,6 +19,8 @@ interface BottomPanelProps {
   onBranchCheckout: (branch: string) => Promise<void>;
   onSelectCommit: (commit: CommitInfo) => void;
   onSelectPull: (pull: PullRequestInfo) => void;
+  /** Begin a drag on the panel's top edge to resize its height. */
+  onResizeStart: (event: ReactPointerEvent) => void;
 }
 
 const formatDate = (iso: string): string => {
@@ -40,15 +42,21 @@ export function BottomPanel({
   onBranchCheckout,
   onSelectCommit,
   onSelectPull,
+  onResizeStart,
 }: BottomPanelProps) {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const showPulls = mode === "review";
 
-
-  
-
   return (
     <footer className="bottom-panel">
+      <div
+        className="bottom-resize-handle"
+        onPointerDown={onResizeStart}
+        role="separator"
+        aria-orientation="horizontal"
+        aria-label="Resize panel"
+        title="Drag to resize"
+      />
       <div className="branches-pane">
         <div className="panel-title">
           <span>Branches</span>
