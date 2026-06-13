@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
 import { BottomPanel } from "./components/BottomPanel";
 import { CodeEditor } from "./components/CodeEditor";
+import { CodeView } from "./components/CodeView";
 import { CommitPanel } from "./components/CommitPanel";
 import { DiffPane } from "./components/DiffPane";
 import type { DraftLocation } from "./components/DiffPane";
@@ -61,6 +62,8 @@ export function App() {
   const [browseView, setBrowseView] = useState<BrowseView | null>(null);
   // The path being edited; when set, an editor overlays the center in any mode.
   const [editing, setEditing] = useState<string | null>(null);
+  // The path being previewed read-only (Browse mode); overlays the center.
+  const [viewing, setViewing] = useState<string | null>(null);
   const [diffText, setDiffText] = useState<string | null>(null);
   const [diffError, setDiffError] = useState<string | null>(null);
   const [diffLoading, setDiffLoading] = useState(false);
@@ -137,6 +140,7 @@ export function App() {
       // Reset everything that belonged to the previous repository.
       setMode("commit");
       setEditing(null);
+      setViewing(null);
       setSelectedFile(null);
       setSelectedPull(null);
       setBrowseView(null);
@@ -363,12 +367,13 @@ export function App() {
     setSelectedPull(pull);
   }, []);
 
-  // In browse mode a file click opens it for editing; in the diff modes it
-  // scrolls the diff to that file (the diff header has its own Edit button).
+  // In browse mode a file click opens a read-only preview (with an Edit button);
+  // in the diff modes it scrolls the diff to that file (the diff header has its
+  // own Edit button).
   const onFileSelect = useCallback(
     (path: string | null) => {
       if (path === null) return;
-      if (mode === "browse") setEditing(path);
+      if (mode === "browse") setViewing(path);
       else setSelectedFile(path);
     },
     [mode],
@@ -376,6 +381,7 @@ export function App() {
 
   const changeMode = useCallback((next: AppMode) => {
     setEditing(null);
+    setViewing(null);
     setMode(next);
   }, []);
 
@@ -430,6 +436,7 @@ export function App() {
 
   const contextLabel = useMemo(() => {
     if (editing !== null) return editing;
+    if (viewing !== null) return viewing;
     if (mode === "commit") return "Local changes";
     if (mode === "review") {
       return selectedPull === null
@@ -440,10 +447,11 @@ export function App() {
       return `commit ${browseView.shortSha}`;
     }
     return "Select a file or commit";
-  }, [editing, mode, selectedPull, browseView]);
+  }, [editing, viewing, mode, selectedPull, browseView]);
 
   const renderCenter = () => {
-    // The editor overlays the center in every mode.
+    // The editor overlays the center in every mode; it takes precedence over the
+    // read-only preview so the Edit button drops straight into it.
     if (editing !== null) {
       return (
         <CodeEditor
@@ -451,6 +459,18 @@ export function App() {
           theme={theme}
           onClose={() => setEditing(null)}
           onSaved={onSaved}
+          onError={(message) => showNotice("err", message)}
+        />
+      );
+    }
+    // Browse mode previews files read-only with the same renderer as the diffs.
+    if (viewing !== null) {
+      return (
+        <CodeView
+          path={viewing}
+          theme={theme}
+          onEdit={setEditing}
+          onClose={() => setViewing(null)}
           onError={(message) => showNotice("err", message)}
         />
       );
@@ -508,9 +528,11 @@ export function App() {
         branches={branches}
         contextLabel={contextLabel}
         diffStyle={diffStyle}
-        showDiffStyleToggle={editing === null && target !== null}
+        showDiffStyleToggle={editing === null && viewing === null && target !== null}
         connectors={connectors}
-        showConnectorsToggle={editing === null && target !== null && diffStyle === "split"}
+        showConnectorsToggle={
+          editing === null && viewing === null && target !== null && diffStyle === "split"
+        }
         opBusy={opBusy}
         onDiffStyleChange={setDiffStyle}
         onConnectorsChange={setConnectors}
@@ -527,7 +549,7 @@ export function App() {
         mode={mode}
         paths={treePaths}
         gitStatus={treeGitStatus}
-        selectedFile={mode === "browse" ? editing : selectedFile}
+        selectedFile={mode === "browse" ? (viewing ?? editing) : selectedFile}
         onFileSelect={onFileSelect}
         footer={
           mode === "commit" && changedFiles.length > 0 ? (
