@@ -13,7 +13,7 @@
  */
 import { type ChildProcess, spawn } from "node:child_process";
 import { resolve } from "node:path";
-import { app, BrowserWindow, shell } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 
 const isDev = process.env["CODEDIFF_DESKTOP_DEV"] === "1";
 const corePort = Number(process.env["CODEDIFF_PORT"] ?? 4317);
@@ -101,6 +101,7 @@ async function createWindow(): Promise<void> {
     title: "codediff",
     titleBarStyle: "hiddenInset",
     webPreferences: {
+      preload: resolve(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
     },
@@ -116,6 +117,22 @@ async function createWindow(): Promise<void> {
   if (isDev) await waitForUrl(devClientUrl, 30_000);
   await window.loadURL(target);
 }
+
+// Native folder picker, invoked from the renderer through the preload bridge.
+ipcMain.handle("dialog:open-directory", async (event) => {
+  const owner = BrowserWindow.fromWebContents(event.sender);
+  const result = await (owner
+    ? dialog.showOpenDialog(owner, {
+        title: "Open repository",
+        properties: ["openDirectory", "createDirectory"],
+      })
+    : dialog.showOpenDialog({
+        title: "Open repository",
+        properties: ["openDirectory", "createDirectory"],
+      }));
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return result.filePaths[0];
+});
 
 app.whenReady().then(async () => {
   try {

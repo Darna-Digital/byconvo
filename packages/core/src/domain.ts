@@ -65,10 +65,19 @@ export interface ReviewComment {
   readonly source: "local" | "github";
 }
 
+export interface RepoEntry {
+  readonly name: string;
+  readonly path: string;
+}
+
 export interface WorkspaceInfo {
   readonly current: string | null;
   readonly recents: ReadonlyArray<string>;
   readonly home: string;
+  /** Whether `current` is itself a git repository. */
+  readonly isGitRepo: boolean;
+  /** Git repos found inside `current` when it is a plain folder (empty otherwise). */
+  readonly childRepos: ReadonlyArray<RepoEntry>;
 }
 
 export interface BrowseEntry {

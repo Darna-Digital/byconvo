@@ -10,7 +10,7 @@ import type { PlatformError } from "effect/PlatformError"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import { homedir } from "node:os"
 import { resolve as pathResolve } from "node:path"
-import type { BrowseEntry, BrowsePayload, WorkspaceInfo } from "./domain.js"
+import type { BrowseEntry, BrowsePayload, RepoEntry, WorkspaceInfo } from "./domain.js"
 
 export class NoRepoSelected extends Data.TaggedError("NoRepoSelected")<{}> {
   override get message(): string {
@@ -85,6 +85,62 @@ export const make = (initial: InitialSelection | null) =>
         return stdout.trim()
       }))
 
+    /**
+     * Canonical workspace path for `path`: the git root if it (or an ancestor)
+     * is a repo, otherwise the directory itself. Null when it isn't a directory.
+     */
+    const resolveWorkspace = (path: string) =>
+      Effect.gen(function*() {
+        const stat = yield* fs.stat(path).pipe(Effect.catch(() => Effect.succeed(null)))
+        if (stat === null || stat.type !== "Directory") return null
+        const root = yield* validateRepo(path).pipe(Effect.catch(() => Effect.succeed(null)))
+        return root ?? pathResolve(path)
+      })
+
+    /** Git repos within `dir`, searched up to `depth` levels deep. */
+    const scanChildRepos = (
+      dir: string,
+      depth: number
+    ): Effect.Effect<Array<RepoEntry>, never> =>
+      Effect.gen(function*() {
+        const names = yield* fs.readDirectory(dir).pipe(Effect.catch(() => Effect.succeed([])))
+        const repos: Array<RepoEntry> = []
+        for (const name of names.sort((a, b) => a.localeCompare(b))) {
+          if (name.startsWith(".") || name === "node_modules") continue
+          const childPath = `${dir}/${name}`
+          const stat = yield* fs.stat(childPath).pipe(Effect.catch(() => Effect.succeed(null)))
+          if (stat === null || stat.type !== "Directory") continue
+          const isGitRepo = yield* fs.exists(`${childPath}/.git`).pipe(
+            Effect.catch(() => Effect.succeed(false))
+          )
+          if (isGitRepo) {
+            repos.push({ name, path: childPath })
+            continue // don't descend into a repository
+          }
+          if (depth > 1) {
+            const nested = yield* scanChildRepos(childPath, depth - 1)
+            // Qualify nested names with their parent so they stay distinguishable.
+            for (const repo of nested) repos.push({ name: `${name}/${repo.name}`, path: repo.path })
+          }
+        }
+        return repos
+      })
+
+    /** isGitRepo + childRepos for a (possibly null) current workspace path. */
+    const describe = (
+      current: string | null
+    ): Effect.Effect<{ isGitRepo: boolean; childRepos: ReadonlyArray<RepoEntry> }, never> =>
+      current === null
+        ? Effect.succeed({ isGitRepo: false, childRepos: [] })
+        : Effect.gen(function*() {
+          const isGitRepo = yield* fs.exists(`${current}/.git`).pipe(
+            Effect.catch(() => Effect.succeed(false))
+          )
+          if (isGitRepo) return { isGitRepo: true, childRepos: [] }
+          const childRepos = yield* scanChildRepos(current, 2)
+          return { isGitRepo: false, childRepos }
+        })
+
     const readState: Effect.Effect<PersistedState, never> = Effect.gen(function*() {
       const present = yield* fs.exists(STATE_FILE)
       if (!present) return { current: null, recents: [] }
@@ -110,12 +166,12 @@ export const make = (initial: InitialSelection | null) =>
         yield* fs.writeFileString(STATE_FILE, JSON.stringify(state, null, 2))
       }).pipe(Effect.catch(() => Effect.void))
 
-    // Boot order: explicit CODEDIFF_REPO > last repository used > cwd guess.
+    // Boot order: explicit CODEDIFF_REPO > last workspace used > cwd guess.
+    // A workspace may be a git repo or a plain folder of repos, so any existing
+    // directory is acceptable here.
     const persisted = yield* readState
     const validOrNull = (path: string | null) =>
-      path === null
-        ? Effect.succeed(null)
-        : validateRepo(path).pipe(Effect.catch(() => Effect.succeed(null)))
+      path === null ? Effect.succeed(null) : resolveWorkspace(path)
 
     const explicitValid = initial !== null && initial.explicit
       ? yield* validOrNull(initial.path)
@@ -135,7 +191,8 @@ export const make = (initial: InitialSelection | null) =>
     const info: WorkspaceShape["info"] = Effect.gen(function*() {
       const current = yield* Ref.get(currentRef)
       const recents = yield* Ref.get(recentsRef)
-      return { current, recents, home: homedir() }
+      const described = yield* describe(current)
+      return { current, recents, home: homedir(), ...described }
     })
 
     const requireCurrent: WorkspaceShape["requireCurrent"] = Ref.get(currentRef).pipe(
@@ -146,13 +203,19 @@ export const make = (initial: InitialSelection | null) =>
 
     const setCurrent: WorkspaceShape["setCurrent"] = (path) =>
       Effect.gen(function*() {
-        const root = yield* validateRepo(path)
+        // Accept a git repo (resolved to its root) or any plain folder; only a
+        // non-existent / non-directory path is rejected.
+        const root = yield* resolveWorkspace(path)
+        if (root === null) {
+          return yield* Effect.fail(new InvalidRepo({ path, reason: "not a directory" }))
+        }
         yield* Ref.set(currentRef, root)
         const recents = yield* Ref.updateAndGet(recentsRef, (existing) =>
           [root, ...existing.filter((entry) => entry !== root)].slice(0, MAX_RECENTS)
         )
         yield* writeState({ current: root, recents })
-        return { current: root, recents, home: homedir() }
+        const described = yield* describe(root)
+        return { current: root, recents, home: homedir(), ...described }
       })
 
     const browse: WorkspaceShape["browse"] = (requested) =>

@@ -188,6 +188,53 @@ button {
   padding: 16px 20px 48px;
 }
 
+/* ---------- repo list (non-git folder workspace) ---------- */
+
+.repo-list-pane {
+  display: flex;
+  justify-content: center;
+}
+
+.repo-list {
+  width: 100%;
+  max-width: 640px;
+}
+
+.repo-list-header {
+  margin-bottom: 16px;
+}
+
+.repo-list-title {
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.repo-list-subtitle {
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--fg-faint);
+}
+
+.repo-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.repo-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  text-align: left;
+}
+
+.repo-card:hover {
+  background: var(--bg-hover);
+}
+
 /* ---------- code editor ---------- */
 
 .editor-pane {
@@ -846,22 +893,90 @@ select {
   color: var(--fg-faint);
 }
 
+.modal-section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* JetBrains-style welcome picker. */
+.repo-modal {
+  width: 560px;
+  height: min(560px, calc(100vh - 96px));
+}
+
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.repo-search {
+  margin-bottom: 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  color: var(--fg);
+  font-size: 13px;
+}
+
+.repo-search:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.repo-avatar {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.repo-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.repo-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.repo-path {
+  color: var(--fg-faint);
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .recents {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-height: 150px;
   overflow-y: auto;
+  flex: 1;
 }
 
 .recent-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
-  padding: 6px 8px;
-  border-radius: 6px;
+  padding: 7px 8px;
+  border-radius: 8px;
   text-align: left;
-  font-size: 12.5px;
+  font-size: 13px;
 }
 
 .recent-row:hover {
@@ -872,25 +987,37 @@ select {
   background: var(--accent-soft);
 }
 
-.recent-row .repo-name {
-  font-weight: 600;
-}
-
-.recent-row .repo-path {
-  color: var(--fg-faint);
-  font-size: 11.5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .browser {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  flex: 1;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
+}
+
+.quick-access {
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border);
+}
+
+.quick-access button {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--fg-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.quick-access button:hover {
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .browser-toolbar {
@@ -902,19 +1029,40 @@ select {
   border-bottom: 1px solid var(--border);
 }
 
-.browser-path {
+.browser-crumbs {
   flex: 1;
-  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1px;
   font-size: 11.5px;
   color: var(--fg-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.browser-crumbs .crumb {
+  display: inline-flex;
+  align-items: center;
+}
+
+.browser-crumbs .crumb button {
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: var(--fg-muted);
+}
+
+.browser-crumbs .crumb button:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
+}
+
+.browser-crumbs .crumb-sep {
+  color: var(--fg-faint);
 }
 
 .browser-list {
+  flex: 1;
   overflow-y: auto;
-  max-height: 260px;
   min-height: 120px;
   padding: 4px;
 }

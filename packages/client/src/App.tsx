@@ -9,6 +9,7 @@ import { CommitPanel } from "./components/CommitPanel";
 import { DiffPane } from "./components/DiffPane";
 import type { DraftLocation } from "./components/DiffPane";
 import { ModeRail } from "./components/ModeRail";
+import { RepoList } from "./components/RepoList";
 import { RepoPicker } from "./components/RepoPicker";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
@@ -102,6 +103,16 @@ export function App() {
     localStorage.setItem("codediff-bottom", bottomVisible ? "on" : "off");
   }, [bottomVisible]);
 
+  // A plain folder of repos has no git state of its own — clear it so nothing
+  // from a previously open repo lingers behind the repo list.
+  const clearRepoState = useCallback(() => {
+    setRepo(null);
+    setFiles(null);
+    setBranches([]);
+    setLocalComments([]);
+    setCommits([]);
+  }, []);
+
   const refreshRepoState = useCallback(() => {
     api
       .repo()
@@ -128,10 +139,11 @@ export function App() {
       .then((info) => {
         setWorkspace(info);
         if (info.current === null) setPickerOpen(true);
-        else refreshRepoState();
+        else if (info.isGitRepo) refreshRepoState();
+        else clearRepoState();
       })
       .catch(() => setPickerOpen(true));
-  }, [refreshRepoState]);
+  }, [refreshRepoState, clearRepoState]);
 
   const switchRepo = useCallback(
     (info: WorkspaceInfo) => {
@@ -145,14 +157,25 @@ export function App() {
       setSelectedPull(null);
       setBrowseView(null);
       setLogRef(null);
-      setCommits([]);
       setPulls([]);
       setPullsError(null);
       setPullComments([]);
       setDraft(null);
-      refreshRepoState();
+      if (info.isGitRepo) refreshRepoState();
+      else clearRepoState();
     },
-    [refreshRepoState],
+    [refreshRepoState, clearRepoState],
+  );
+
+  // Open a repository (or folder) by path, e.g. from the child-repo list.
+  const openRepo = useCallback(
+    (path: string) => {
+      api
+        .setWorkspace(path)
+        .then(switchRepo)
+        .catch((cause: Error) => showNotice("err", cause.message));
+    },
+    [switchRepo, showNotice],
   );
 
   // The review mode only exists for GitHub repos.
@@ -198,7 +221,8 @@ export function App() {
   }, [mode, selectedPull, browseView]);
 
   const targetKey = target === null ? "none" : diffTargetKey(target);
-  const currentRepoPath = workspace?.current ?? null;
+  const isGitWorkspace = workspace?.isGitRepo ?? false;
+  const currentRepoPath = isGitWorkspace ? (workspace?.current ?? null) : null;
 
   // Fetch the diff whenever the derived target changes.
   useEffect(() => {
@@ -437,6 +461,9 @@ export function App() {
   const contextLabel = useMemo(() => {
     if (editing !== null) return editing;
     if (viewing !== null) return viewing;
+    if (workspace !== null && workspace.current !== null && !workspace.isGitRepo) {
+      return `${workspace.childRepos.length} repositories`;
+    }
     if (mode === "commit") return "Local changes";
     if (mode === "review") {
       return selectedPull === null
@@ -447,9 +474,20 @@ export function App() {
       return `commit ${browseView.shortSha}`;
     }
     return "Select a file or commit";
-  }, [editing, viewing, mode, selectedPull, browseView]);
+  }, [editing, viewing, mode, selectedPull, browseView, workspace]);
 
   const renderCenter = () => {
+    // A plain folder of repos has no diff surface — show its child git repos.
+    if (workspace !== null && workspace.current !== null && !workspace.isGitRepo) {
+      return (
+        <RepoList
+          folder={workspace.current}
+          home={workspace.home}
+          repos={workspace.childRepos}
+          onOpen={openRepo}
+        />
+      );
+    }
     // The editor overlays the center in every mode; it takes precedence over the
     // read-only preview so the Edit button drops straight into it.
     if (editing !== null) {

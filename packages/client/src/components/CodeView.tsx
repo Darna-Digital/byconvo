@@ -14,9 +14,6 @@ interface CodeViewProps {
 // Same theme mapping the diffs use so browsing and diffing render identically.
 const THEMES = { light: "github-light", dark: "github-dark" } as const
 
-// Read-only file preview rendered with the same Pierre highlighter as the
-// diffs, so Browse mode matches the diff surface. Editing still happens in the
-// CodeMirror-backed CodeEditor, reached via the Edit button.
 export function CodeView({ path, theme, onEdit, onClose, onError }: CodeViewProps) {
   const [contents, setContents] = useState<string | null>(null)
 
