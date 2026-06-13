@@ -1,5 +1,5 @@
 import { FileTree, useFileTree } from "@pierre/trees/react"
-import type { ReactNode } from "react"
+import type { PointerEvent as ReactPointerEvent, ReactNode } from "react"
 import { useEffect, useRef } from "react"
 import type { AppMode, GitStatusEntry } from "../types"
 
@@ -14,6 +14,8 @@ interface SidebarProps {
   /** Rename/move a path on disk. When omitted, inline rename is disabled. */
   onRenamePath?: (from: string, to: string) => Promise<void>
   onError?: (message: string) => void
+  /** Begin a drag on the sidebar's right edge to resize its width. */
+  onResizeStart?: (event: ReactPointerEvent) => void
   footer?: ReactNode
 }
 
@@ -32,6 +34,7 @@ export function Sidebar({
   onDeletePath,
   onRenamePath,
   onError,
+  onResizeStart,
   footer
 }: SidebarProps) {
   const onFileSelectRef = useRef(onFileSelect)
@@ -147,6 +150,16 @@ export function Sidebar({
         <FileTree model={model} renderContextMenu={renderContextMenu} style={{ height: "100%" }} />
       </div>
       {footer}
+      {onResizeStart !== undefined && (
+        <div
+          className="sidebar-resize-handle"
+          onPointerDown={onResizeStart}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize sidebar"
+          title="Drag to resize"
+        />
+      )}
     </aside>
   )
 }

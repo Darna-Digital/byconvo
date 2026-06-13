@@ -69,6 +69,11 @@ export function App() {
     const stored = Number(localStorage.getItem("codediff-bottom-h"));
     return Number.isFinite(stored) && stored >= 120 ? stored : 240;
   });
+  // The left sidebar's width is drag-resizable; persist it across sessions.
+  const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
+    const stored = Number(localStorage.getItem("codediff-sidebar-w"));
+    return Number.isFinite(stored) && stored >= 180 ? stored : 280;
+  });
   const [workspace, setWorkspace] = useState<WorkspaceInfo | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [repo, setRepo] = useState<RepoInfo | null>(null);
@@ -134,6 +139,10 @@ export function App() {
   useEffect(() => {
     localStorage.setItem("codediff-bottom-h", String(Math.round(bottomHeight)));
   }, [bottomHeight]);
+
+  useEffect(() => {
+    localStorage.setItem("codediff-sidebar-w", String(Math.round(sidebarWidth)));
+  }, [sidebarWidth]);
 
   // A plain folder of repos has no git state of its own — clear it so nothing
   // from a previously open repo lingers behind the repo list.
@@ -521,6 +530,31 @@ export function App() {
     window.addEventListener("pointerup", onUp);
   }, []);
 
+  // Read the latest width inside the drag handler without re-subscribing it.
+  const sidebarWidthRef = useRef(sidebarWidth);
+  sidebarWidthRef.current = sidebarWidth;
+
+  // Drag the sidebar's right edge to resize it. Clamp between a usable
+  // minimum and most of the viewport so the diff area never disappears.
+  const startSidebarResize = useCallback((event: ReactPointerEvent) => {
+    event.preventDefault();
+    const startX = event.clientX;
+    const startWidth = sidebarWidthRef.current;
+    document.body.classList.add("is-resizing-col");
+    const onMove = (move: PointerEvent) => {
+      const next = startWidth + (move.clientX - startX);
+      const max = Math.max(240, window.innerWidth - 400);
+      setSidebarWidth(Math.min(Math.max(next, 180), max));
+    };
+    const onUp = () => {
+      document.body.classList.remove("is-resizing-col");
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }, []);
+
   const commitChanges = useCallback(
     async (message: string, paths: ReadonlyArray<string>, andPush: boolean) => {
       setOpBusy(true);
@@ -794,7 +828,12 @@ export function App() {
   return (
     <div
       className={`app ${bottomVisible ? "" : "app-no-bottom"}`}
-      style={{ "--bottom-h": `${bottomHeight}px` } as CSSProperties}
+      style={
+        {
+          "--bottom-h": `${bottomHeight}px`,
+          "--sidebar-w": `${sidebarWidth}px`,
+        } as CSSProperties
+      }
     >
       <ModeRail
         mode={mode}
@@ -858,6 +897,7 @@ export function App() {
         onDeletePath={mode === "review" ? undefined : deletePath}
         onRenamePath={mode === "review" ? undefined : renamePath}
         onError={(message) => showNotice("err", message)}
+        onResizeStart={startSidebarResize}
         footer={
           mode === "commit" && changedFiles.length > 0 ? (
             <CommitPanel

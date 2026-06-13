@@ -21,6 +21,7 @@
   --bottom-h: 240px;
   --statusbar-h: 24px;
   --rail-w: 56px;
+  --sidebar-w: 280px;
 }
 
 [data-theme="dark"] {
@@ -72,7 +73,7 @@ button {
 .app {
   display: grid;
   grid-template-rows: var(--topbar-h) 1fr var(--bottom-h) var(--statusbar-h);
-  grid-template-columns: var(--rail-w) 280px 1fr;
+  grid-template-columns: var(--rail-w) var(--sidebar-w) 1fr;
   grid-template-areas:
     "rail topbar topbar"
     "rail sidebar diff"
@@ -230,11 +231,49 @@ button {
 
 .sidebar {
   grid-area: sidebar;
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
   background: var(--bg-panel);
   border-right: 1px solid var(--border);
+}
+
+/* JetBrains-style drag strip on the sidebar's right edge: invisible until
+   hovered or dragged, when a thin accent line marks the divider. */
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -3px;
+  width: 7px;
+  z-index: 10;
+  cursor: col-resize;
+}
+
+.sidebar-resize-handle::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 2px;
+  background: transparent;
+  transition: background 0.12s ease;
+}
+
+.sidebar-resize-handle:hover::after,
+body.is-resizing-col .sidebar-resize-handle::after {
+  background: var(--accent);
+}
+
+/* While dragging the divider, force the resize cursor everywhere and stop
+   text selection from kicking in over the panels. */
+body.is-resizing-col,
+body.is-resizing-col * {
+  cursor: col-resize !important;
+  user-select: none;
 }
 
 .diff-pane {
