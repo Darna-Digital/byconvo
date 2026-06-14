@@ -12,7 +12,7 @@
       "name": "spa",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "spa", "dev"],
-      "port": 3000
+      "port": 41812
     }
   ]
 }

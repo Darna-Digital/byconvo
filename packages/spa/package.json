@@ -3,14 +3,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev --port 3000",
+    "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx}\"",
     "check": "prettier --check \"**/*.{ts,tsx,js,jsx}\"",
-    "gen:api": "openapi-typescript http://localhost:4317/api/openapi.json -o src/lib/api/schema.d.ts && perl -0777 -i -pe 's/\\(number \\| \"NaN\" \\| \"Infinity\" \\| \"-Infinity\"\\) \\| \\(\"Infinity\" \\| \"-Infinity\" \\| \"NaN\"\\)/number/g; s/number \\| \"NaN\" \\| \"Infinity\" \\| \"-Infinity\"/number/g;' src/lib/api/schema.d.ts",
+    "gen:api": "openapi-typescript http://localhost:41811/api/openapi.json -o src/lib/api/schema.d.ts && perl -0777 -i -pe 's/\\(number \\| \"NaN\" \\| \"Infinity\" \\| \"-Infinity\"\\) \\| \\(\"Infinity\" \\| \"-Infinity\" \\| \"NaN\"\\)/number/g; s/number \\| \"NaN\" \\| \"Infinity\" \\| \"-Infinity\"/number/g;' src/lib/api/schema.d.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

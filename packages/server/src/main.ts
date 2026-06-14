@@ -37,7 +37,7 @@ const initial: InitialSelection =
   envRepo !== undefined && envRepo.length > 0
     ? { path: envRepo, explicit: true }
     : { path: process.cwd(), explicit: false }
-const port = Number(process.env["REVIEWER_PORT"] ?? 4317)
+const port = Number(process.env["REVIEWER_PORT"] ?? 41811)
 
 /**
  * The API router with every feature controller attached. The OpenAPI document
