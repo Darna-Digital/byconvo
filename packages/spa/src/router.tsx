@@ -11,14 +11,12 @@ export function getRouter() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        // Reuse cached git data across navigations; mutations invalidate
-        // explicitly, so navigation is instant and doesn't re-fetch/flash.
-        staleTime: 30_000,
+        staleTime: 0,
         gcTime: 5 * 60_000,
-        retry: false,
-        refetchOnWindowFocus: false,
-        refetchOnMount: false,
-        refetchOnReconnect: false,
+        retry: true,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
+        refetchOnReconnect: true,
       },
     },
   })
