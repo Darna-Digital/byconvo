@@ -29,6 +29,12 @@ export interface TreeInputs {
   readonly allPaths: ReadonlyArray<string>
   readonly gitStatus: ReadonlyArray<GitStatusEntry>
   readonly parsedFiles: ReadonlyArray<FileDiffMetadata>
+  /**
+   * Files carrying a local worktree comment. In commit mode these appear in the
+   * tree even with no git change, so a reviewer can revisit comments left while
+   * browsing. Defaults to none.
+   */
+  readonly commentedPaths?: ReadonlyArray<string>
 }
 
 export interface DiffDependencies {

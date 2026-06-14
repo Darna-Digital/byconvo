@@ -1,21 +1,13 @@
 import type { DiffLineAnnotation, FileDiffMetadata } from "@pierre/diffs"
 import { FileDiff } from "@pierre/diffs/react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import Markdown from "react-markdown"
-import rehypeHighlight from "rehype-highlight"
-import remarkGfm from "remark-gfm"
-import { IconBrandGithub, IconTrash } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+import { CommentThread, DraftCard, type DraftLocation } from "@/components/comments/CommentThread"
 import { DiffConnectors, connectorGutterCSS } from "@/components/diff/DiffConnectors"
 import type { CommentSide, DiffTarget, ReviewComment } from "@/lib/api/types"
 import type { DiffStyle, Theme } from "@/lib/ui-prefs"
 
-export interface DraftLocation {
-  readonly filePath: string
-  readonly side: CommentSide
-  readonly lineNumber: number
-}
+export type { DraftLocation }
 
 type AnnotationMeta =
   | { readonly kind: "comments"; readonly comments: ReadonlyArray<ReviewComment> }
@@ -54,113 +46,6 @@ const emptyHint = (target: DiffTarget): string => {
 }
 
 const THEMES = { light: "github-light", dark: "github-dark" } as const
-
-function Composer({
-  onCancel,
-  onSubmit,
-}: {
-  onCancel: () => void
-  onSubmit: (body: string) => Promise<void>
-}) {
-  const [body, setBody] = useState("")
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const ref = useRef<HTMLTextAreaElement>(null)
-
-  useEffect(() => ref.current?.focus(), [])
-
-  const submit = async () => {
-    if (body.trim().length === 0 || busy) return
-    setBusy(true)
-    setError(null)
-    try {
-      await onSubmit(body.trim())
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
-      setBusy(false)
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-2 p-3">
-      <Textarea
-        ref={ref}
-        value={body}
-        placeholder="Leave a comment…"
-        className="min-h-20 text-sm"
-        onChange={(e) => setBody(e.target.value)}
-        onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === "Enter") void submit()
-          if (e.key === "Escape") onCancel()
-        }}
-      />
-      {error !== null && <p className="text-xs text-destructive">{error}</p>}
-      <div className="flex justify-end gap-2">
-        <Button variant="ghost" size="sm" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button size="sm" disabled={body.trim().length === 0 || busy} onClick={() => void submit()}>
-          {busy ? "Saving…" : "Comment"}
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-function CommentCard({
-  comment,
-  onDelete,
-  onReply,
-}: {
-  comment: ReviewComment
-  onDelete: (c: ReviewComment) => Promise<void>
-  onReply?: (c: ReviewComment, body: string) => Promise<void>
-}) {
-  const [replying, setReplying] = useState(false)
-  const canReply = comment.source === "github" && onReply !== undefined
-  return (
-    <div className="border-t p-3 text-sm first:border-t-0">
-      <div className="mb-1.5 flex items-center gap-2 text-xs text-muted-foreground">
-        <span className="font-medium text-foreground">{comment.author}</span>
-        {comment.source === "github" && (
-          <span className="inline-flex items-center gap-1 rounded-sm bg-muted px-1.5 py-0.5">
-            <IconBrandGithub className="size-3" /> GitHub
-          </span>
-        )}
-        <span>{new Date(comment.createdAt).toLocaleString()}</span>
-        <span className="ml-auto flex gap-1">
-          {comment.source === "local" && (
-            <button
-              className="inline-flex items-center gap-1 hover:text-destructive"
-              onClick={() => void onDelete(comment)}
-            >
-              <IconTrash className="size-3" /> Delete
-            </button>
-          )}
-          {canReply && (
-            <button className="hover:text-foreground" onClick={() => setReplying((o) => !o)}>
-              Reply
-            </button>
-          )}
-        </span>
-      </div>
-      <div className="markdown text-sm">
-        <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
-          {comment.body}
-        </Markdown>
-      </div>
-      {replying && onReply !== undefined && (
-        <Composer
-          onCancel={() => setReplying(false)}
-          onSubmit={async (body) => {
-            await onReply(comment, body)
-            setReplying(false)
-          }}
-        />
-      )}
-    </div>
-  )
-}
 
 interface FileDiffSectionProps {
   file: FileDiffMetadata
@@ -226,30 +111,23 @@ function FileDiffSection({
           const meta = annotation.metadata
           if (meta.kind === "draft") {
             return (
-              <div className="border-y bg-muted/30">
-                <Composer
-                  onCancel={onDraftCancel}
-                  onSubmit={(body) =>
-                    onCommentSubmit(
-                      { filePath: file.name, side: annotation.side, lineNumber: annotation.lineNumber },
-                      body,
-                    )
-                  }
-                />
-              </div>
+              <DraftCard
+                onCancel={onDraftCancel}
+                onSubmit={(body) =>
+                  onCommentSubmit(
+                    { filePath: file.name, side: annotation.side, lineNumber: annotation.lineNumber },
+                    body,
+                  )
+                }
+              />
             )
           }
           return (
-            <div className="border-y bg-muted/30">
-              {meta.comments.map((comment) => (
-                <CommentCard
-                  key={comment.id}
-                  comment={comment}
-                  onDelete={onCommentDelete}
-                  onReply={onCommentReply}
-                />
-              ))}
-            </div>
+            <CommentThread
+              comments={meta.comments}
+              onDelete={onCommentDelete}
+              onReply={onCommentReply}
+            />
           )
         }}
       />

@@ -17,6 +17,15 @@ import {
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -26,6 +35,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import type { BranchInfo, RemoteBranchInfo } from "@/lib/api/types"
 
@@ -42,9 +52,21 @@ interface BranchSwitcherProps {
   onRebase: (onto: string) => void
   onFetch: () => void
   onPush: () => void
-  onRenameBranch: (name: string) => void
+  onRenameBranch: (from: string, to: string) => void
   onDeleteBranch: (name: string) => void
 }
+
+/**
+ * A pending branch action that needs user input or confirmation, surfaced as a
+ * shadcn `Dialog`. The menu fires these into state (a native `window.prompt`
+ * triggered from inside the closing dropdown gets suppressed by the browser's
+ * focus transition, so the create/rename never ran).
+ */
+type BranchPrompt =
+  | { readonly kind: "create"; readonly startPoint: string | null; readonly label: string }
+  | { readonly kind: "rename"; readonly from: string }
+  | { readonly kind: "revision" }
+  | { readonly kind: "delete"; readonly name: string }
 
 /** A branch the action submenu operates on, normalised across local/remote. */
 interface BranchTarget {
@@ -98,6 +120,7 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
     local: false,
     remote: true,
   })
+  const [prompt, setPrompt] = useState<BranchPrompt | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
 
   // base-ui highlights the first item on open; pull focus back to the filter.
@@ -137,16 +160,9 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
   const showNew = matches("New Branch")
   const showRevision = matches("Checkout Tag or Revision")
 
-  const newBranch = (startPoint: string | null, label: string) => {
-    const name = window.prompt(
-      startPoint === null ? "New branch name:" : `New branch from '${label}':`,
-    )
-    if (name && name.trim()) props.onCreateBranch(name.trim(), startPoint)
-  }
-  const checkoutRevision = () => {
-    const ref = window.prompt("Checkout branch, tag, or revision:")
-    if (ref && ref.trim()) props.onCheckout(ref.trim())
-  }
+  const newBranch = (startPoint: string | null, label: string) =>
+    setPrompt({ kind: "create", startPoint, label })
+  const checkoutRevision = () => setPrompt({ kind: "revision" })
 
   /** The JetBrains-style action list for one branch. */
   const renderActions = (t: BranchTarget) => (
@@ -184,9 +200,14 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
       {!t.isRemote && (
         <>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => props.onRenameBranch(t.ref)}>Rename…</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setPrompt({ kind: "rename", from: t.ref })}>
+            Rename…
+          </DropdownMenuItem>
           {!t.isCurrent && (
-            <DropdownMenuItem variant="destructive" onClick={() => props.onDeleteBranch(t.ref)}>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => setPrompt({ kind: "delete", name: t.ref })}
+            >
               Delete
             </DropdownMenuItem>
           )}
@@ -244,6 +265,7 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
   )
 
   return (
+    <>
     <DropdownMenu
       open={open}
       onOpenChange={(next) => {
@@ -338,6 +360,156 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
+
+      <BranchPromptDialog
+        prompt={prompt}
+        onClose={() => setPrompt(null)}
+        onCreateBranch={props.onCreateBranch}
+        onRenameBranch={props.onRenameBranch}
+        onCheckout={props.onCheckout}
+        onDeleteBranch={props.onDeleteBranch}
+      />
+    </>
+  )
+}
+
+/**
+ * The shadcn dialog that backs every branch action needing input — create,
+ * "new branch from", checkout revision, rename — plus the delete confirmation.
+ * Keyed by the prompt so the text field resets to the right default each time.
+ */
+function BranchPromptDialog({
+  prompt,
+  onClose,
+  onCreateBranch,
+  onRenameBranch,
+  onCheckout,
+  onDeleteBranch,
+}: {
+  prompt: BranchPrompt | null
+  onClose: () => void
+  onCreateBranch: (name: string, startPoint: string | null) => void
+  onRenameBranch: (from: string, to: string) => void
+  onCheckout: (ref: string) => void
+  onDeleteBranch: (name: string) => void
+}) {
+  return (
+    <Dialog open={prompt !== null} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent showCloseButton={false}>
+        {prompt?.kind === "delete" ? (
+          <DeleteConfirm
+            name={prompt.name}
+            onConfirm={() => {
+              onDeleteBranch(prompt.name)
+              onClose()
+            }}
+          />
+        ) : prompt !== null ? (
+          <BranchNameForm
+            key={prompt.kind === "rename" ? prompt.from : prompt.kind}
+            prompt={prompt}
+            onSubmit={(value) => {
+              if (prompt.kind === "create") onCreateBranch(value, prompt.startPoint)
+              else if (prompt.kind === "rename") {
+                if (value !== prompt.from) onRenameBranch(prompt.from, value)
+              } else onCheckout(value)
+              onClose()
+            }}
+          />
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/** Title/label/submit copy for each text-entry prompt. */
+const PROMPT_COPY = (prompt: BranchPrompt) => {
+  switch (prompt.kind) {
+    case "create":
+      return prompt.startPoint === null
+        ? { title: "New branch", label: "Branch name", action: "Create", initial: "" }
+        : {
+            title: `New branch from ‘${prompt.label}’`,
+            label: "Branch name",
+            action: "Create",
+            initial: "",
+          }
+    case "rename":
+      return { title: `Rename ‘${prompt.from}’`, label: "New name", action: "Rename", initial: prompt.from }
+    case "revision":
+      return {
+        title: "Checkout tag or revision",
+        label: "Branch, tag, or revision",
+        action: "Checkout",
+        initial: "",
+      }
+    default:
+      return { title: "", label: "", action: "", initial: "" }
+  }
+}
+
+function BranchNameForm({
+  prompt,
+  onSubmit,
+}: {
+  prompt: BranchPrompt
+  onSubmit: (value: string) => void
+}) {
+  const copy = PROMPT_COPY(prompt)
+  const [value, setValue] = useState(copy.initial)
+  const trimmed = value.trim()
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Select the existing text on open so rename can be typed over immediately.
+  useEffect(() => {
+    inputRef.current?.select()
+  }, [])
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (trimmed) onSubmit(trimmed)
+      }}
+    >
+      <DialogHeader>
+        <DialogTitle>{copy.title}</DialogTitle>
+        <DialogDescription className="sr-only">{copy.label}</DialogDescription>
+      </DialogHeader>
+      <Input
+        ref={inputRef}
+        autoFocus
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder={copy.label}
+        className="my-4"
+      />
+      <DialogFooter>
+        <DialogClose render={<Button variant="outline" type="button" />}>Cancel</DialogClose>
+        <Button type="submit" disabled={trimmed.length === 0}>
+          {copy.action}
+        </Button>
+      </DialogFooter>
+    </form>
+  )
+}
+
+function DeleteConfirm({ name, onConfirm }: { name: string; onConfirm: () => void }) {
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Delete branch</DialogTitle>
+        <DialogDescription>
+          Delete branch ‘{name}’? This cannot be undone.
+        </DialogDescription>
+      </DialogHeader>
+      <DialogFooter>
+        <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+        <Button variant="destructive" onClick={onConfirm}>
+          Delete
+        </Button>
+      </DialogFooter>
+    </>
   )
 }
 

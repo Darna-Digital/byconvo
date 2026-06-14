@@ -44,7 +44,7 @@ interface TopBarProps {
   onCompare: (base: string, head: string) => void
   onMerge: (branch: string) => void
   onRebase: (onto: string) => void
-  onRenameBranch: (from: string) => void
+  onRenameBranch: (from: string, to: string) => void
   onDeleteBranch: (name: string) => void
   onFetch: () => void
   onPush: () => void

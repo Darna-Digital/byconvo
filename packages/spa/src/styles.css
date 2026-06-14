@@ -129,6 +129,12 @@
     }
 }
 /* --- reviewer: review-comment markdown bodies ------------------------------ */
+/* Comment bodies live in a narrow gutter, so wrap aggressively: long words,
+   URLs and inline code must break rather than force the card to overflow. */
+.markdown {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 .markdown :where(p, ul, ol, pre, blockquote) {
   margin: 0.25rem 0;
 }
@@ -143,7 +149,10 @@
   padding: 0.1em 0.3em;
 }
 .markdown pre {
-  overflow: auto;
+  /* Code blocks keep their own lines intact and scroll horizontally instead of
+     stretching the card; max-width pins them to the available width. */
+  max-width: 100%;
+  overflow-x: auto;
   background: var(--muted);
   border-radius: var(--radius-md);
   padding: 0.6rem 0.75rem;
@@ -151,10 +160,63 @@
 .markdown pre code {
   background: transparent;
   padding: 0;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 .markdown a {
   color: var(--primary);
   text-decoration: underline;
+}
+
+/* highlight.js token colours for fenced code blocks (rehype-highlight adds the
+   `hljs-*` classes but ships no theme). Palette = GitHub light/dark, swapped by
+   the app's `.dark` class so comment code matches the rest of the UI. */
+.markdown {
+  --hljs-keyword: #d73a49;
+  --hljs-entity: #6f42c1;
+  --hljs-constant: #005cc5;
+  --hljs-string: #032f62;
+  --hljs-variable: #e36209;
+  --hljs-comment: #6a737d;
+  --hljs-tag: #22863a;
+  --hljs-fg: inherit;
+}
+.dark .markdown {
+  --hljs-keyword: #ff7b72;
+  --hljs-entity: #d2a8ff;
+  --hljs-constant: #79c0ff;
+  --hljs-string: #a5d6ff;
+  --hljs-variable: #ffa657;
+  --hljs-comment: #8b949e;
+  --hljs-tag: #7ee787;
+}
+.markdown :where(.hljs-doctag, .hljs-keyword, .hljs-meta .hljs-keyword, .hljs-template-tag, .hljs-template-variable, .hljs-type, .hljs-variable.language_) {
+  color: var(--hljs-keyword);
+}
+.markdown :where(.hljs-title, .hljs-title.class_, .hljs-title.class_.inherited__, .hljs-title.function_) {
+  color: var(--hljs-entity);
+}
+.markdown :where(.hljs-attr, .hljs-attribute, .hljs-literal, .hljs-meta, .hljs-number, .hljs-operator, .hljs-variable, .hljs-selector-attr, .hljs-selector-class, .hljs-selector-id) {
+  color: var(--hljs-constant);
+}
+.markdown :where(.hljs-regexp, .hljs-string, .hljs-meta .hljs-string) {
+  color: var(--hljs-string);
+}
+.markdown :where(.hljs-built_in, .hljs-symbol) {
+  color: var(--hljs-variable);
+}
+.markdown :where(.hljs-comment, .hljs-code, .hljs-formula) {
+  color: var(--hljs-comment);
+}
+.markdown :where(.hljs-name, .hljs-quote, .hljs-selector-tag, .hljs-selector-pseudo) {
+  color: var(--hljs-tag);
+}
+.markdown :where(.hljs-emphasis) {
+  font-style: italic;
+}
+.markdown :where(.hljs-strong) {
+  font-weight: bold;
 }
 
 /* The @pierre diff/file surfaces fill their scroll container. */

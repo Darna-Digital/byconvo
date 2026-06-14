@@ -61,6 +61,10 @@ type Search = {
   path?: string
 }
 
+// Target key under which worktree/browse comments are stored, so a comment left
+// while browsing a file shows up again in commit mode.
+const WORKTREE_KEY = diffTargetKey({ kind: "worktree" })
+
 export function AppShell() {
   const navigate = useNavigate()
   const prefs = useUiPrefs()
@@ -86,6 +90,16 @@ export function AppShell() {
   const branches = useBranches()
   const remoteBranches = useRemoteBranches()
   const localComments = useComments()
+  // Files carrying a local worktree comment (left here or while browsing). Commit
+  // mode surfaces these in the tree even when the file has no git changes.
+  const commentedPaths = useMemo(
+    () => [
+      ...new Set(
+        (localComments.data ?? []).filter((c) => c.target === WORKTREE_KEY).map((c) => c.filePath),
+      ),
+    ],
+    [localComments.data],
+  )
   const hasGitHub = repo.data?.github != null
   const pulls = usePulls(hasGitHub)
   const [logFilters, setLogFilters] = useState<LogQuery>(emptyLogQuery)
@@ -149,16 +163,22 @@ export function AppShell() {
   )
   const pullComments = usePullComments(target?.kind === "pull" ? target.pull.number : null)
 
-  // Reset the comment draft when the diff target changes.
-  useEffect(() => setDraft(null), [targetKey])
+  // Reset the comment draft when the diff target or the open file changes.
+  useEffect(() => setDraft(null), [targetKey, search.file])
 
   // --- derived tree / comments (memoised: these run over the whole repo) -----
   const gitStatus = files.data?.gitStatus ?? []
   const allPaths = files.data?.paths ?? []
   const treePaths = useMemo(
-    () => diffFns.treePaths({ mode, allPaths, gitStatus, parsedFiles }),
-    [diffFns, mode, allPaths, gitStatus, parsedFiles],
+    () => diffFns.treePaths({ mode, allPaths, gitStatus, parsedFiles, commentedPaths }),
+    [diffFns, mode, allPaths, gitStatus, parsedFiles, commentedPaths],
   )
+  ;(window as unknown as Record<string, unknown>).__dbg = {
+    mode,
+    commentedPaths,
+    treeHasPkg: treePaths.includes("package.json"),
+    allHasPkg: allPaths.includes("package.json"),
+  }
   const treeGitStatus = useMemo(
     () => diffFns.treeGitStatus({ mode, allPaths, gitStatus, parsedFiles }),
     [diffFns, mode, allPaths, gitStatus, parsedFiles],
@@ -183,12 +203,35 @@ export function AppShell() {
 
   const onFileSelect = (path: string | null) => {
     if (path === null) return
-    if (mode === "browse") openFile(path, false)
-    else setSearch({ path })
+    if (mode === "browse") {
+      openFile(path, false)
+      return
+    }
+    // Commit mode: a file with only local comments (no git change) isn't in the
+    // worktree diff, so open it in the file viewer to show those comments;
+    // changed files scroll the diff as before.
+    if (mode === "commit" && !gitStatus.some((entry) => entry.path === path)) {
+      setSearch({ file: path, edit: undefined, path })
+      return
+    }
+    setSearch({ path, file: undefined, edit: undefined })
   }
 
   const editing = search.file !== undefined && search.edit === true ? search.file : null
   const viewing = search.file !== undefined && search.edit !== true ? search.file : null
+
+  // Local comments anchored to the file currently open in the viewer (worktree
+  // target — see CodeView). Threaded into the viewer so browse/commit comments
+  // appear inline on the source.
+  const fileComments = useMemo(
+    () =>
+      viewing === null
+        ? []
+        : (localComments.data ?? []).filter(
+            (c) => c.target === WORKTREE_KEY && c.filePath === viewing,
+          ),
+    [localComments.data, viewing],
+  )
 
   const contextLabel = useMemo(() => {
     if (editing !== null) return editing
@@ -216,6 +259,12 @@ export function AppShell() {
 
   const submitComment = async (location: DraftLocation, body: string) => {
     await comments.submit({ mode, selectedPull, targetKey }, location, body)
+    setDraft(null)
+  }
+  // Comments left on a file in the viewer (browse, or commit mode) always store
+  // against the worktree, regardless of the active mode/diff target.
+  const submitFileComment = async (location: DraftLocation, body: string) => {
+    await comments.submit({ mode: "commit", selectedPull: null, targetKey: WORKTREE_KEY }, location, body)
     setDraft(null)
   }
   const deleteComment = async (comment: import("@/lib/api/types").ReviewComment) => {
@@ -353,7 +402,20 @@ export function AppShell() {
       return <CodeEditor path={editing} theme={prefs.resolvedTheme} onClose={closeFile} onSaved={git.refresh} onCursor={setCursor} />
     }
     if (viewing !== null) {
-      return <CodeView path={viewing} theme={prefs.resolvedTheme} onEdit={(p) => openFile(p, true)} onClose={closeFile} />
+      return (
+        <CodeView
+          path={viewing}
+          theme={prefs.resolvedTheme}
+          onEdit={(p) => openFile(p, true)}
+          onClose={closeFile}
+          comments={fileComments}
+          draft={draft}
+          onDraftOpen={setDraft}
+          onDraftCancel={() => setDraft(null)}
+          onCommentSubmit={submitFileComment}
+          onCommentDelete={deleteComment}
+        />
+      )
     }
     if (target === null) {
       return (
@@ -439,13 +501,8 @@ export function AppShell() {
           onCompare={(base, head) => void navigate({ to: "/browse/range", search: { base, head } })}
           onMerge={(b) => void git.merge(b)}
           onRebase={(o) => void git.rebase(o)}
-          onRenameBranch={(from) => {
-            const to = window.prompt(`Rename "${from}" to:`, from)
-            if (to && to.trim() && to.trim() !== from) void git.renameBranch(from, to.trim())
-          }}
-          onDeleteBranch={(name) => {
-            if (window.confirm(`Delete branch "${name}"?`)) void git.deleteBranch(name)
-          }}
+          onRenameBranch={(from, to) => void git.renameBranch(from, to)}
+          onDeleteBranch={(name) => void git.deleteBranch(name)}
           onFetch={() => void git.fetch()}
           onPush={() => void git.push()}
           onPull={() => void git.pull()}

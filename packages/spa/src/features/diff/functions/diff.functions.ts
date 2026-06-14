@@ -35,12 +35,19 @@ export function createDiffFunctions(d: DiffDependencies): DiffFunctions {
     }
   }
 
-  const treePaths: DiffFunctions["treePaths"] = ({ mode, allPaths, gitStatus, parsedFiles }: TreeInputs) => {
+  const treePaths: DiffFunctions["treePaths"] = ({
+    mode,
+    allPaths,
+    gitStatus,
+    parsedFiles,
+    commentedPaths = [],
+  }: TreeInputs) => {
     if (mode === "browse") return allPaths.filter((path) => !isInternalPath(path))
     if (mode === "commit") {
+      const commented = new Set(commentedPaths)
       return allPaths
         .filter((path) => !isInternalPath(path))
-        .filter((path) => gitStatus.some((entry) => entry.path === path))
+        .filter((path) => gitStatus.some((entry) => entry.path === path) || commented.has(path))
     }
     return parsedFiles.map((file) => file.name)
   }

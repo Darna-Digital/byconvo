@@ -75,6 +75,17 @@ describe("tree derivations", () => {
     expect(paths).toEqual(["src/a.ts"])
   })
 
+  it("commit mode also lists commented-but-unchanged paths", () => {
+    const paths = fns().treePaths({
+      mode: "commit",
+      allPaths: ["src/a.ts", "src/b.ts", "src/c.ts"],
+      gitStatus: [{ path: "src/a.ts", status: "modified" }],
+      parsedFiles: [],
+      commentedPaths: ["src/c.ts"],
+    })
+    expect(paths).toEqual(["src/a.ts", "src/c.ts"])
+  })
+
   it("browse mode lists every non-internal path", () => {
     const paths = fns().treePaths({
       mode: "browse",
