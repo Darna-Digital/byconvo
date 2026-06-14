@@ -8,6 +8,7 @@ import { Link } from "@tanstack/react-router"
 import { buttonVariants } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import { isDesktop } from "@/lib/desktop"
 import type { AppMode } from "@/lib/api/types"
 
 interface ModeRailProps {
@@ -38,7 +39,7 @@ function RailButton({
 }) {
   const className = cn(
     buttonVariants({ variant: "ghost", size: "icon" }),
-    "rounded-lg text-muted-foreground",
+    "rounded-lg text-muted-foreground [-webkit-app-region:no-drag]",
     active && "bg-muted text-foreground",
   )
   return (
@@ -57,7 +58,16 @@ function RailButton({
 
 export function ModeRail({ mode, hasGitHub, bottomVisible, onBottomToggle }: ModeRailProps) {
   return (
-    <nav className="flex h-full w-12 shrink-0 flex-col items-center gap-1 border-r bg-sidebar py-2">
+    <nav
+      className={cn(
+        "flex h-full w-12 shrink-0 flex-col items-center gap-1 pb-2",
+        // In the desktop shell the macOS traffic lights sit over the rail's
+        // top-left. Reserve a draggable title-bar strip above the buttons (the
+        // height of the top bar) so they clear the lights; empty strip drags the
+        // window, the buttons opt back out via [-webkit-app-region:no-drag].
+        isDesktop ? "pt-10 [-webkit-app-region:drag]" : "pt-2",
+      )}
+    >
       {MODES.filter((m) => m.mode !== "review" || hasGitHub).map(({ mode: m, to, label, icon: Icon }) => (
         <RailButton key={m} to={to} label={label} active={mode === m}>
           <Icon className="size-5" />

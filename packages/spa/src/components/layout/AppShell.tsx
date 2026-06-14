@@ -315,6 +315,10 @@ export function AppShell() {
           onRefresh={git.refresh}
         />
 
+        {/* Everything below the title bar sits in a panel whose left border +
+            rounded top-left form the rail divider, so it curves in right above
+            the file list while the title-bar strip stays clean. */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-tl-lg border-l border-t">
         <div className="flex min-h-0 flex-1">
           <div className="shrink-0 overflow-hidden border-r" style={{ width: sidebarWidth }}>
             <FileSidebar
@@ -392,6 +396,7 @@ export function AppShell() {
           cursor={editing !== null ? cursor : null}
           onRepoClick={() => setPickerOpen(true)}
         />
+        </div>
       </div>
     </div>
   )
