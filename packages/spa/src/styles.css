@@ -128,3 +128,85 @@
     @apply font-sans;
     }
 }
+/* --- reviewer: review-comment markdown bodies ------------------------------ */
+.markdown :where(p, ul, ol, pre, blockquote) {
+  margin: 0.25rem 0;
+}
+.markdown :where(ul, ol) {
+  padding-left: 1.25rem;
+  list-style: revert;
+}
+.markdown code {
+  font-size: 0.85em;
+  background: var(--muted);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.3em;
+}
+.markdown pre {
+  overflow: auto;
+  background: var(--muted);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.75rem;
+}
+.markdown pre code {
+  background: transparent;
+  padding: 0;
+}
+.markdown a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* The @pierre diff/file surfaces fill their scroll container. */
+.diff-file pre {
+  margin: 0;
+}
+
+/* --- reviewer: file tree theming (pierre/trees web component) --------------- */
+/* These custom properties pierce the shadow DOM and resolve against whichever
+   theme (.dark or light) is active, so the tree follows the app theme. */
+file-tree-container {
+  --trees-bg-override: var(--background);
+  --trees-bg-muted-override: var(--muted);
+  --trees-fg-override: var(--foreground);
+  --trees-fg-muted-override: var(--muted-foreground);
+  --trees-accent-override: var(--accent-foreground);
+  --trees-border-color-override: var(--border);
+  --trees-selected-bg-override: var(--muted);
+  --trees-selected-fg-override: var(--foreground);
+  --trees-search-bg-override: var(--muted);
+  --trees-search-fg-override: var(--foreground);
+}
+
+/* --- reviewer: JetBrains-style split-diff connector ribbons ----------------- */
+.diff-connectors {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.diff-connectors path {
+  stroke-width: 1;
+}
+.diff-connectors .cx-add {
+  fill: #22c55e;
+  fill-opacity: 0.2;
+  stroke: #22c55e;
+  stroke-opacity: 0.6;
+}
+.diff-connectors .cx-del {
+  fill: #ef4444;
+  fill-opacity: 0.18;
+  stroke: #ef4444;
+  stroke-opacity: 0.55;
+}
+.diff-connectors .cx-mod {
+  fill: #f59e0b;
+  fill-opacity: 0.18;
+  stroke: #f59e0b;
+  stroke-opacity: 0.5;
+}
+
+/* Make native UI (scrollbars, form controls, caret) follow the app theme. */
+:root { color-scheme: light; }
+.dark { color-scheme: dark; }

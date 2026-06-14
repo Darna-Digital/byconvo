@@ -9,50 +9,204 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppCommitRouteImport } from './routes/_app/commit'
+import { Route as AppReviewIndexRouteImport } from './routes/_app/review/index'
+import { Route as AppBrowseIndexRouteImport } from './routes/_app/browse/index'
+import { Route as AppReviewPullRouteImport } from './routes/_app/review/$pull'
+import { Route as AppBrowseRangeRouteImport } from './routes/_app/browse/range'
+import { Route as AppBrowseCommitShaRouteImport } from './routes/_app/browse/commit.$sha'
 
-const IndexRoute = IndexRouteImport.update({
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCommitRoute = AppCommitRouteImport.update({
+  id: '/commit',
+  path: '/commit',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReviewIndexRoute = AppReviewIndexRouteImport.update({
+  id: '/review/',
+  path: '/review/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBrowseIndexRoute = AppBrowseIndexRouteImport.update({
+  id: '/browse/',
+  path: '/browse/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReviewPullRoute = AppReviewPullRouteImport.update({
+  id: '/review/$pull',
+  path: '/review/$pull',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBrowseRangeRoute = AppBrowseRangeRouteImport.update({
+  id: '/browse/range',
+  path: '/browse/range',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBrowseCommitShaRoute = AppBrowseCommitShaRouteImport.update({
+  id: '/browse/commit/$sha',
+  path: '/browse/commit/$sha',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AppIndexRoute
+  '/commit': typeof AppCommitRoute
+  '/browse/range': typeof AppBrowseRangeRoute
+  '/review/$pull': typeof AppReviewPullRoute
+  '/browse/': typeof AppBrowseIndexRoute
+  '/review/': typeof AppReviewIndexRoute
+  '/browse/commit/$sha': typeof AppBrowseCommitShaRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/commit': typeof AppCommitRoute
+  '/': typeof AppIndexRoute
+  '/browse/range': typeof AppBrowseRangeRoute
+  '/review/$pull': typeof AppReviewPullRoute
+  '/browse': typeof AppBrowseIndexRoute
+  '/review': typeof AppReviewIndexRoute
+  '/browse/commit/$sha': typeof AppBrowseCommitShaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_app/commit': typeof AppCommitRoute
+  '/_app/': typeof AppIndexRoute
+  '/_app/browse/range': typeof AppBrowseRangeRoute
+  '/_app/review/$pull': typeof AppReviewPullRoute
+  '/_app/browse/': typeof AppBrowseIndexRoute
+  '/_app/review/': typeof AppReviewIndexRoute
+  '/_app/browse/commit/$sha': typeof AppBrowseCommitShaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/commit'
+    | '/browse/range'
+    | '/review/$pull'
+    | '/browse/'
+    | '/review/'
+    | '/browse/commit/$sha'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/commit'
+    | '/'
+    | '/browse/range'
+    | '/review/$pull'
+    | '/browse'
+    | '/review'
+    | '/browse/commit/$sha'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/_app/commit'
+    | '/_app/'
+    | '/_app/browse/range'
+    | '/_app/review/$pull'
+    | '/_app/browse/'
+    | '/_app/review/'
+    | '/_app/browse/commit/$sha'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/commit': {
+      id: '/_app/commit'
+      path: '/commit'
+      fullPath: '/commit'
+      preLoaderRoute: typeof AppCommitRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/review/': {
+      id: '/_app/review/'
+      path: '/review'
+      fullPath: '/review/'
+      preLoaderRoute: typeof AppReviewIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/browse/': {
+      id: '/_app/browse/'
+      path: '/browse'
+      fullPath: '/browse/'
+      preLoaderRoute: typeof AppBrowseIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/review/$pull': {
+      id: '/_app/review/$pull'
+      path: '/review/$pull'
+      fullPath: '/review/$pull'
+      preLoaderRoute: typeof AppReviewPullRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/browse/range': {
+      id: '/_app/browse/range'
+      path: '/browse/range'
+      fullPath: '/browse/range'
+      preLoaderRoute: typeof AppBrowseRangeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/browse/commit/$sha': {
+      id: '/_app/browse/commit/$sha'
+      path: '/browse/commit/$sha'
+      fullPath: '/browse/commit/$sha'
+      preLoaderRoute: typeof AppBrowseCommitShaRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
+interface AppRouteChildren {
+  AppCommitRoute: typeof AppCommitRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppBrowseRangeRoute: typeof AppBrowseRangeRoute
+  AppReviewPullRoute: typeof AppReviewPullRoute
+  AppBrowseIndexRoute: typeof AppBrowseIndexRoute
+  AppReviewIndexRoute: typeof AppReviewIndexRoute
+  AppBrowseCommitShaRoute: typeof AppBrowseCommitShaRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppCommitRoute: AppCommitRoute,
+  AppIndexRoute: AppIndexRoute,
+  AppBrowseRangeRoute: AppBrowseRangeRoute,
+  AppReviewPullRoute: AppReviewPullRoute,
+  AppBrowseIndexRoute: AppBrowseIndexRoute,
+  AppReviewIndexRoute: AppReviewIndexRoute,
+  AppBrowseCommitShaRoute: AppBrowseCommitShaRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

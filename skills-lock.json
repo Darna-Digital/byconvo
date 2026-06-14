@@ -6,6 +6,12 @@
       "sourceType": "github",
       "skillPath": "skills/agentation/SKILL.md",
       "computedHash": "6ba2c955bee6ab3e9c7781b2553e3574b4c9ec35e539437d0831bfe368de8550"
+    },
+    "composable-functions-skill": {
+      "source": "darna-digital/skills",
+      "sourceType": "github",
+      "skillPath": "skills/composable-functions/SKILL.md",
+      "computedHash": "1d927ad5235b5e52f68e68217ddd663cf57119ecd66da7adf75286cf92718ef5"
     }
   }
 }

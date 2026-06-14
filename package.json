@@ -5,6 +5,7 @@
   "description": "reviewer.sh — local git review tool",
   "scripts": {
     "dev": "pnpm --parallel --filter @reviewer/core --filter @reviewer/client dev",
+    "dev:reviewer": "pnpm --parallel --filter @reviewer/server --filter spa dev",
     "dev:desktop": "pnpm --parallel --filter @reviewer/client --filter @reviewer/desktop dev",
     "desktop": "pnpm --filter @reviewer/client build && pnpm --filter @reviewer/core build && pnpm --filter @reviewer/desktop start",
     "build": "pnpm -r build",

@@ -7,6 +7,12 @@
       "runtimeArgs": ["--filter", "@reviewer/client", "dev"],
       "port": 5173,
       "autoPort": true
+    },
+    {
+      "name": "spa",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "spa", "dev"],
+      "port": 3000
     }
   ]
 }

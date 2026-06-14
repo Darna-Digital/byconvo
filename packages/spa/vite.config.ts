@@ -4,9 +4,17 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite"
 import viteReact from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
 
+const SERVER_URL = process.env.REVIEWER_SERVER_URL ?? "http://localhost:4317"
+
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
-  plugins: [devtools(), tailwindcss(), tanstackStart(), viteReact()],
+  // No SSR — reviewer is a local single-page app served behind the API server.
+  plugins: [devtools(), tailwindcss(), tanstackStart({ spa: { enabled: true } }), viteReact()],
+  server: {
+    proxy: {
+      "/api": { target: SERVER_URL, changeOrigin: true },
+    },
+  },
 })
 
 export default config
