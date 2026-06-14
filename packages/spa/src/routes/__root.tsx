@@ -40,7 +40,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <TooltipProvider delay={300}>{children ?? <Outlet />}</TooltipProvider>
-        <Toaster position="bottom-center" />
+        <Toaster />
         <TanStackDevtools
           config={{ position: "bottom-right" }}
           plugins={[
