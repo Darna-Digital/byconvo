@@ -14,6 +14,7 @@ import { BottomPanel } from "./components/BottomPanel";
 import { CodeEditor } from "./components/CodeEditor";
 import { CodeView } from "./components/CodeView";
 import { CommitPanel } from "./components/CommitPanel";
+import { useDialogs } from "./components/Dialog";
 import { DiffPane } from "./components/DiffPane";
 import type { DraftLocation } from "./components/DiffPane";
 import { ModeRail } from "./components/ModeRail";
@@ -116,6 +117,7 @@ export function App() {
     text: string;
   } | null>(null);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dialogs = useDialogs();
 
   const showNotice = useCallback((kind: "ok" | "err", text: string) => {
     if (noticeTimer.current !== null) clearTimeout(noticeTimer.current);
@@ -513,21 +515,29 @@ export function App() {
 
   const renameBranch = useCallback(
     (from: string) => {
-      const to = window.prompt(`Rename branch "${from}" to:`, from);
-      if (to === null || to.trim().length === 0 || to.trim() === from) return;
-      void runBranchOp(`Renamed ${from} → ${to.trim()}`, () =>
-        api.renameBranch(from, to.trim()),
-      );
+      void dialogs.prompt(`Rename branch "${from}" to:`, { defaultValue: from }).then((to) => {
+        if (to === null || to.trim().length === 0 || to.trim() === from) return;
+        void runBranchOp(`Renamed ${from} → ${to.trim()}`, () =>
+          api.renameBranch(from, to.trim()),
+        );
+      });
     },
-    [runBranchOp],
+    [dialogs, runBranchOp],
   );
 
   const deleteBranch = useCallback(
     (name: string) => {
-      if (!window.confirm(`Delete branch "${name}"? This cannot be undone.`)) return;
-      void runBranchOp(`Deleted ${name}`, () => api.deleteBranch(name));
+      void dialogs
+        .confirm(`Delete branch "${name}"? This cannot be undone.`, {
+          confirmLabel: "Delete",
+          danger: true,
+        })
+        .then((ok) => {
+          if (!ok) return;
+          void runBranchOp(`Deleted ${name}`, () => api.deleteBranch(name));
+        });
     },
-    [runBranchOp],
+    [dialogs, runBranchOp],
   );
 
   // Read the latest height inside the drag handler without re-subscribing it.
@@ -672,8 +682,9 @@ export function App() {
   // resync; the working tree is the source of truth via refresh().
   const deletePath = useCallback(
     async (path: string, isDirectory: boolean) => {
-      const ok = window.confirm(
+      const ok = await dialogs.confirm(
         `Delete ${isDirectory ? "folder" : "file"} "${path}"? This cannot be undone.`,
+        { confirmLabel: "Delete", danger: true },
       );
       if (!ok) return;
       try {
@@ -687,7 +698,7 @@ export function App() {
         showNotice("err", cause instanceof Error ? cause.message : String(cause));
       }
     },
-    [editing, viewing, selectedFile, refresh, showNotice],
+    [dialogs, editing, viewing, selectedFile, refresh, showNotice],
   );
 
   // Rename/move a path on disk. Rethrows so the Sidebar reverts its optimistic
@@ -909,6 +920,7 @@ export function App() {
         onPush={() => void runSync("push")}
         onPull={() => void runSync("pull")}
         onRefresh={refresh}
+        prompt={dialogs.prompt}
       />
 
 
@@ -980,6 +992,7 @@ export function App() {
           {notice.text}
         </div>
       )}
+      {dialogs.element}
     </div>
   );
 }

@@ -22,6 +22,8 @@ interface GitWidgetProps {
   onReviewMode: () => void;
   onPush: () => void;
   onPull: () => void;
+  /** In-app prompt; `window.prompt` is a no-op under the Electron shell. */
+  prompt: (message: string, options?: { defaultValue?: string }) => Promise<string | null>;
 }
 
 const GitHubMark = () => (
@@ -136,6 +138,7 @@ export function GitWidget({
   onReviewMode,
   onPush,
   onPull,
+  prompt,
 }: GitWidgetProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -267,17 +270,19 @@ export function GitWidget({
   };
 
   const newBranch = () => {
-    const name = window.prompt("New branch name:");
-    if (name === null || name.trim().length === 0) return;
-    onCreateBranch(name.trim(), null);
-    close();
+    void prompt("New branch name:").then((name) => {
+      if (name === null || name.trim().length === 0) return;
+      onCreateBranch(name.trim(), null);
+      close();
+    });
   };
 
   const checkoutRevision = () => {
-    const ref = window.prompt("Checkout branch, tag, or revision:");
-    if (ref === null || ref.trim().length === 0) return;
-    onCheckout(ref.trim());
-    close();
+    void prompt("Checkout branch, tag, or revision:").then((ref) => {
+      if (ref === null || ref.trim().length === 0) return;
+      onCheckout(ref.trim());
+      close();
+    });
   };
 
   const triggerLabel =
@@ -307,10 +312,11 @@ export function GitWidget({
       id: "new-from",
       label: `New Branch from '${target.display}'…`,
       run: () => {
-        const name = window.prompt(`New branch from '${target.display}':`);
-        if (name === null || name.trim().length === 0) return;
-        onCreateBranch(name.trim(), target.ref);
-        close();
+        void prompt(`New branch from '${target.display}':`).then((name) => {
+          if (name === null || name.trim().length === 0) return;
+          onCreateBranch(name.trim(), target.ref);
+          close();
+        });
       },
     });
     if (!target.isCurrent) {

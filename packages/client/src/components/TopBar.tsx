@@ -30,6 +30,8 @@ interface TopBarProps {
   onPush: () => void;
   onPull: () => void;
   onRefresh: () => void;
+  /** In-app prompt; `window.prompt` is a no-op under the Electron shell. */
+  prompt: (message: string, options?: { defaultValue?: string }) => Promise<string | null>;
 }
 
 export function TopBar({
@@ -61,6 +63,7 @@ export function TopBar({
   onPush,
   onPull,
   onRefresh,
+  prompt,
 }: TopBarProps) {
   const current = branches.find((branch) => branch.isCurrent);
 
@@ -102,6 +105,7 @@ export function TopBar({
           onReviewMode={onReviewMode}
           onPush={onPush}
           onPull={onPull}
+          prompt={prompt}
         />
       )}
 
