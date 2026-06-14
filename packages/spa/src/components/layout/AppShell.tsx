@@ -5,8 +5,23 @@
  * TanStack Query, derives the diff/tree via the composable `diff` functions, and
  * runs mutations through the composable `git-actions` / `comments` adapters.
  */
+import {
+  IconArrowDown,
+  IconArrowUp,
+  IconCloudDownload,
+  IconColumns2,
+  IconFolders,
+  IconGitBranch,
+  IconGitCommit,
+  IconGitPullRequest,
+  IconLayoutBottombarExpand,
+  IconMoon,
+  IconRefresh,
+  IconRepeat,
+} from "@tabler/icons-react"
 import { useNavigate, useParams, useRouterState, useSearch } from "@tanstack/react-router"
 import { useEffect, useMemo, useState } from "react"
+import { CommandMenu, type Command } from "@/components/CommandMenu"
 import { CommitPanel } from "@/components/CommitPanel"
 import { RepoList } from "@/components/RepoList"
 import { DiffPane, type DraftLocation } from "@/components/diff/DiffPane"
@@ -36,7 +51,7 @@ import {
   useStatus,
   useWorkspace,
 } from "@/lib/queries"
-import { setUiPrefs, useUiPrefs } from "@/lib/ui-prefs"
+import { cycleTheme, setUiPrefs, useUiPrefs } from "@/lib/ui-prefs"
 
 type Search = {
   base?: string
@@ -77,6 +92,7 @@ export function AppShell() {
   const log = useLog(repo.data?.currentBranch ?? null, logFilters)
 
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [commandOpen, setCommandOpen] = useState(false)
   const [draft, setDraft] = useState<DraftLocation | null>(null)
   const [cursor, setCursor] = useState<CursorPosition | null>(null)
 
@@ -208,6 +224,118 @@ export function AppShell() {
     void pullComments.refetch()
   }
 
+  // --- command palette -------------------------------------------------------
+  const commands = useMemo<Command[]>(() => {
+    const list: Command[] = [
+      {
+        id: "go-commit",
+        label: "Go to Local Changes",
+        group: "Navigation",
+        icon: IconGitCommit,
+        keywords: "commit working tree changes",
+        run: () => void navigate({ to: "/commit" }),
+      },
+    ]
+    if (hasGitHub) {
+      list.push({
+        id: "go-review",
+        label: "Go to Pull Requests",
+        group: "Navigation",
+        icon: IconGitPullRequest,
+        keywords: "review pr github",
+        run: () => void navigate({ to: "/review" }),
+      })
+    }
+    list.push(
+      {
+        id: "go-browse",
+        label: "Browse the Project",
+        group: "Navigation",
+        icon: IconFolders,
+        keywords: "files history commits explore",
+        run: () => void navigate({ to: "/browse" }),
+      },
+      {
+        id: "git-refresh",
+        label: "Refresh",
+        group: "Git",
+        icon: IconRefresh,
+        keywords: "reload sync",
+        run: () => git.refresh(),
+      },
+      {
+        id: "git-fetch",
+        label: "Fetch",
+        group: "Git",
+        icon: IconCloudDownload,
+        keywords: "remote",
+        run: () => void git.fetch(),
+      },
+      {
+        id: "git-pull",
+        label: "Pull",
+        group: "Git",
+        icon: IconArrowDown,
+        keywords: "remote update",
+        run: () => void git.pull(),
+      },
+      {
+        id: "git-push",
+        label: "Push",
+        group: "Git",
+        icon: IconArrowUp,
+        keywords: "remote upload",
+        run: () => void git.push(),
+      },
+      {
+        id: "git-branch",
+        label: "Create Branch…",
+        group: "Git",
+        icon: IconGitBranch,
+        keywords: "new checkout",
+        run: () => {
+          const name = window.prompt("New branch name:")
+          if (name && name.trim()) void git.createBranch(name.trim(), repo.data?.currentBranch ?? null)
+        },
+      },
+      {
+        id: "view-theme",
+        label: "Toggle Theme",
+        group: "View",
+        icon: IconMoon,
+        keywords: "dark light system appearance",
+        hint: prefs.theme,
+        run: () => cycleTheme(),
+      },
+      {
+        id: "view-diff-style",
+        label: "Toggle Diff Style",
+        group: "View",
+        icon: IconColumns2,
+        keywords: "split unified side by side inline",
+        hint: prefs.diffStyle,
+        run: () => setUiPrefs({ diffStyle: prefs.diffStyle === "split" ? "unified" : "split" }),
+      },
+      {
+        id: "view-bottom-panel",
+        label: prefs.bottomVisible ? "Hide Bottom Panel" : "Show Bottom Panel",
+        group: "View",
+        icon: IconLayoutBottombarExpand,
+        keywords: "branches history pulls toggle",
+        run: () => setUiPrefs({ bottomVisible: !prefs.bottomVisible }),
+      },
+      {
+        id: "repo-switch",
+        label: "Switch Repository…",
+        group: "Repository",
+        icon: IconRepeat,
+        keywords: "open change project picker",
+        run: () => setPickerOpen(true),
+      },
+    )
+    return list
+  }, [navigate, git, hasGitHub, prefs.theme, prefs.diffStyle, prefs.bottomVisible, repo.data?.currentBranch])
+
   // --- center pane -----------------------------------------------------------
   const renderCenter = () => {
     if (isFolder) {
@@ -269,6 +397,13 @@ export function AppShell() {
 
   return (
     <div className="flex h-svh w-full overflow-hidden text-foreground">
+      <CommandMenu
+        open={commandOpen}
+        onOpenChange={setCommandOpen}
+        commands={commands}
+        files={allPaths}
+        onOpenFile={(path) => openFile(path, false)}
+      />
       <ModeRail
         mode={mode}
         hasGitHub={hasGitHub}
