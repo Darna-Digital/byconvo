@@ -5,6 +5,7 @@ import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools"
 
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { isDesktop } from "@/lib/desktop"
 import type { RouterContext } from "../router"
 import appCss from "../styles.css?url"
 
@@ -41,13 +42,16 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         <TooltipProvider delay={300}>{children ?? <Outlet />}</TooltipProvider>
         <Toaster />
-        <TanStackDevtools
-          config={{ position: "bottom-right" }}
-          plugins={[
-            { name: "TanStack Router", render: <TanStackRouterDevtoolsPanel /> },
-            { name: "TanStack Query", render: <ReactQueryDevtoolsPanel /> },
-          ]}
-        />
+        {/* Devtools only in the browser, not inside the Electron shell. */}
+        {!isDesktop && (
+          <TanStackDevtools
+            config={{ position: "bottom-right" }}
+            plugins={[
+              { name: "TanStack Router", render: <TanStackRouterDevtoolsPanel /> },
+              { name: "TanStack Query", render: <ReactQueryDevtoolsPanel /> },
+            ]}
+          />
+        )}
         <Scripts />
       </body>
     </html>
