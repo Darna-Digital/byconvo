@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "reviewer-client",
+      "name": "reviewer",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@reviewer/client", "dev"],
       "port": 5173,

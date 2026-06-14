@@ -2036,6 +2036,91 @@ select {
     border-left: 3px solid var(--red);
 }
 
+/* ---------- modal dialog (prompt / confirm) ---------- */
+
+.dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.dialog {
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    padding: 18px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+}
+
+.dialog-message {
+    font-size: 13px;
+    color: var(--fg);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.dialog-input {
+    width: 100%;
+    margin-top: 12px;
+    padding: 7px 9px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--fg);
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+.dialog-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.dialog-button {
+    padding: 6px 14px;
+    font-size: 13px;
+    color: var(--fg);
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+.dialog-button:hover {
+    background: var(--bg-subtle);
+}
+
+.dialog-button-primary {
+    color: #fff;
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.dialog-button-primary:hover {
+    filter: brightness(1.05);
+    background: var(--accent);
+}
+
+.dialog-button-danger {
+    background: var(--red);
+    border-color: var(--red);
+}
+
+.dialog-button-danger:hover {
+    background: var(--red);
+}
+
 /* ---------- status bar (JetBrains-style) ---------- */
 
 .status-bar {
