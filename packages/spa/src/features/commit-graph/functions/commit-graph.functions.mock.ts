@@ -6,7 +6,7 @@ import type {
 } from "../entity/commit-graph.interfaces"
 
 export const createCommitGraphDependenciesMock = (
-  overrides?: Partial<CommitGraphConfig>,
+  overrides?: Partial<CommitGraphConfig>
 ): CommitGraphDependencies => ({
   data: { ...DEFAULT_GRAPH_CONFIG, ...overrides },
   sideEffects: {},
@@ -15,7 +15,7 @@ export const createCommitGraphDependenciesMock = (
 /** Build a minimal CommitInfo for layout tests — only sha/parents matter. */
 export const fakeCommit = (
   sha: string,
-  parents: ReadonlyArray<string> = [],
+  parents: ReadonlyArray<string> = []
 ): CommitInfo =>
   ({
     sha,

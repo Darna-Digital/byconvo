@@ -22,10 +22,18 @@ const formatDateTime = (iso: string): string => {
   })
 }
 
-const indent = (depth: number): React.CSSProperties => ({ paddingLeft: 8 + depth * 14 })
+const indent = (depth: number): React.CSSProperties => ({
+  paddingLeft: 8 + depth * 14,
+})
 
-export function CommitDetailsPanel({ sha, onSelectFile }: CommitDetailsPanelProps) {
-  const fns = useMemo(() => createCommitDetailsFunctions({ data: {}, sideEffects: {} }), [])
+export function CommitDetailsPanel({
+  sha,
+  onSelectFile,
+}: CommitDetailsPanelProps) {
+  const fns = useMemo(
+    () => createCommitDetailsFunctions({ data: {}, sideEffects: {} }),
+    []
+  )
   const detail = useCommitDetail(sha)
 
   if (sha === null) {
@@ -103,14 +111,18 @@ export function CommitDetailsPanel({ sha, onSelectFile }: CommitDetailsPanelProp
                   className="flex w-full items-center gap-2 rounded-md py-0.5 text-left outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50"
                   style={indent(row.depth)}
                   onClick={() => onSelectFile(row.file.path)}
-                  title={row.file.oldPath ? `${row.file.oldPath} → ${row.file.path}` : row.file.path}
+                  title={
+                    row.file.oldPath
+                      ? `${row.file.oldPath} → ${row.file.path}`
+                      : row.file.path
+                  }
                 >
                   <span
                     className={cn(
                       "w-3 shrink-0 text-center font-mono text-xs",
                       row.file.status === "added" && "text-emerald-500",
                       row.file.status === "deleted" && "text-destructive",
-                      row.file.status === "renamed" && "text-blue-500",
+                      row.file.status === "renamed" && "text-blue-500"
                     )}
                   >
                     {fns.statusLetter(row.file.status)}
@@ -118,7 +130,7 @@ export function CommitDetailsPanel({ sha, onSelectFile }: CommitDetailsPanelProp
                   <span className="truncate">{row.name}</span>
                 </button>
               </li>
-            ),
+            )
           )}
         </ul>
       </div>

@@ -29,7 +29,9 @@ export interface CommitDetailsDependencies {
 
 export interface CommitDetailsFunctions {
   /** Flatten the changed files into ordered, indented folder/file rows. */
-  readonly buildRows: (files: ReadonlyArray<CommitFileChange>) => ReadonlyArray<DetailRow>
+  readonly buildRows: (
+    files: ReadonlyArray<CommitFileChange>
+  ) => ReadonlyArray<DetailRow>
   /** The single-letter status badge for a change (A/D/M/R/…). */
   readonly statusLetter: (status: GitFileStatus) => string
 }

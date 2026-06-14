@@ -6,7 +6,7 @@ import type {
 } from "../entity/commit-graph.interfaces"
 
 export function createCommitGraphFunctions(
-  d: CommitGraphDependencies,
+  d: CommitGraphDependencies
 ): CommitGraphFunctions {
   const { colors, colWidth } = d.data
 
@@ -33,7 +33,9 @@ export function createCommitGraphFunctions(
     for (const commit of commits) {
       const before = lanes.map((lane) => (lane ? { ...lane } : null))
 
-      let dotCol = lanes.findIndex((lane) => lane !== null && lane.target === commit.sha)
+      let dotCol = lanes.findIndex(
+        (lane) => lane !== null && lane.target === commit.sha
+      )
       let color: string
       if (dotCol === -1) {
         dotCol = firstFree()
@@ -79,7 +81,8 @@ export function createCommitGraphFunctions(
     return { rows, width }
   }
 
-  const centerX: CommitGraphFunctions["centerX"] = (col) => col * colWidth + colWidth / 2
+  const centerX: CommitGraphFunctions["centerX"] = (col) =>
+    col * colWidth + colWidth / 2
 
   const edgePath: CommitGraphFunctions["edgePath"] = (x1, y1, x2, y2) =>
     x1 === x2

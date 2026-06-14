@@ -20,7 +20,8 @@ interface LogFiltersProps {
   onQueryChange: (query: LogQuery) => void
 }
 
-const blank = (value: string): string | null => (value.trim().length > 0 ? value.trim() : null)
+const blank = (value: string): string | null =>
+  value.trim().length > 0 ? value.trim() : null
 
 /**
  * History toolbar. Text fields apply on Enter/blur; the branch picker, toggles
@@ -42,7 +43,8 @@ export function LogFilters({
   useEffect(() => setAuthor(query.author ?? ""), [query.author])
   useEffect(() => setPath(query.path ?? ""), [query.path])
 
-  const apply = (patch: Partial<LogQuery>) => onQueryChange({ ...query, ...patch })
+  const apply = (patch: Partial<LogQuery>) =>
+    onQueryChange({ ...query, ...patch })
 
   const hasFilters =
     query.grep !== null ||
@@ -91,7 +93,13 @@ export function LogFilters({
           <FilterToggle
             active={query.regex}
             label="Regular expression"
-            onClick={() => onQueryChange({ ...query, grep: blank(grep), regex: !query.regex })}
+            onClick={() =>
+              onQueryChange({
+                ...query,
+                grep: blank(grep),
+                regex: !query.regex,
+              })
+            }
           >
             .*
           </FilterToggle>
@@ -99,7 +107,11 @@ export function LogFilters({
             active={query.caseSensitive}
             label="Match case"
             onClick={() =>
-              onQueryChange({ ...query, grep: blank(grep), caseSensitive: !query.caseSensitive })
+              onQueryChange({
+                ...query,
+                grep: blank(grep),
+                caseSensitive: !query.caseSensitive,
+              })
             }
           >
             Cc
@@ -124,7 +136,9 @@ export function LogFilters({
         className="h-7 w-36 text-xs"
         aria-label="Since date"
         value={query.after ?? ""}
-        onChange={(e) => apply({ after: e.target.value.length > 0 ? e.target.value : null })}
+        onChange={(e) =>
+          apply({ after: e.target.value.length > 0 ? e.target.value : null })
+        }
       />
 
       <Input
@@ -186,7 +200,7 @@ function FilterToggle({
         "flex h-5 min-w-6 items-center justify-center rounded px-1 font-mono text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
         active
           ? "bg-primary text-primary-foreground"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+          : "text-muted-foreground hover:bg-muted hover:text-foreground"
       )}
     >
       {children}

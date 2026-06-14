@@ -44,15 +44,17 @@ export function CommitHistory({
   const rowRefs = useRef(new Map<string, HTMLElement>())
   const [activeSha, setActiveSha] = useState<string | null>(null)
 
-  const effectiveActive = activeSha ?? selectedCommitSha ?? commits[0]?.sha ?? null
+  const effectiveActive =
+    activeSha ??
+    selectedCommitSha ??
+    (commits.length > 0 ? commits[0].sha : null)
 
   const move = (delta: number) => {
+    if (commits.length === 0) return
     const idx = commits.findIndex((c) => c.sha === effectiveActive)
     const next = commits[Math.max(0, Math.min(commits.length - 1, idx + delta))]
-    if (next) {
-      setActiveSha(next.sha)
-      rowRefs.current.get(next.sha)?.focus()
-    }
+    setActiveSha(next.sha)
+    rowRefs.current.get(next.sha)?.focus()
   }
 
   const onKeyDown = (event: React.KeyboardEvent, commit: CommitInfo) => {
@@ -119,32 +121,36 @@ export function CommitHistory({
                   className={cn(
                     "flex cursor-pointer items-center gap-2 px-2 text-sm outline-none",
                     "hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset",
-                    selected && "bg-accent text-accent-foreground",
+                    selected && "bg-accent text-accent-foreground"
                   )}
                   style={{ height: DEFAULT_GRAPH_CONFIG.rowHeight }}
                   onFocus={() => setActiveSha(commit.sha)}
                   onClick={() => onSelectCommit(commit)}
                   onKeyDown={(e) => onKeyDown(e, commit)}
                 >
-                  {row !== undefined && (
-                    <GraphCell
-                      row={row}
-                      width={layout.width}
-                      functions={functions}
-                      config={DEFAULT_GRAPH_CONFIG}
-                    />
-                  )}
+                  <GraphCell
+                    row={row}
+                    width={layout.width}
+                    functions={functions}
+                    config={DEFAULT_GRAPH_CONFIG}
+                  />
                   {commit.refs.length > 0 && (
                     <span className="flex shrink-0 gap-1">
                       {commit.refs.slice(0, 3).map((ref) => (
-                        <Badge key={ref} variant="secondary" className="px-1 py-0 text-[10px] font-normal">
+                        <Badge
+                          key={ref}
+                          variant="secondary"
+                          className="px-1 py-0 text-[10px] font-normal"
+                        >
                           {ref}
                         </Badge>
                       ))}
                     </span>
                   )}
                   <span className="truncate">{commit.subject}</span>
-                  <span className="ml-auto shrink-0 text-xs text-muted-foreground">{commit.author}</span>
+                  <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+                    {commit.author}
+                  </span>
                   <span className="shrink-0 text-xs text-muted-foreground">
                     {formatDate(commit.authoredAt)}
                   </span>
@@ -154,14 +160,19 @@ export function CommitHistory({
           })}
           {commits.length === 0 && (
             <li className="p-3 text-sm text-muted-foreground">
-              {loading ? "Loading commits…" : "No commits match the current filters."}
+              {loading
+                ? "Loading commits…"
+                : "No commits match the current filters."}
             </li>
           )}
         </ul>
 
         {selectedCommitSha !== null && (
           <div className="w-80 shrink-0 overflow-hidden border-l">
-            <CommitDetailsPanel sha={selectedCommitSha} onSelectFile={onSelectCommitFile} />
+            <CommitDetailsPanel
+              sha={selectedCommitSha}
+              onSelectFile={onSelectCommitFile}
+            />
           </div>
         )}
       </div>

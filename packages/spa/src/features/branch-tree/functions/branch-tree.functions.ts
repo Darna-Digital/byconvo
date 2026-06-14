@@ -15,7 +15,7 @@ interface MutableFolder {
 
 const sortTree = (
   items: Array<MutableFolder | BranchLeaf>,
-  favorites: ReadonlySet<string>,
+  favorites: ReadonlySet<string>
 ): Array<BranchTreeItem> => {
   const score = (item: MutableFolder | BranchLeaf) => {
     // Folders before leaves; favourite branches float above the rest.
@@ -27,21 +27,35 @@ const sortTree = (
     .map((item) =>
       item.kind === "folder"
         ? { ...item, children: sortTree(item.children, favorites) }
-        : item,
+        : item
     )
 }
 
 const buildLeafTree = (
   leaves: ReadonlyArray<{ segments: ReadonlyArray<string>; leaf: BranchLeaf }>,
-  favorites: ReadonlySet<string>,
+  favorites: ReadonlySet<string>
 ): Array<BranchTreeItem> => {
-  const root: MutableFolder = { kind: "folder", label: "", path: "", children: [] }
-  const folderAt = (parent: MutableFolder, name: string, path: string): MutableFolder => {
+  const root: MutableFolder = {
+    kind: "folder",
+    label: "",
+    path: "",
+    children: [],
+  }
+  const folderAt = (
+    parent: MutableFolder,
+    name: string,
+    path: string
+  ): MutableFolder => {
     const existing = parent.children.find(
-      (c): c is MutableFolder => c.kind === "folder" && c.label === name,
+      (c): c is MutableFolder => c.kind === "folder" && c.label === name
     )
     if (existing) return existing
-    const created: MutableFolder = { kind: "folder", label: name, path, children: [] }
+    const created: MutableFolder = {
+      kind: "folder",
+      label: name,
+      path,
+      children: [],
+    }
     parent.children.push(created)
     return created
   }
@@ -56,7 +70,7 @@ const buildLeafTree = (
 }
 
 export function createBranchTreeFunctions(
-  _d: BranchTreeDependencies,
+  _d: BranchTreeDependencies
 ): BranchTreeFunctions {
   const matches = (name: string, query: string) =>
     query.length === 0 || name.toLowerCase().includes(query.toLowerCase())
@@ -84,7 +98,7 @@ export function createBranchTreeFunctions(
             behind: branch.behind,
           },
         })),
-      favorites,
+      favorites
     )
 
     // Remote branches nest under their remote name (origin/…).
@@ -103,19 +117,24 @@ export function createBranchTreeFunctions(
             behind: 0,
           },
         })),
-      favorites,
+      favorites
     )
 
     return { local, remote }
   }
 
-  const flatten: BranchTreeFunctions["flatten"] = (items, isExpanded, depth = 1) => {
+  const flatten: BranchTreeFunctions["flatten"] = (
+    items,
+    isExpanded,
+    depth = 1
+  ) => {
     const rows: Array<ReturnType<BranchTreeFunctions["flatten"]>[number]> = []
     for (const item of items) {
       if (item.kind === "folder") {
         const expanded = isExpanded(item.path)
         rows.push({ key: `f:${item.path}`, item, depth, expanded })
-        if (expanded) rows.push(...flatten(item.children, isExpanded, depth + 1))
+        if (expanded)
+          rows.push(...flatten(item.children, isExpanded, depth + 1))
       } else {
         rows.push({ key: `b:${item.fullName}`, item, depth, expanded: false })
       }
@@ -123,7 +142,10 @@ export function createBranchTreeFunctions(
     return rows
   }
 
-  const toggleFavorite: BranchTreeFunctions["toggleFavorite"] = (favorites, name) => {
+  const toggleFavorite: BranchTreeFunctions["toggleFavorite"] = (
+    favorites,
+    name
+  ) => {
     const next = new Set(favorites)
     if (next.has(name)) next.delete(name)
     else next.add(name)

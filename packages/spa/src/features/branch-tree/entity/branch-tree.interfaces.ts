@@ -61,10 +61,15 @@ export interface BranchTreeFunctions {
   readonly flatten: (
     items: ReadonlyArray<BranchTreeItem>,
     isExpanded: (path: string) => boolean,
-    depth?: number,
+    depth?: number
   ) => ReadonlyArray<FlatBranchRow>
   /** Toggle a branch's favourite membership, returning a new set. */
-  readonly toggleFavorite: (favorites: ReadonlySet<string>, name: string) => Set<string>
+  readonly toggleFavorite: (
+    favorites: ReadonlySet<string>,
+    name: string
+  ) => Set<string>
   /** All folder paths in a tree — used to auto-expand everything while filtering. */
-  readonly folderPaths: (items: ReadonlyArray<BranchTreeItem>) => ReadonlyArray<string>
+  readonly folderPaths: (
+    items: ReadonlyArray<BranchTreeItem>
+  ) => ReadonlyArray<string>
 }

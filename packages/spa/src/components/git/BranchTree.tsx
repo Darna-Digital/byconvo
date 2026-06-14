@@ -25,11 +25,26 @@ interface BranchTreeProps {
 }
 
 type NavRow =
-  | { kind: "section"; id: string; sectionId: string; label: string; expanded: boolean }
-  | { kind: "folder"; id: string; path: string; label: string; depth: number; expanded: boolean }
+  | {
+      kind: "section"
+      id: string
+      sectionId: string
+      label: string
+      expanded: boolean
+    }
+  | {
+      kind: "folder"
+      id: string
+      path: string
+      label: string
+      depth: number
+      expanded: boolean
+    }
   | { kind: "branch"; id: string; item: BranchLeaf; depth: number }
 
-const indent = (depth: number): React.CSSProperties => ({ paddingLeft: 8 + (depth - 1) * 14 })
+const indent = (depth: number): React.CSSProperties => ({
+  paddingLeft: 8 + (depth - 1) * 14,
+})
 
 export function BranchTree({
   branches,
@@ -40,11 +55,17 @@ export function BranchTree({
   onSelect,
   onCheckout,
 }: BranchTreeProps) {
-  const { functions, favorites, expanded, toggleFavorite, toggleFolder } = useBranchTree()
+  const { functions, favorites, expanded, toggleFavorite, toggleFolder } =
+    useBranchTree()
   const [activeId, setActiveId] = useState<string | null>(null)
   const rows = useRef(new Map<string, HTMLElement>())
 
-  const { local, remote } = functions.buildTrees({ branches, remoteBranches, favorites, query })
+  const { local, remote } = functions.buildTrees({
+    branches,
+    remoteBranches,
+    favorites,
+    query,
+  })
 
   // While filtering, force every folder open so matches are never hidden.
   const filtering = query.trim().length > 0
@@ -55,10 +76,16 @@ export function BranchTree({
   const pushSection = (
     sectionId: string,
     label: string,
-    items: ReadonlyArray<BranchTreeItem>,
+    items: ReadonlyArray<BranchTreeItem>
   ) => {
     const open = isOpen(sectionId)
-    navRows.push({ kind: "section", id: sectionId, sectionId, label, expanded: open })
+    navRows.push({
+      kind: "section",
+      id: sectionId,
+      sectionId,
+      label,
+      expanded: open,
+    })
     if (!open) return
     for (const row of functions.flatten(items, isOpen, 2)) {
       navRows.push(
@@ -71,22 +98,22 @@ export function BranchTree({
               depth: row.depth,
               expanded: row.expanded,
             }
-          : { kind: "branch", id: row.key, item: row.item, depth: row.depth },
+          : { kind: "branch", id: row.key, item: row.item, depth: row.depth }
       )
     }
   }
   pushSection("__local", "Local", local)
   if (remote.length > 0) pushSection("__remote", "Remote", remote)
 
-  const effectiveActive = activeId ?? navRows[0]?.id ?? null
+  const effectiveActive =
+    activeId ?? (navRows.length > 0 ? navRows[0].id : null)
 
   const move = (delta: number) => {
+    if (navRows.length === 0) return
     const idx = navRows.findIndex((r) => r.id === effectiveActive)
     const next = navRows[Math.max(0, Math.min(navRows.length - 1, idx + delta))]
-    if (next) {
-      setActiveId(next.id)
-      rows.current.get(next.id)?.focus()
-    }
+    setActiveId(next.id)
+    rows.current.get(next.id)?.focus()
   }
 
   const focusId = (id: string) => {
@@ -153,17 +180,20 @@ export function BranchTree({
     cn(
       "flex h-7 w-full items-center gap-1.5 rounded-md pr-2 text-left text-sm outline-none",
       "hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50",
-      active && "ring-2 ring-ring/40",
+      active && "ring-2 ring-ring/40"
     )
 
   const chevron = (open: boolean) => (
     <IconChevronRight
-      className={cn("size-3.5 shrink-0 text-muted-foreground transition-transform", open && "rotate-90")}
+      className={cn(
+        "size-3.5 shrink-0 text-muted-foreground transition-transform",
+        open && "rotate-90"
+      )}
     />
   )
 
   return (
-    <div role="tree" aria-label="Branches" className="select-none py-1 text-sm">
+    <div role="tree" aria-label="Branches" className="py-1 text-sm select-none">
       {currentBranch !== null && (
         <button
           type="button"
@@ -175,7 +205,7 @@ export function BranchTree({
           className={cn(
             rowClass(effectiveActive === "__head"),
             "gap-2 pl-2",
-            selectedRef === currentBranch && "bg-accent text-accent-foreground",
+            selectedRef === currentBranch && "bg-accent text-accent-foreground"
           )}
           onFocus={() => setActiveId("__head")}
           onClick={() => onSelect(currentBranch)}
@@ -209,7 +239,10 @@ export function BranchTree({
               aria-expanded={row.expanded}
               tabIndex={active ? 0 : -1}
               ref={setRef(row.id)}
-              className={cn(rowClass(active), "pl-2 font-medium text-muted-foreground")}
+              className={cn(
+                rowClass(active),
+                "pl-2 font-medium text-muted-foreground"
+              )}
               onFocus={() => setActiveId(row.id)}
               onClick={() => toggleFolder(row.sectionId)}
               onKeyDown={(e) => onKeyDown(e, row)}
@@ -236,7 +269,9 @@ export function BranchTree({
               onKeyDown={(e) => onKeyDown(e, row)}
             >
               {chevron(row.expanded)}
-              <span className="truncate text-muted-foreground">{row.label}</span>
+              <span className="truncate text-muted-foreground">
+                {row.label}
+              </span>
             </button>
           )
         }
@@ -254,7 +289,7 @@ export function BranchTree({
             className={cn(
               rowClass(active),
               "group cursor-pointer",
-              selected && "bg-accent text-accent-foreground",
+              selected && "bg-accent text-accent-foreground"
             )}
             style={indent(row.depth)}
             onFocus={() => setActiveId(row.id)}
@@ -267,20 +302,30 @@ export function BranchTree({
               type="button"
               tabIndex={-1}
               className={cn(
-                "shrink-0 rounded p-0.5 text-muted-foreground opacity-0 hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100",
-                fav && "text-amber-500 opacity-100",
+                "shrink-0 rounded p-0.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100",
+                fav && "text-amber-500 opacity-100"
               )}
-              aria-label={fav ? `Unfavorite ${branch.fullName}` : `Favorite ${branch.fullName}`}
+              aria-label={
+                fav
+                  ? `Unfavorite ${branch.fullName}`
+                  : `Favorite ${branch.fullName}`
+              }
               aria-pressed={fav}
               onClick={(e) => {
                 e.stopPropagation()
                 toggleFavorite(branch.fullName)
               }}
             >
-              {fav ? <IconStarFilled className="size-3" /> : <IconStar className="size-3" />}
+              {fav ? (
+                <IconStarFilled className="size-3" />
+              ) : (
+                <IconStar className="size-3" />
+              )}
             </button>
             <IconGitBranch className="size-3.5 shrink-0 text-muted-foreground" />
-            <span className={cn("truncate", branch.isCurrent && "font-medium")}>{branch.label}</span>
+            <span className={cn("truncate", branch.isCurrent && "font-medium")}>
+              {branch.label}
+            </span>
             {branch.isCurrent && (
               <span className="ml-1 rounded bg-muted px-1 py-0.5 text-[10px] text-muted-foreground">
                 HEAD
@@ -288,8 +333,17 @@ export function BranchTree({
             )}
             {(branch.behind > 0 || branch.ahead > 0) && (
               <span className="ml-auto shrink-0 text-xs text-muted-foreground">
-                {branch.behind > 0 && <span title={`${branch.behind} incoming`}>↓{branch.behind}</span>}
-                {branch.ahead > 0 && <span title={`${branch.ahead} outgoing`}> ↑{branch.ahead}</span>}
+                {branch.behind > 0 && (
+                  <span title={`${branch.behind} incoming`}>
+                    ↓{branch.behind}
+                  </span>
+                )}
+                {branch.ahead > 0 && (
+                  <span title={`${branch.ahead} outgoing`}>
+                    {" "}
+                    ↑{branch.ahead}
+                  </span>
+                )}
               </span>
             )}
           </div>

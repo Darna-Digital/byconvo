@@ -33,7 +33,10 @@ const buildFileTree = (files: ReadonlyArray<CommitFileChange>): FileNode => {
 const countFiles = (node: FileNode): number =>
   node.file !== null
     ? 1
-    : [...node.children.values()].reduce((sum, child) => sum + countFiles(child), 0)
+    : [...node.children.values()].reduce(
+        (sum, child) => sum + countFiles(child),
+        0
+      )
 
 // Collapse single-child folder chains into one row (a/b/c).
 const collapse = (node: FileNode): { label: string; node: FileNode } => {
@@ -49,7 +52,7 @@ const collapse = (node: FileNode): { label: string; node: FileNode } => {
 }
 
 export function createCommitDetailsFunctions(
-  _d: CommitDetailsDependencies,
+  _d: CommitDetailsDependencies
 ): CommitDetailsFunctions {
   const buildRows: CommitDetailsFunctions["buildRows"] = (files) => {
     const root = buildFileTree(files)
@@ -70,7 +73,12 @@ export function createCommitDetailsFunctions(
         walk(deepest, depth + 1)
       }
       for (const leaf of leaves) {
-        rows.push({ kind: "file", depth, name: leaf.name, file: leaf.file as CommitFileChange })
+        rows.push({
+          kind: "file",
+          depth,
+          name: leaf.name,
+          file: leaf.file as CommitFileChange,
+        })
       }
     }
 

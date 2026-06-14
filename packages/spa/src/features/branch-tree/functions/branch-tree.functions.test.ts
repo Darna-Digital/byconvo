@@ -12,18 +12,24 @@ const fns = () => createBranchTreeFunctions(createBranchTreeDependenciesMock())
 describe("buildTrees", () => {
   it("groups slashed branches under folders and leaves plain ones at the root", () => {
     const { local } = fns().buildTrees({
-      branches: [fakeBranch("master"), fakeBranch("task/BMB-1"), fakeBranch("task/BMB-2")],
+      branches: [
+        fakeBranch("master"),
+        fakeBranch("task/BMB-1"),
+        fakeBranch("task/BMB-2"),
+      ],
       remoteBranches: [],
       favorites: new Set(),
       query: "",
     })
     // Folder "task" sorts before the leaf "master".
-    expect(local.map((i) => (i.kind === "folder" ? `folder:${i.label}` : i.label))).toEqual([
-      "folder:task",
-      "master",
-    ])
+    expect(
+      local.map((i) => (i.kind === "folder" ? `folder:${i.label}` : i.label))
+    ).toEqual(["folder:task", "master"])
     const task = local[0] as BranchFolder
-    expect(task.children.map((c) => (c as BranchLeaf).label)).toEqual(["BMB-1", "BMB-2"])
+    expect(task.children.map((c) => (c as BranchLeaf).label)).toEqual([
+      "BMB-1",
+      "BMB-2",
+    ])
   })
 
   it("floats favourited branches above the rest at the same level", () => {
@@ -33,7 +39,10 @@ describe("buildTrees", () => {
       favorites: new Set(["zeta"]),
       query: "",
     })
-    expect((local as BranchLeaf[]).map((i) => i.label)).toEqual(["zeta", "alpha"])
+    expect((local as BranchLeaf[]).map((i) => i.label)).toEqual([
+      "zeta",
+      "alpha",
+    ])
   })
 
   it("filters leaves by a case-insensitive query", () => {
@@ -72,7 +81,11 @@ describe("flatten", () => {
     expect(collapsed.map((r) => r.key)).toEqual(["f:task"])
 
     const expanded = fns().flatten(local, () => true)
-    expect(expanded.map((r) => r.key)).toEqual(["f:task", "b:task/a", "b:task/b"])
+    expect(expanded.map((r) => r.key)).toEqual([
+      "f:task",
+      "b:task/a",
+      "b:task/b",
+    ])
     expect(expanded[1].depth).toBe(2)
   })
 })

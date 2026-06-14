@@ -20,12 +20,12 @@ const loadFavorites = (): Set<string> => {
 export function useBranchTree() {
   const functions = useMemo(
     () => createBranchTreeFunctions({ data: {}, sideEffects: {} }),
-    [],
+    []
   )
 
   const [favorites, setFavorites] = useState<Set<string>>(loadFavorites)
   const [expanded, setExpanded] = useState<Set<string>>(
-    () => new Set(["__local", "__remote"]),
+    () => new Set(["__local", "__remote"])
   )
 
   const toggleFavorite = useCallback(
@@ -39,7 +39,7 @@ export function useBranchTree() {
         }
         return next
       }),
-    [functions],
+    [functions]
   )
 
   const toggleFolder = useCallback(
@@ -50,7 +50,7 @@ export function useBranchTree() {
         else next.add(path)
         return next
       }),
-    [],
+    []
   )
 
   return { functions, favorites, expanded, toggleFavorite, toggleFolder }

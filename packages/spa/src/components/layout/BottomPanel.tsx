@@ -44,14 +44,23 @@ export function BottomPanel(props: BottomPanelProps) {
   }
 
   return (
-    <Tabs value={tab} onValueChange={setTab} className="flex h-full flex-col gap-0">
+    <Tabs
+      value={tab}
+      onValueChange={setTab}
+      className="flex h-full flex-col gap-0"
+    >
       <TabsList className="h-9 w-full justify-start rounded-none border-b bg-transparent px-2">
         <TabsTrigger value="branches">Branches</TabsTrigger>
         <TabsTrigger value="history">History</TabsTrigger>
-        {props.hasGitHub && <TabsTrigger value="pulls">Pull requests</TabsTrigger>}
+        {props.hasGitHub && (
+          <TabsTrigger value="pulls">Pull requests</TabsTrigger>
+        )}
       </TabsList>
 
-      <TabsContent value="branches" className="min-h-0 flex-1 overflow-auto p-0">
+      <TabsContent
+        value="branches"
+        className="min-h-0 flex-1 overflow-auto p-0"
+      >
         <BranchTree
           branches={props.branches}
           remoteBranches={props.remoteBranches}
@@ -62,7 +71,10 @@ export function BottomPanel(props: BottomPanelProps) {
         />
       </TabsContent>
 
-      <TabsContent value="history" className="min-h-0 flex-1 overflow-hidden p-0">
+      <TabsContent
+        value="history"
+        className="min-h-0 flex-1 overflow-hidden p-0"
+      >
         <CommitHistory
           refName={props.logRef ?? props.currentBranch ?? "HEAD"}
           branches={props.branches}
@@ -80,9 +92,13 @@ export function BottomPanel(props: BottomPanelProps) {
       {props.hasGitHub && (
         <TabsContent value="pulls" className="min-h-0 flex-1 overflow-auto p-0">
           {props.pullsError !== null ? (
-            <div className="p-3 text-sm text-destructive">{props.pullsError}</div>
+            <div className="p-3 text-sm text-destructive">
+              {props.pullsError}
+            </div>
           ) : props.pulls.length === 0 ? (
-            <div className="p-3 text-sm text-muted-foreground">No open pull requests.</div>
+            <div className="p-3 text-sm text-muted-foreground">
+              No open pull requests.
+            </div>
           ) : (
             <ul className="text-sm">
               {props.pulls.map((p) => (
@@ -90,7 +106,8 @@ export function BottomPanel(props: BottomPanelProps) {
                   key={p.number}
                   className={cn(
                     "flex cursor-pointer items-center gap-2 px-3 py-1.5 hover:bg-muted",
-                    props.selectedPullNumber === p.number && "bg-accent text-accent-foreground",
+                    props.selectedPullNumber === p.number &&
+                      "bg-accent text-accent-foreground"
                   )}
                   onClick={() => props.onSelectPull(p)}
                 >

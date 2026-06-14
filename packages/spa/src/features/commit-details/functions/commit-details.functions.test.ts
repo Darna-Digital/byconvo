@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest"
-import type { DetailFileRow, DetailFolderRow } from "../entity/commit-details.interfaces"
+import type {
+  DetailFileRow,
+  DetailFolderRow,
+} from "../entity/commit-details.interfaces"
 import { createCommitDetailsFunctions } from "./commit-details.functions"
 import {
   createCommitDetailsDependenciesMock,
   fakeFileChange,
 } from "./commit-details.functions.mock"
 
-const fns = () => createCommitDetailsFunctions(createCommitDetailsDependenciesMock())
+const fns = () =>
+  createCommitDetailsFunctions(createCommitDetailsDependenciesMock())
 
 describe("buildRows", () => {
   it("collapses single-child folder chains into one row", () => {
@@ -25,12 +29,9 @@ describe("buildRows", () => {
       fakeFileChange("a.ts"),
       fakeFileChange("pkg/x.ts"),
     ])
-    expect(rows.map((r) => (r.kind === "folder" ? `d:${r.label}` : r.name))).toEqual([
-      "d:pkg",
-      "x.ts",
-      "a.ts",
-      "z.ts",
-    ])
+    expect(
+      rows.map((r) => (r.kind === "folder" ? `d:${r.label}` : r.name))
+    ).toEqual(["d:pkg", "x.ts", "a.ts", "z.ts"])
   })
 
   it("counts all descendants of a folder", () => {

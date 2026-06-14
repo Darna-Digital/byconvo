@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest"
 import { createCommitGraphFunctions } from "./commit-graph.functions"
-import { createCommitGraphDependenciesMock, fakeCommit } from "./commit-graph.functions.mock"
+import {
+  createCommitGraphDependenciesMock,
+  fakeCommit,
+} from "./commit-graph.functions.mock"
 
-const fns = () => createCommitGraphFunctions(createCommitGraphDependenciesMock())
+const fns = () =>
+  createCommitGraphFunctions(createCommitGraphDependenciesMock())
 
 describe("buildLayout", () => {
   it("places a linear history in a single lane", () => {
@@ -43,7 +47,9 @@ describe("buildLayout", () => {
 
 describe("geometry", () => {
   it("centerX uses the configured column width", () => {
-    const f = createCommitGraphFunctions(createCommitGraphDependenciesMock({ colWidth: 20 }))
+    const f = createCommitGraphFunctions(
+      createCommitGraphDependenciesMock({ colWidth: 20 })
+    )
     expect(f.centerX(0)).toBe(10)
     expect(f.centerX(2)).toBe(50)
   })

@@ -30,7 +30,7 @@ export function GraphCell({ row, width, functions, config }: GraphCellProps) {
         stroke={lane.color}
         fill="none"
         strokeWidth={1.5}
-      />,
+      />
     )
   })
 
@@ -44,7 +44,7 @@ export function GraphCell({ row, width, functions, config }: GraphCellProps) {
         stroke={lane.color}
         fill="none"
         strokeWidth={1.5}
-      />,
+      />
     )
   })
 

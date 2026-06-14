@@ -45,7 +45,9 @@ export interface CommitGraphDependencies {
 }
 
 export interface CommitGraphFunctions {
-  readonly buildLayout: (commits: ReadonlyArray<CommitInfo>) => CommitGraphLayout
+  readonly buildLayout: (
+    commits: ReadonlyArray<CommitInfo>
+  ) => CommitGraphLayout
   /** Horizontal centre of a lane column, in SVG units. */
   readonly centerX: (col: number) => number
   /** A lane edge: straight when the column is unchanged, a soft S-curve when it shifts. */
