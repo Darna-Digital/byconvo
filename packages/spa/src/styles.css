@@ -162,6 +162,16 @@
   margin: 0;
 }
 
+/* Pin the @pierre diff/file surface to the app background so the diff, the
+   CodeMirror editor, and the app shell share one neutral base instead of the
+   bluish github-dark (#24292e). Pierre declares --diffs-bg on :host inside
+   @layer base; this unlayered rule wins the cascade and pierces the shadow
+   DOM. Every derived colour (context lines, gutters, +/- tints) is color-mixed
+   from --diffs-bg, so overriding the root recomputes them against our bg. */
+diffs-container {
+  --diffs-bg: var(--background);
+}
+
 /* --- reviewer: file tree theming (pierre/trees web component) --------------- */
 /* These custom properties pierce the shadow DOM and resolve against whichever
    theme (.dark or light) is active, so the tree follows the app theme. */

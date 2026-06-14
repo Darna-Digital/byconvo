@@ -89,7 +89,9 @@ export function AppShell() {
   const hasGitHub = repo.data?.github != null
   const pulls = usePulls(hasGitHub)
   const [logFilters, setLogFilters] = useState<LogQuery>(emptyLogQuery)
-  const log = useLog(repo.data?.currentBranch ?? null, logFilters)
+  // The branch whose history the bottom panel shows; falls back to HEAD.
+  const [logRef, setLogRef] = useState<string | null>(null)
+  const log = useLog(logRef ?? repo.data?.currentBranch ?? null, logFilters)
 
   const [pickerOpen, setPickerOpen] = useState(false)
   const [commandOpen, setCommandOpen] = useState(false)
@@ -457,6 +459,7 @@ export function AppShell() {
         <div className="flex min-h-0 flex-1">
           <div className="shrink-0 overflow-hidden border-r" style={{ width: sidebarWidth }}>
             <FileSidebar
+              key={mode}
               mode={mode}
               paths={treePaths}
               gitStatus={treeGitStatus}
@@ -504,20 +507,24 @@ export function AppShell() {
               defaultTab={mode === "review" ? "pulls" : mode === "browse" ? "history" : "branches"}
               hasGitHub={hasGitHub}
               branches={branches.data ?? []}
+              remoteBranches={remoteBranches.data ?? []}
               currentBranch={repo.data?.currentBranch ?? null}
               commits={log.data ?? []}
+              commitsLoading={log.isPending}
               pulls={pulls.data ?? []}
               pullsError={pulls.error ? "Could not load pull requests" : null}
+              logRef={logRef ?? repo.data?.currentBranch ?? null}
               logFilters={logFilters}
               selectedCommitSha={browse?.kind === "commit" ? browse.sha : null}
               selectedPullNumber={selectedPull?.number ?? null}
+              onLogRefChange={setLogRef}
               onLogFiltersChange={setLogFilters}
               onBranchCheckout={(b) => {
                 void git.checkout(b)
                 void navigate({ to: "/commit" })
               }}
-              onCompare={(base, head) => void navigate({ to: "/browse/range", search: { base, head } })}
               onSelectCommit={(c) => void navigate({ to: "/browse/commit/$sha", params: { sha: c.sha } })}
+              onSelectCommitFile={(p) => openFile(p, false)}
               onSelectPull={(p) => void navigate({ to: "/review/$pull", params: { pull: String(p.number) } })}
             />
           </div>

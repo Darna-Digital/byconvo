@@ -1,7 +1,7 @@
 import { langs } from "@uiw/codemirror-extensions-langs"
 import type { LanguageName } from "@uiw/codemirror-extensions-langs"
 import { githubDark, githubLight } from "@uiw/codemirror-theme-github"
-import CodeMirror, { EditorView } from "@uiw/react-codemirror"
+import CodeMirror, { EditorView, Prec } from "@uiw/react-codemirror"
 import type { Extension, ViewUpdate } from "@uiw/react-codemirror"
 import { IconX } from "@tabler/icons-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -19,21 +19,26 @@ export interface CursorPosition {
 const MONO = '"SF Mono", Monaco, Consolas, "Ubuntu Mono", "Liberation Mono", "Courier New", monospace'
 
 const SURFACE = {
-  light: { bg: "#ffffff", fg: "#24292e", gutter: "#afb8c1", active: "rgba(0,0,0,0.03)" },
-  dark: { bg: "#24292e", fg: "#e1e4e8", gutter: "#545d68", active: "rgba(255,255,255,0.04)" },
+  light: { bg: "var(--background)", fg: "#24292e", gutter: "#afb8c1", active: "rgba(0,0,0,0.03)" },
+  dark: { bg: "var(--background)", fg: "#e1e4e8", gutter: "#545d68", active: "rgba(255,255,255,0.04)" },
 } as const
 
+// Wrapped in Prec.highest so our background wins over the github theme's own
+// `&` rule (equal specificity — without this the base theme's #0d1117 leaks
+// through on the editor root while only the gutters pick up var(--background)).
 const pierreSurface = (theme: Theme): Extension =>
-  EditorView.theme(
-    {
-      "&": { backgroundColor: SURFACE[theme].bg, color: SURFACE[theme].fg, height: "100%" },
-      ".cm-content": { caretColor: SURFACE[theme].fg, fontFamily: MONO },
-      ".cm-scroller": { fontFamily: MONO, fontSize: "13px", lineHeight: "20px" },
-      ".cm-gutters": { backgroundColor: SURFACE[theme].bg, color: SURFACE[theme].gutter, border: "none" },
-      ".cm-activeLine": { backgroundColor: SURFACE[theme].active },
-      ".cm-activeLineGutter": { backgroundColor: SURFACE[theme].active, color: SURFACE[theme].fg },
-    },
-    { dark: theme === "dark" },
+  Prec.highest(
+    EditorView.theme(
+      {
+        "&": { backgroundColor: SURFACE[theme].bg, color: SURFACE[theme].fg, height: "100%" },
+        ".cm-content": { caretColor: SURFACE[theme].fg, fontFamily: MONO },
+        ".cm-scroller": { fontFamily: MONO, fontSize: "13px", lineHeight: "20px" },
+        ".cm-gutters": { backgroundColor: SURFACE[theme].bg, color: SURFACE[theme].gutter, border: "none" },
+        ".cm-activeLine": { backgroundColor: SURFACE[theme].active },
+        ".cm-activeLineGutter": { backgroundColor: SURFACE[theme].active, color: SURFACE[theme].fg },
+      },
+      { dark: theme === "dark" },
+    ),
   )
 
 const EXT_ALIAS: Record<string, LanguageName> = { yml: "yaml", htm: "html" }
