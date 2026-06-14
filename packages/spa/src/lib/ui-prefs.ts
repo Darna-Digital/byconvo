@@ -104,7 +104,11 @@ export function cycleTheme() {
 if (typeof window !== "undefined") {
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
     if (state.theme === "system") {
-      state.resolvedTheme = systemTheme()
+      // New object reference so useSyncExternalStore's Object.is check sees a
+      // change and re-renders. Components reading resolvedTheme through a React
+      // prop (e.g. pierre's FileDiff themeType) won't update otherwise — the
+      // <html> class flips via applyTheme() but the prop value would be stale.
+      state = { ...state, resolvedTheme: systemTheme() }
       applyTheme()
       emit()
     }

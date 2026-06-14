@@ -5,3 +5,4 @@ onlyBuiltDependencies:
   - esbuild
   - msgpackr-extract
   - electron
+  - better-sqlite3
