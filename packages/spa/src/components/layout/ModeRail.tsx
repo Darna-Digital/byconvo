@@ -2,7 +2,7 @@ import {
   IconGitCommit,
   IconGitPullRequest,
   IconFolders,
-  IconLayoutBottombarExpand,
+  IconGitFork,
 } from "@tabler/icons-react"
 import { Link } from "@tanstack/react-router"
 import { buttonVariants } from "@/components/ui/button"
@@ -75,7 +75,7 @@ export function ModeRail({ mode, hasGitHub, bottomVisible, onBottomToggle }: Mod
       ))}
       <div className="mt-auto flex flex-col items-center gap-1">
         <RailButton label="Toggle bottom panel" active={bottomVisible} onClick={onBottomToggle}>
-          <IconLayoutBottombarExpand className="size-5" />
+          <IconGitFork className="size-5" />
         </RailButton>
       </div>
     </nav>

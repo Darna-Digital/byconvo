@@ -25,12 +25,11 @@ import { CommandMenu, type Command } from "@/components/CommandMenu"
 import { CommitPanel } from "@/components/CommitPanel"
 import { RepoList } from "@/components/RepoList"
 import { DiffPane, type DraftLocation } from "@/components/diff/DiffPane"
-import { CodeEditor, type CursorPosition } from "@/components/editor/CodeEditor"
+import { CodeEditor } from "@/components/editor/CodeEditor"
 import { CodeView } from "@/components/editor/CodeView"
 import { BottomPanel } from "@/components/layout/BottomPanel"
 import { ModeRail } from "@/components/layout/ModeRail"
 import { ResizeHandle } from "@/components/layout/ResizeHandle"
-import { StatusBar } from "@/components/layout/StatusBar"
 import { TopBar } from "@/components/layout/TopBar"
 import { FileSidebar } from "@/components/tree/FileSidebar"
 import { useCommentsActions } from "@/features/comments/adapters/comments.hook.adapter"
@@ -48,7 +47,6 @@ import {
   usePulls,
   useRemoteBranches,
   useRepo,
-  useStatus,
   useWorkspace,
 } from "@/lib/queries"
 import { cycleTheme, setUiPrefs, useUiPrefs } from "@/lib/ui-prefs"
@@ -86,7 +84,6 @@ export function AppShell() {
   const workspace = useWorkspace()
   const repo = useRepo()
   const files = useFiles()
-  const status = useStatus()
   const branches = useBranches()
   const remoteBranches = useRemoteBranches()
   const localComments = useComments()
@@ -110,7 +107,6 @@ export function AppShell() {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [commandOpen, setCommandOpen] = useState(false)
   const [draft, setDraft] = useState<DraftLocation | null>(null)
-  const [cursor, setCursor] = useState<CursorPosition | null>(null)
 
   // Live panel sizes for smooth dragging; seeded from (and committed back to)
   // the persisted prefs so they survive reloads. See `ResizeHandle`.
@@ -393,7 +389,7 @@ export function AppShell() {
       )
     }
     if (editing !== null) {
-      return <CodeEditor path={editing} theme={prefs.resolvedTheme} onClose={closeFile} onSaved={git.refresh} onCursor={setCursor} />
+      return <CodeEditor path={editing} theme={prefs.resolvedTheme} onClose={closeFile} onSaved={git.refresh} />
     }
     if (viewing !== null) {
       return (
@@ -581,14 +577,6 @@ export function AppShell() {
           </div>
         )}
 
-        <StatusBar
-          repo={repo.data ?? null}
-          status={status.data ?? null}
-          busy={false}
-          openPath={editing ?? viewing}
-          cursor={editing !== null ? cursor : null}
-          onRepoClick={() => setPickerOpen(true)}
-        />
         </div>
       </div>
     </div>
