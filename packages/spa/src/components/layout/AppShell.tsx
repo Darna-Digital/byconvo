@@ -173,12 +173,6 @@ export function AppShell() {
     () => diffFns.treePaths({ mode, allPaths, gitStatus, parsedFiles, commentedPaths }),
     [diffFns, mode, allPaths, gitStatus, parsedFiles, commentedPaths],
   )
-  ;(window as unknown as Record<string, unknown>).__dbg = {
-    mode,
-    commentedPaths,
-    treeHasPkg: treePaths.includes("package.json"),
-    allHasPkg: allPaths.includes("package.json"),
-  }
   const treeGitStatus = useMemo(
     () => diffFns.treeGitStatus({ mode, allPaths, gitStatus, parsedFiles }),
     [diffFns, mode, allPaths, gitStatus, parsedFiles],
