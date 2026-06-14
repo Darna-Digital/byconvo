@@ -2,13 +2,6 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "reviewer",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@reviewer/client", "dev"],
-      "port": 5173,
-      "autoPort": true
-    },
-    {
       "name": "spa",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "spa", "dev"],
