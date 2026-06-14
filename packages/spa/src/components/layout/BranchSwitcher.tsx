@@ -175,8 +175,12 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
         </>
       )}
       <DropdownMenuSeparator />
-      <DropdownMenuItem onClick={props.onFetch}>Update</DropdownMenuItem>
-      <DropdownMenuItem onClick={props.onPush}>Push…</DropdownMenuItem>
+      <DropdownMenuItem disabled={busy} onClick={props.onFetch}>
+        Update
+      </DropdownMenuItem>
+      <DropdownMenuItem disabled={busy} onClick={props.onPush}>
+        Push…
+      </DropdownMenuItem>
       {!t.isRemote && (
         <>
           <DropdownMenuSeparator />
@@ -303,7 +307,7 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
             onToggle={() => toggleSection("local")}
           >
             {localGroups.map((g) => (
-              <Folder key={`l-${g.folder ?? "_"}`} folder={g.folder} defaultOpen={q.length > 0}>
+              <Folder key={`l-${g.folder ?? "_"}`} folder={g.folder} forceOpen={q.length > 0}>
                 {g.items.map((b) => (
                   <LocalRow key={b.name} branch={b} />
                 ))}
@@ -318,7 +322,7 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
             onToggle={() => toggleSection("remote")}
           >
             {remoteGroups.map((g) => (
-              <Folder key={`rm-${g.folder ?? "_"}`} folder={g.folder} defaultOpen={q.length > 0}>
+              <Folder key={`rm-${g.folder ?? "_"}`} folder={g.folder} forceOpen={q.length > 0}>
                 {g.items.map((b) => (
                   <RemoteRow key={b.name} branch={b} />
                 ))}
@@ -332,7 +336,6 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
             </div>
           )}
         </div>
-        {busy && null}
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -371,18 +374,23 @@ function Section({
   )
 }
 
-/** A collapsible folder group (the "task/" prefix). Flat when folder is null. */
+/**
+ * A collapsible folder group (the "task/" prefix). Flat when folder is null.
+ * `forceOpen` (set while filtering) reveals matches without discarding the
+ * user's manual toggle state.
+ */
 function Folder({
   folder,
-  defaultOpen,
+  forceOpen,
   children,
 }: {
   folder: string | null
-  defaultOpen: boolean
+  forceOpen: boolean
   children: React.ReactNode
 }) {
-  const [open, setOpen] = useState(defaultOpen)
+  const [open, setOpen] = useState(false)
   if (folder === null) return <>{children}</>
+  const expanded = open || forceOpen
   return (
     <div>
       <DropdownMenuItem
@@ -391,12 +399,12 @@ function Folder({
         className="gap-1.5 py-1 text-sm"
       >
         <IconChevronRight
-          className={cn("size-3.5 transition-transform", open && "rotate-90")}
+          className={cn("size-3.5 transition-transform", expanded && "rotate-90")}
         />
         <IconFolder className="size-3.5 text-muted-foreground" />
         <span className="truncate">{folder}</span>
       </DropdownMenuItem>
-      {open && <div className="pl-3">{children}</div>}
+      {expanded && <div className="pl-3">{children}</div>}
     </div>
   )
 }

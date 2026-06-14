@@ -1,29 +1,32 @@
 /**
  * reviewer desktop — Electron main process.
  *
- * Wraps the React client in a native window. The app is self-contained: it
- * makes sure the core API server is running (spawning it if necessary) and
- * then loads the client.
+ * Wraps the SPA in a native window. The app is self-contained: it makes sure
+ * the API server is running (spawning it if necessary) and then loads the SPA.
  *
- * - Dev   (`REVIEWER_DESKTOP_DEV=1`): loads the Vite dev server and spawns the
- *   core via `pnpm --filter @reviewer/core start` if nothing answers on the
- *   API port yet.
- * - Prod: spawns the built core with `REVIEWER_CLIENT_DIR` pointing at the
- *   built client, so the core serves the UI same-origin, then loads it.
+ * - Dev   (`REVIEWER_DESKTOP_DEV=1`): loads the Vite dev server (which proxies
+ *   `/api` to the server) and spawns the server via
+ *   `pnpm --filter @reviewer/server start` if nothing answers on the API port
+ *   yet.
+ * - Prod: spawns the server and loads the SPA's `vite preview` server, which
+ *   serves the built SPA and proxies `/api` to the server.
  */
 import { type ChildProcess, spawn } from "node:child_process";
 import { resolve } from "node:path";
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 
 const isDev = process.env["REVIEWER_DESKTOP_DEV"] === "1";
-const corePort = Number(process.env["REVIEWER_PORT"] ?? 4317);
-const coreUrl = `http://localhost:${corePort}`;
-const devClientUrl = process.env["REVIEWER_DEV_URL"] ?? "http://localhost:5173";
+const serverPort = Number(process.env["REVIEWER_PORT"] ?? 41811);
+const serverUrl = `http://localhost:${serverPort}`;
+// The Vite dev server (dev) and `vite preview` server (prod) both default to
+// 41812 and proxy `/api` to the server, so the SPA is loaded same-origin.
+const spaUrl = process.env["REVIEWER_DEV_URL"] ?? "http://localhost:41812";
 
 // packages/desktop/dist/main.js → repository root.
 const repoRoot = resolve(__dirname, "..", "..", "..");
 
-let coreProcess: ChildProcess | null = null;
+let serverProcess: ChildProcess | null = null;
+let spaProcess: ChildProcess | null = null;
 
 const sleep = (ms: number) => new Promise((done) => setTimeout(done, ms));
 
@@ -58,37 +61,50 @@ async function isReachable(url: string): Promise<boolean> {
   }
 }
 
-/** Ensure the core API is up, spawning it when nothing answers yet. */
-async function ensureCore(): Promise<void> {
-  if (await isReachable(`${coreUrl}/api/workspace`)) return;
+/** Ensure the API server is up, spawning it when nothing answers yet. */
+async function ensureServer(): Promise<void> {
+  if (await isReachable(`${serverUrl}/api/workspace`)) return;
 
-  const env = {
-    ...process.env,
-    REVIEWER_PORT: String(corePort),
-    ...(isDev ? {} : { REVIEWER_CLIENT_DIR: resolve(repoRoot, "packages/client/dist") }),
-  };
+  serverProcess = spawn("pnpm", ["--filter", "@reviewer/server", "start"], {
+    cwd: repoRoot,
+    env: { ...process.env, REVIEWER_PORT: String(serverPort) },
+    stdio: "inherit",
+    shell: true,
+  });
 
-  coreProcess = isDev
-    ? spawn("pnpm", ["--filter", "@reviewer/core", "start"], {
-        cwd: repoRoot,
-        env,
-        stdio: "inherit",
-        shell: true,
-      })
-    : spawn(process.execPath, [resolve(repoRoot, "packages/core/dist/main.js")], {
-        cwd: repoRoot,
-        // ELECTRON_RUN_AS_NODE lets us reuse Electron's bundled Node to run the core.
-        env: { ...env, ELECTRON_RUN_AS_NODE: "1" },
-        stdio: "inherit",
-      });
-
-  coreProcess.on("exit", (code) => {
+  serverProcess.on("exit", (code) => {
     if (code !== 0 && code !== null) {
-      console.error(`core exited with code ${code}`);
+      console.error(`server exited with code ${code}`);
     }
   });
 
-  await waitForUrl(`${coreUrl}/api/workspace`, 20_000);
+  await waitForUrl(`${serverUrl}/api/workspace`, 20_000);
+}
+
+/**
+ * Ensure the SPA is being served. In dev the Vite dev server is started
+ * externally (by `dev:desktop`); in prod we spawn `vite preview` to serve the
+ * built SPA. Either way the SPA proxies `/api` to the server.
+ */
+async function ensureSpa(): Promise<void> {
+  if (await isReachable(spaUrl)) return;
+
+  if (!isDev) {
+    spaProcess = spawn("pnpm", ["--filter", "spa", "preview"], {
+      cwd: repoRoot,
+      env: { ...process.env, REVIEWER_SERVER_URL: serverUrl },
+      stdio: "inherit",
+      shell: true,
+    });
+
+    spaProcess.on("exit", (code) => {
+      if (code !== 0 && code !== null) {
+        console.error(`spa exited with code ${code}`);
+      }
+    });
+  }
+
+  await waitForUrl(spaUrl, 30_000);
 }
 
 async function createWindow(): Promise<void> {
@@ -113,9 +129,7 @@ async function createWindow(): Promise<void> {
     return { action: "deny" };
   });
 
-  const target = isDev ? devClientUrl : coreUrl;
-  if (isDev) await waitForUrl(devClientUrl, 30_000);
-  await window.loadURL(target);
+  await window.loadURL(spaUrl);
 }
 
 // Native folder picker, invoked from the renderer through the preload bridge.
@@ -136,7 +150,8 @@ ipcMain.handle("dialog:open-directory", async (event) => {
 
 app.whenReady().then(async () => {
   try {
-    await ensureCore();
+    await ensureServer();
+    await ensureSpa();
     await createWindow();
   } catch (cause) {
     console.error("failed to start reviewer desktop:", cause);
@@ -152,7 +167,8 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
 
-// Only tear down the core if this process started it.
+// Only tear down child processes this app started.
 app.on("quit", () => {
-  if (coreProcess !== null) coreProcess.kill();
+  if (serverProcess !== null) serverProcess.kill();
+  if (spaProcess !== null) spaProcess.kill();
 });

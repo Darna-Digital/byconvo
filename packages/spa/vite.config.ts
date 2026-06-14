@@ -16,6 +16,14 @@ const config = defineConfig({
       "/api": { target: SERVER_URL, changeOrigin: true },
     },
   },
+  // The desktop shell loads the built SPA via `vite preview` in prod; keep the
+  // port and `/api` proxy aligned with the dev server above.
+  preview: {
+    port: 41812,
+    proxy: {
+      "/api": { target: SERVER_URL, changeOrigin: true },
+    },
+  },
 })
 
 export default config

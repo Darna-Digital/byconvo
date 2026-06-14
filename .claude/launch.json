@@ -12,7 +12,8 @@
       "name": "spa",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "spa", "dev"],
-      "port": 41812
+      "port": 41812,
+      "autoPort": true
     }
   ]
 }
