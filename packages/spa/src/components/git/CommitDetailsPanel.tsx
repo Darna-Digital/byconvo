@@ -42,7 +42,7 @@ export function CommitDetailsPanel({ sha, onSelectFile }: CommitDetailsPanelProp
       </div>
     )
   }
-  if (detail.error || detail.data === undefined) {
+  if (detail.error) {
     return (
       <div className="grid h-full place-items-center p-4 text-sm text-destructive">
         Could not load this commit.
