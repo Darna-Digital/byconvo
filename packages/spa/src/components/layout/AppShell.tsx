@@ -14,6 +14,7 @@ import { CodeEditor, type CursorPosition } from "@/components/editor/CodeEditor"
 import { CodeView } from "@/components/editor/CodeView"
 import { BottomPanel } from "@/components/layout/BottomPanel"
 import { ModeRail } from "@/components/layout/ModeRail"
+import { ResizeHandle } from "@/components/layout/ResizeHandle"
 import { StatusBar } from "@/components/layout/StatusBar"
 import { TopBar } from "@/components/layout/TopBar"
 import { FileSidebar } from "@/components/tree/FileSidebar"
@@ -30,6 +31,7 @@ import {
   useLog,
   usePullComments,
   usePulls,
+  useRemoteBranches,
   useRepo,
   useStatus,
   useWorkspace,
@@ -67,6 +69,7 @@ export function AppShell() {
   const files = useFiles()
   const status = useStatus()
   const branches = useBranches()
+  const remoteBranches = useRemoteBranches()
   const localComments = useComments()
   const hasGitHub = repo.data?.github != null
   const pulls = usePulls(hasGitHub)
@@ -76,6 +79,11 @@ export function AppShell() {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [draft, setDraft] = useState<DraftLocation | null>(null)
   const [cursor, setCursor] = useState<CursorPosition | null>(null)
+
+  // Live panel sizes for smooth dragging; seeded from (and committed back to)
+  // the persisted prefs so they survive reloads. See `ResizeHandle`.
+  const [sidebarWidth, setSidebarWidth] = useState(prefs.sidebarWidth)
+  const [bottomHeight, setBottomHeight] = useState(prefs.bottomHeight)
 
   const isFolder = workspace.data?.current != null && workspace.data.isGitRepo === false
 
@@ -272,6 +280,7 @@ export function AppShell() {
           repo={repo.data ?? null}
           workspace={workspace.data}
           branches={branches.data ?? []}
+          remoteBranches={remoteBranches.data ?? []}
           contextLabel={contextLabel}
           diffStyle={prefs.diffStyle}
           themePref={prefs.theme}
@@ -283,6 +292,10 @@ export function AppShell() {
           onDiffStyleChange={(diffStyle) => setUiPrefs({ diffStyle })}
           onCheckout={(b) => {
             void git.checkout(b)
+            void navigate({ to: "/commit" })
+          }}
+          onCheckoutAndUpdate={(b) => {
+            void git.checkoutAndUpdate(b)
             void navigate({ to: "/commit" })
           }}
           onCreateBranch={(name, sp) => void git.createBranch(name, sp)}
@@ -303,7 +316,7 @@ export function AppShell() {
         />
 
         <div className="flex min-h-0 flex-1">
-          <div className="w-72 shrink-0 overflow-hidden border-r">
+          <div className="shrink-0 overflow-hidden border-r" style={{ width: sidebarWidth }}>
             <FileSidebar
               mode={mode}
               paths={treePaths}
@@ -323,10 +336,31 @@ export function AppShell() {
               }
             />
           </div>
+          <ResizeHandle
+            orientation="col"
+            value={sidebarWidth}
+            min={180}
+            max={() => Math.max(240, window.innerWidth - 400)}
+            onResize={setSidebarWidth}
+            onResizeEnd={(w) => setUiPrefs({ sidebarWidth: w })}
+            label="Resize sidebar"
+          />
           <main className="min-w-0 flex-1 overflow-hidden">{renderCenter()}</main>
         </div>
         {prefs.bottomVisible && (
-          <div className="h-64 shrink-0 overflow-hidden border-t">
+          <ResizeHandle
+            orientation="row"
+            value={bottomHeight}
+            min={120}
+            max={() => Math.max(160, window.innerHeight - 200)}
+            direction={-1}
+            onResize={setBottomHeight}
+            onResizeEnd={(h) => setUiPrefs({ bottomHeight: h })}
+            label="Resize bottom panel"
+          />
+        )}
+        {prefs.bottomVisible && (
+          <div className="shrink-0 overflow-hidden border-t" style={{ height: bottomHeight }}>
             <BottomPanel
               defaultTab={mode === "review" ? "pulls" : mode === "browse" ? "history" : "branches"}
               hasGitHub={hasGitHub}

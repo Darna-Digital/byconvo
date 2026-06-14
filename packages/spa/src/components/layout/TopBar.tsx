@@ -1,5 +1,4 @@
 import {
-  IconChevronDown,
   IconColumns,
   IconBaselineDensityMedium,
   IconRefresh,
@@ -15,23 +14,20 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { BranchSwitcher } from "@/components/layout/BranchSwitcher"
 import { RepoPicker } from "@/components/RepoPicker"
 import { cn } from "@/lib/utils"
-import type { BranchInfo, RepoInfo, WorkspaceInfo } from "@/lib/api/types"
+import type { BranchInfo, RemoteBranchInfo, RepoInfo, WorkspaceInfo } from "@/lib/api/types"
 import type { DiffStyle, ThemePref } from "@/lib/ui-prefs"
 
 interface TopBarProps {
   repo: RepoInfo | null
   workspace: WorkspaceInfo | undefined
   branches: ReadonlyArray<BranchInfo>
+  remoteBranches: ReadonlyArray<RemoteBranchInfo>
   contextLabel: string
   diffStyle: DiffStyle
   themePref: ThemePref
@@ -42,6 +38,7 @@ interface TopBarProps {
   onThemeChange: (theme: ThemePref) => void
   onDiffStyleChange: (style: DiffStyle) => void
   onCheckout: (branch: string) => void
+  onCheckoutAndUpdate: (branch: string) => void
   onCreateBranch: (name: string, startPoint: string | null) => void
   onCompare: (base: string, head: string) => void
   onMerge: (branch: string) => void
@@ -82,7 +79,7 @@ function IconBtn({
 }
 
 export function TopBar(props: TopBarProps) {
-  const { repo, branches, contextLabel, diffStyle, showDiffStyleToggle, busy, themePref } = props
+  const { repo, branches, remoteBranches, contextLabel, diffStyle, showDiffStyleToggle, busy, themePref } = props
   const current = repo?.currentBranch ?? null
   const ThemeIcon = THEME_OPTIONS.find((o) => o.value === themePref)?.icon ?? IconDeviceDesktop
 
@@ -98,69 +95,22 @@ export function TopBar(props: TopBarProps) {
 
       {/* Branch switcher */}
       {repo !== null && (
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button variant="ghost" size="sm" className="gap-1.5">
-                {current}
-                <IconChevronDown className="size-3.5 text-muted-foreground" />
-              </Button>
-            }
-          />
-          <DropdownMenuContent align="start" className="max-h-[60vh] w-64 overflow-auto">
-            <DropdownMenuItem
-              onClick={() => {
-                const name = window.prompt("New branch name:")
-                if (name && name.trim()) props.onCreateBranch(name.trim(), null)
-              }}
-            >
-              New branch…
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <div className="px-2 py-1.5 text-xs text-muted-foreground">Branches</div>
-            {branches.map((b) => (
-              <DropdownMenuSub key={b.name}>
-                <DropdownMenuSubTrigger
-                  className={cn(b.isCurrent && "font-medium text-foreground")}
-                >
-                  <span className="truncate">{b.isCurrent ? `● ${b.name}` : b.name}</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  {!b.isCurrent && (
-                    <DropdownMenuItem onClick={() => props.onCheckout(b.name)}>
-                      Checkout
-                    </DropdownMenuItem>
-                  )}
-                  {!b.isCurrent && current !== null && (
-                    <>
-                      <DropdownMenuItem onClick={() => props.onCompare(current, b.name)}>
-                        Compare with {current}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => props.onMerge(b.name)}>
-                        Merge into {current}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => props.onRebase(b.name)}>
-                        Rebase onto {b.name}
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => props.onRenameBranch(b.name)}>
-                    Rename…
-                  </DropdownMenuItem>
-                  {!b.isCurrent && (
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onClick={() => props.onDeleteBranch(b.name)}
-                    >
-                      Delete
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <BranchSwitcher
+          current={current}
+          branches={branches}
+          remoteBranches={remoteBranches}
+          busy={busy}
+          onCheckout={props.onCheckout}
+          onCheckoutAndUpdate={props.onCheckoutAndUpdate}
+          onCreateBranch={props.onCreateBranch}
+          onCompare={props.onCompare}
+          onMerge={props.onMerge}
+          onRebase={props.onRebase}
+          onFetch={props.onFetch}
+          onPush={props.onPush}
+          onRenameBranch={props.onRenameBranch}
+          onDeleteBranch={props.onDeleteBranch}
+        />
       )}
 
       <span className="ml-1 truncate text-sm text-muted-foreground">{contextLabel}</span>

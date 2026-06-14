@@ -188,25 +188,89 @@ file-tree-container {
 .diff-connectors path {
   stroke-width: 1;
 }
+/* Connector colours mirror the original client: green add, red delete, and a
+   blue (accent) ribbon for modifications — not yellow. */
+:root {
+  --cx-add: #2da160;
+  --cx-del: #d4453a;
+  --cx-mod: #4f6ef7;
+}
+.dark {
+  --cx-add: #4cc38a;
+  --cx-del: #f2645a;
+  --cx-mod: #7a93ff;
+}
 .diff-connectors .cx-add {
-  fill: #22c55e;
-  fill-opacity: 0.2;
-  stroke: #22c55e;
-  stroke-opacity: 0.6;
+  fill: var(--cx-add);
+  fill-opacity: 0.22;
+  stroke: var(--cx-add);
+  stroke-opacity: 0.7;
 }
 .diff-connectors .cx-del {
-  fill: #ef4444;
-  fill-opacity: 0.18;
-  stroke: #ef4444;
-  stroke-opacity: 0.55;
+  fill: var(--cx-del);
+  fill-opacity: 0.22;
+  stroke: var(--cx-del);
+  stroke-opacity: 0.7;
 }
 .diff-connectors .cx-mod {
-  fill: #f59e0b;
-  fill-opacity: 0.18;
-  stroke: #f59e0b;
-  stroke-opacity: 0.5;
+  fill: var(--cx-mod);
+  fill-opacity: 0.2;
+  stroke: var(--cx-mod);
+  stroke-opacity: 0.65;
 }
 
 /* Make native UI (scrollbars, form controls, caret) follow the app theme. */
 :root { color-scheme: light; }
 .dark { color-scheme: dark; }
+
+/* Custom drag handles for resizable panels (see ResizeHandle.tsx). The thin
+   strip straddles the panel border via a negative margin; a centred ::after
+   line lights up on hover / while dragging. */
+.resize-handle-col,
+.resize-handle-row {
+  position: relative;
+  z-index: 10;
+  flex: none;
+  align-self: stretch;
+  touch-action: none;
+}
+.resize-handle-col {
+  width: 6px;
+  margin-inline: -3px;
+  cursor: col-resize;
+}
+.resize-handle-row {
+  width: 100%;
+  height: 6px;
+  margin-block: -3px;
+  cursor: row-resize;
+}
+.resize-handle-col::after,
+.resize-handle-row::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  background: transparent;
+  transition: background 0.12s ease;
+}
+.resize-handle-col::after { width: 2px; }
+.resize-handle-row::after { height: 2px; }
+.resize-handle-col:hover::after,
+.resize-handle-row:hover::after,
+body.is-resizing-col .resize-handle-col::after,
+body.is-resizing-row .resize-handle-row::after {
+  background: var(--primary);
+}
+
+/* While dragging, force the resize cursor everywhere and suppress selection. */
+body.is-resizing-col,
+body.is-resizing-col * {
+  cursor: col-resize !important;
+  user-select: none;
+}
+body.is-resizing-row,
+body.is-resizing-row * {
+  cursor: row-resize !important;
+  user-select: none;
+}

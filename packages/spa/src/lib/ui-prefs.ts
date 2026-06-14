@@ -17,6 +17,10 @@ export interface UiPrefs {
   diffStyle: DiffStyle
   connectors: boolean
   bottomVisible: boolean
+  /** Drag-resizable left sidebar width, in px. */
+  sidebarWidth: number
+  /** Drag-resizable bottom panel height, in px. */
+  bottomHeight: number
 }
 
 const STORE_KEY = "reviewer-ui"
@@ -34,6 +38,8 @@ const defaults: Omit<UiPrefs, "resolvedTheme"> = {
   diffStyle: "split",
   connectors: true,
   bottomVisible: true,
+  sidebarWidth: 288,
+  bottomHeight: 256,
 }
 
 function load(): UiPrefs {
@@ -61,8 +67,11 @@ function emit() {
 function persist() {
   if (typeof window === "undefined") return
   try {
-    const { theme, diffStyle, connectors, bottomVisible } = state
-    window.localStorage.setItem(STORE_KEY, JSON.stringify({ theme, diffStyle, connectors, bottomVisible }))
+    const { theme, diffStyle, connectors, bottomVisible, sidebarWidth, bottomHeight } = state
+    window.localStorage.setItem(
+      STORE_KEY,
+      JSON.stringify({ theme, diffStyle, connectors, bottomVisible, sidebarWidth, bottomHeight }),
+    )
     window.localStorage.setItem(THEME_KEY, state.theme)
   } catch {
     // ignore quota errors
