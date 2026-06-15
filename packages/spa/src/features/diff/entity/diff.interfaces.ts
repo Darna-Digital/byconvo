@@ -19,7 +19,11 @@ export interface DiffSelection {
   readonly mode: AppMode
   readonly selectedPull: PullRequestInfo | null
   readonly browse:
-    | { readonly kind: "commit"; readonly sha: string; readonly shortSha: string }
+    | {
+        readonly kind: "commit"
+        readonly sha: string
+        readonly shortSha: string
+      }
     | { readonly kind: "range"; readonly base: string; readonly head: string }
     | null
 }
@@ -52,7 +56,9 @@ export interface DiffFunctions {
   /** Derive the diff target purely from the current navigation selection. */
   readonly deriveTarget: (selection: DiffSelection) => DiffTarget | null
   /** Parse diff text into files, tolerating empty/invalid input. */
-  readonly parseFiles: (diffText: string | null) => ReadonlyArray<FileDiffMetadata>
+  readonly parseFiles: (
+    diffText: string | null
+  ) => ReadonlyArray<FileDiffMetadata>
   /** Is this path reviewer-internal (and thus hidden)? */
   readonly isInternalPath: (path: string) => boolean
   /** Paths the sidebar tree should list for the current mode. */
@@ -60,7 +66,9 @@ export interface DiffFunctions {
   /** Git-status badges the tree should show for the current mode. */
   readonly treeGitStatus: (inputs: TreeInputs) => ReadonlyArray<GitStatusEntry>
   /** Changed files for the commit panel. */
-  readonly changedFiles: (gitStatus: ReadonlyArray<GitStatusEntry>) => ReadonlyArray<GitStatusEntry>
+  readonly changedFiles: (
+    gitStatus: ReadonlyArray<GitStatusEntry>
+  ) => ReadonlyArray<GitStatusEntry>
   /** Comments visible for the given target. */
   readonly visibleComments: (args: {
     readonly targetKind: DiffTarget["kind"] | null
@@ -71,7 +79,9 @@ export interface DiffFunctions {
 }
 
 /** Map a parsed-diff file change type to a git status badge. */
-export const fileTypeToStatus = (type: FileDiffMetadata["type"]): GitFileStatus =>
+export const fileTypeToStatus = (
+  type: FileDiffMetadata["type"]
+): GitFileStatus =>
   type === "new"
     ? "added"
     : type === "deleted"

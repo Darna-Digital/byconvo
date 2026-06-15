@@ -27,11 +27,13 @@ const STORE_KEY = "reviewer-ui"
 const THEME_KEY = "reviewer-theme"
 
 const systemTheme = (): Theme =>
-  typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light"
 
-const resolve = (pref: ThemePref): Theme => (pref === "system" ? systemTheme() : pref)
+const resolve = (pref: ThemePref): Theme =>
+  pref === "system" ? systemTheme() : pref
 
 const defaults: Omit<UiPrefs, "resolvedTheme"> = {
   theme: "system",
@@ -47,12 +49,14 @@ function load(): UiPrefs {
   if (typeof window !== "undefined") {
     try {
       const raw = window.localStorage.getItem(STORE_KEY)
-      if (raw !== null) prefs = { ...prefs, ...(JSON.parse(raw) as Partial<typeof defaults>) }
+      if (raw !== null)
+        prefs = { ...prefs, ...(JSON.parse(raw) as Partial<typeof defaults>) }
     } catch {
       // ignore malformed storage
     }
     const stored = window.localStorage.getItem(THEME_KEY)
-    if (stored === "light" || stored === "dark" || stored === "system") prefs.theme = stored
+    if (stored === "light" || stored === "dark" || stored === "system")
+      prefs.theme = stored
   }
   return { ...prefs, resolvedTheme: resolve(prefs.theme) }
 }
@@ -67,10 +71,24 @@ function emit() {
 function persist() {
   if (typeof window === "undefined") return
   try {
-    const { theme, diffStyle, connectors, bottomVisible, sidebarWidth, bottomHeight } = state
+    const {
+      theme,
+      diffStyle,
+      connectors,
+      bottomVisible,
+      sidebarWidth,
+      bottomHeight,
+    } = state
     window.localStorage.setItem(
       STORE_KEY,
-      JSON.stringify({ theme, diffStyle, connectors, bottomVisible, sidebarWidth, bottomHeight }),
+      JSON.stringify({
+        theme,
+        diffStyle,
+        connectors,
+        bottomVisible,
+        sidebarWidth,
+        bottomHeight,
+      })
     )
     window.localStorage.setItem(THEME_KEY, state.theme)
   } catch {
@@ -80,7 +98,10 @@ function persist() {
 
 function applyTheme() {
   if (typeof document === "undefined") return
-  document.documentElement.classList.toggle("dark", state.resolvedTheme === "dark")
+  document.documentElement.classList.toggle(
+    "dark",
+    state.resolvedTheme === "dark"
+  )
   document.documentElement.dataset["theme"] = state.resolvedTheme
 }
 
@@ -96,23 +117,26 @@ export function setUiPrefs(patch: Partial<Omit<UiPrefs, "resolvedTheme">>) {
 
 const THEME_ORDER: ThemePref[] = ["light", "dark", "system"]
 export function cycleTheme() {
-  const next = THEME_ORDER[(THEME_ORDER.indexOf(state.theme) + 1) % THEME_ORDER.length]!
+  const next =
+    THEME_ORDER[(THEME_ORDER.indexOf(state.theme) + 1) % THEME_ORDER.length]
   setUiPrefs({ theme: next })
 }
 
 // Track the OS theme so "system" updates live.
 if (typeof window !== "undefined") {
-  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-    if (state.theme === "system") {
-      // New object reference so useSyncExternalStore's Object.is check sees a
-      // change and re-renders. Components reading resolvedTheme through a React
-      // prop (e.g. pierre's FileDiff themeType) won't update otherwise — the
-      // <html> class flips via applyTheme() but the prop value would be stale.
-      state = { ...state, resolvedTheme: systemTheme() }
-      applyTheme()
-      emit()
-    }
-  })
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", () => {
+      if (state.theme === "system") {
+        // New object reference so useSyncExternalStore's Object.is check sees a
+        // change and re-renders. Components reading resolvedTheme through a React
+        // prop (e.g. pierre's FileDiff themeType) won't update otherwise — the
+        // <html> class flips via applyTheme() but the prop value would be stale.
+        state = { ...state, resolvedTheme: systemTheme() }
+        applyTheme()
+        emit()
+      }
+    })
 }
 
 export function useUiPrefs(): UiPrefs {
@@ -122,6 +146,6 @@ export function useUiPrefs(): UiPrefs {
       return () => listeners.delete(cb)
     },
     () => state,
-    () => state,
+    () => state
   )
 }

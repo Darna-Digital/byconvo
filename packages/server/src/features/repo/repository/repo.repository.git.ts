@@ -42,7 +42,9 @@ const parseStatusLine = (line: string): GitStatusEntry | null => {
   return status === null ? null : { path, status }
 }
 
-const parseGitHubRemote = (url: string): { owner: string; repo: string } | null => {
+const parseGitHubRemote = (
+  url: string
+): { owner: string; repo: string } | null => {
   const match = url.match(/github\.com[/:]([^/]+)\/([^/]+?)(?:\.git)?\/?$/)
   const owner = match?.[1]
   const repo = match?.[2]
@@ -63,7 +65,9 @@ const parseRefs = (refs: string | undefined): Array<string> =>
         .filter((r) => r.length > 0)
 
 const parseParents = (parents: string | undefined): Array<string> =>
-  parents === undefined || parents === "" ? [] : parents.split(" ").filter((p) => p.length > 0)
+  parents === undefined || parents === ""
+    ? []
+    : parents.split(" ").filter((p) => p.length > 0)
 
 const parseNameStatus = (line: string): CommitFileChange | null => {
   const parts = line.split("\t")
@@ -76,7 +80,13 @@ const parseNameStatus = (line: string): CommitFileChange | null => {
   const path = parts[1] ?? ""
   if (path === "") return null
   const status: GitFileStatus | null =
-    code === "A" ? "added" : code === "D" ? "deleted" : code === "M" || code === "T" ? "modified" : null
+    code === "A"
+      ? "added"
+      : code === "D"
+        ? "deleted"
+        : code === "M" || code === "T"
+          ? "modified"
+          : null
   return status === null ? null : { path, oldPath: null, status }
 }
 
@@ -100,7 +110,17 @@ const remoteBranchFormat = [
 const logFormat = ["%H", "%h", "%an", "%aI", "%s", "%D", "%P"].join(FIELD_SEP)
 
 const US = "\x1f"
-const detailFormat = ["%H", "%h", "%an", "%ae", "%aI", "%s", "%D", "%P", "%b"].join(US)
+const detailFormat = [
+  "%H",
+  "%h",
+  "%an",
+  "%ae",
+  "%aI",
+  "%s",
+  "%D",
+  "%P",
+  "%b",
+].join(US)
 
 const emptyStatus: RepoStatus = {
   branch: "",
@@ -121,10 +141,14 @@ export const makeGitRepoRepository = Effect.gen(function* () {
 
   const info: RepoRepo["info"] = Effect.gen(function* () {
     const root = (yield* run("rev-parse", "--show-toplevel")).trim()
-    const currentBranch = (yield* run("rev-parse", "--abbrev-ref", "HEAD")).trim()
+    const currentBranch = (yield* run(
+      "rev-parse",
+      "--abbrev-ref",
+      "HEAD"
+    )).trim()
     const remoteUrl = yield* run("remote", "get-url", "origin").pipe(
       Effect.map((out) => out.trim()),
-      Effect.catchTag("GitError", () => Effect.succeed(null)),
+      Effect.catchTag("GitError", () => Effect.succeed(null))
     )
     const name = root.split("/").at(-1) ?? root
     return {
@@ -150,11 +174,21 @@ export const makeGitRepoRepository = Effect.gen(function* () {
     "status",
     "--porcelain=2",
     "--branch",
-    "--untracked-files=all",
+    "--untracked-files=all"
   ).pipe(
     Effect.map((out): RepoStatus => {
-      let { ahead, behind, branch, changed, conflicted, headSha, staged, unstaged, untracked, upstream } =
-        emptyStatus
+      let {
+        ahead,
+        behind,
+        branch,
+        changed,
+        conflicted,
+        headSha,
+        staged,
+        unstaged,
+        untracked,
+        upstream,
+      } = emptyStatus
       for (const line of out.split("\n")) {
         if (line.startsWith("# branch.head ")) {
           branch = line.slice(14).trim()
@@ -181,9 +215,20 @@ export const makeGitRepoRepository = Effect.gen(function* () {
           changed++
         }
       }
-      return { ahead, behind, branch, changed, conflicted, headSha, staged, unstaged, untracked, upstream }
+      return {
+        ahead,
+        behind,
+        branch,
+        changed,
+        conflicted,
+        headSha,
+        staged,
+        unstaged,
+        untracked,
+        upstream,
+      }
     }),
-    Effect.catchTag("GitError", () => Effect.succeed(emptyStatus)),
+    Effect.catchTag("GitError", () => Effect.succeed(emptyStatus))
   )
 
   const branches: RepoRepo["branches"] = Effect.gen(function* () {
@@ -192,10 +237,11 @@ export const makeGitRepoRepository = Effect.gen(function* () {
       "for-each-ref",
       "refs/heads",
       "--sort=-committerdate",
-      `--format=${branchFormat}`,
+      `--format=${branchFormat}`
     )
     return refLines.flatMap((line): Array<BranchInfo> => {
-      const [name, sha, upstream, track, committedAt, subject] = line.split(FIELD_SEP)
+      const [name, sha, upstream, track, committedAt, subject] =
+        line.split(FIELD_SEP)
       if (name === undefined || sha === undefined) return []
       return [
         {
@@ -216,7 +262,7 @@ export const makeGitRepoRepository = Effect.gen(function* () {
       "for-each-ref",
       "refs/remotes",
       "--sort=-committerdate",
-      `--format=${remoteBranchFormat}`,
+      `--format=${remoteBranchFormat}`
     )
     return refLines.flatMap((line): Array<RemoteBranchInfo> => {
       const [name, sha, committedAt, subject] = line.split(FIELD_SEP)
@@ -238,7 +284,11 @@ export const makeGitRepoRepository = Effect.gen(function* () {
 
   const log: RepoRepo["log"] = (query) =>
     Effect.suspend(() => {
-      const args = ["log", `--max-count=${query.limit}`, `--format=${logFormat}`]
+      const args = [
+        "log",
+        `--max-count=${query.limit}`,
+        `--format=${logFormat}`,
+      ]
       if (query.author !== null) args.push(`--author=${query.author}`)
       if (query.grep !== null) {
         args.push(`--grep=${query.grep}`)
@@ -253,7 +303,8 @@ export const makeGitRepoRepository = Effect.gen(function* () {
     }).pipe(
       Effect.map((logLines) =>
         logLines.flatMap((line): Array<CommitInfo> => {
-          const [sha, shortSha, author, authoredAt, subject, refs, parents] = line.split(FIELD_SEP)
+          const [sha, shortSha, author, authoredAt, subject, refs, parents] =
+            line.split(FIELD_SEP)
           if (sha === undefined || shortSha === undefined) return []
           return [
             {
@@ -266,22 +317,43 @@ export const makeGitRepoRepository = Effect.gen(function* () {
               parents: parseParents(parents),
             },
           ]
-        }),
-      ),
+        })
+      )
     )
 
   const commitDetail: RepoRepo["commitDetail"] = (sha) =>
     Effect.gen(function* () {
       const raw = yield* run("show", "-s", `--format=${detailFormat}`, sha)
-      const [full, short, author, email, authoredAt, subject, refs, parents, ...rest] = raw.split(US)
-      const fileLines = yield* lines("diff-tree", "-r", "-M", "--no-commit-id", "--name-status", sha)
+      const [
+        full,
+        short,
+        author,
+        email,
+        authoredAt,
+        subject,
+        refs,
+        parents,
+        ...rest
+      ] = raw.split(US)
+      const fileLines = yield* lines(
+        "diff-tree",
+        "-r",
+        "-M",
+        "--no-commit-id",
+        "--name-status",
+        sha
+      )
       const branchLines = yield* lines(
         "branch",
         "-a",
         "--contains",
         sha,
-        "--format=%(refname:short)",
-      ).pipe(Effect.catchTag("GitError", () => Effect.succeed<ReadonlyArray<string>>([])))
+        "--format=%(refname:short)"
+      ).pipe(
+        Effect.catchTag("GitError", () =>
+          Effect.succeed<ReadonlyArray<string>>([])
+        )
+      )
       return {
         sha: (full ?? sha).trim(),
         shortSha: (short ?? "").trim(),
@@ -292,20 +364,27 @@ export const makeGitRepoRepository = Effect.gen(function* () {
         body: rest.join(US).trim(),
         refs: parseRefs(refs),
         parents: parseParents(parents),
-        files: fileLines.map(parseNameStatus).filter((e): e is CommitFileChange => e !== null),
-        containingBranches: branchLines.filter((b) => b.length > 0 && !b.startsWith("(")),
+        files: fileLines
+          .map(parseNameStatus)
+          .filter((e): e is CommitFileChange => e !== null),
+        containingBranches: branchLines.filter(
+          (b) => b.length > 0 && !b.startsWith("(")
+        ),
       }
     })
 
   const worktreeDiff: RepoRepo["worktreeDiff"] = run("diff", "HEAD").pipe(
-    Effect.catchTag("GitError", () => Effect.succeed("")),
+    Effect.catchTag("GitError", () => Effect.succeed(""))
   )
 
-  const rangeDiff: RepoRepo["rangeDiff"] = (base, head) => run("diff", `${base}...${head}`)
+  const rangeDiff: RepoRepo["rangeDiff"] = (base, head) =>
+    run("diff", `${base}...${head}`)
 
-  const commitDiff: RepoRepo["commitDiff"] = (sha) => run("show", "--format=", "--patch", sha)
+  const commitDiff: RepoRepo["commitDiff"] = (sha) =>
+    run("show", "--format=", "--patch", sha)
 
-  const checkout: RepoRepo["checkout"] = (branch) => run("checkout", branch).pipe(Effect.asVoid)
+  const checkout: RepoRepo["checkout"] = (branch) =>
+    run("checkout", branch).pipe(Effect.asVoid)
 
   const createBranch: RepoRepo["createBranch"] = (name, startPoint) =>
     (startPoint === null
@@ -313,7 +392,9 @@ export const makeGitRepoRepository = Effect.gen(function* () {
       : run("checkout", "-b", name, startPoint)
     ).pipe(Effect.asVoid)
 
-  const headShortSha = Effect.map(run("rev-parse", "--short", "HEAD"), (out) => out.trim())
+  const headShortSha = Effect.map(run("rev-parse", "--short", "HEAD"), (out) =>
+    out.trim()
+  )
 
   const commit: RepoRepo["commit"] = (message, paths) =>
     Effect.gen(function* () {
@@ -332,7 +413,7 @@ export const makeGitRepoRepository = Effect.gen(function* () {
       "rev-parse",
       "--abbrev-ref",
       "--symbolic-full-name",
-      "@{upstream}",
+      "@{upstream}"
     ).pipe(Effect.catchTag("GitError", () => Effect.succeed(null)))
     return upstream === null
       ? yield* runVerbose("push", "-u", "origin", "HEAD")

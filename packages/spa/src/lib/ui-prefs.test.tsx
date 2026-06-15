@@ -3,17 +3,22 @@ import { act, render } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import type { Theme } from "./ui-prefs"
 
+import { setUiPrefs, useUiPrefs } from "./ui-prefs"
+
 // A controllable matchMedia mock, installed before the store module loads so
 // its top-level load()/listener registration see it. `fire()` simulates the OS
 // flipping its appearance and notifies the registered "change" listeners.
 const mql = vi.hoisted(() => {
   const listeners = new Set<() => void>()
   const sys = { dark: false }
-  ;(globalThis as unknown as { matchMedia: unknown }).matchMedia = (query: string) => ({
+  ;(globalThis as unknown as { matchMedia: unknown }).matchMedia = (
+    query: string
+  ) => ({
     matches: query.includes("dark") ? sys.dark : false,
     media: query,
     addEventListener: (_type: string, cb: () => void) => listeners.add(cb),
-    removeEventListener: (_type: string, cb: () => void) => listeners.delete(cb),
+    removeEventListener: (_type: string, cb: () => void) =>
+      listeners.delete(cb),
     addListener: (cb: () => void) => listeners.add(cb),
     removeListener: (cb: () => void) => listeners.delete(cb),
     dispatchEvent: () => true,
@@ -29,8 +34,6 @@ const mql = vi.hoisted(() => {
     },
   }
 })
-
-import { setUiPrefs, useUiPrefs } from "./ui-prefs"
 
 afterEach(() => mql.reset())
 

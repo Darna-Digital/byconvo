@@ -53,12 +53,17 @@ export const makeSqliteCommentsRepository = Effect.gen(function* () {
       Effect.try({
         try: () => f(openDb(repoPath)),
         catch: (error) =>
-          new StorageError({ reason: error instanceof Error ? error.message : String(error) }),
-      }),
+          new StorageError({
+            reason: error instanceof Error ? error.message : String(error),
+          }),
+      })
     )
 
   const list: CommentsRepo["list"] = withDb(
-    (db) => db.prepare("SELECT * FROM comments ORDER BY createdAt ASC").all() as Array<ReviewComment>,
+    (db) =>
+      db
+        .prepare("SELECT * FROM comments ORDER BY createdAt ASC")
+        .all() as Array<ReviewComment>
   )
 
   const add: CommentsRepo["add"] = (input) =>
@@ -72,7 +77,7 @@ export const makeSqliteCommentsRepository = Effect.gen(function* () {
       }
       db.prepare(
         `INSERT INTO comments (id, filePath, side, lineNumber, body, author, createdAt, target, source)
-         VALUES (@id, @filePath, @side, @lineNumber, @body, @author, @createdAt, @target, @source)`,
+         VALUES (@id, @filePath, @side, @lineNumber, @body, @author, @createdAt, @target, @source)`
       ).run(created)
       return created
     })

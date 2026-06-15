@@ -8,7 +8,11 @@ import type { GitFileStatus, GitStatusEntry } from "@/lib/api/types"
 interface CommitPanelProps {
   changes: ReadonlyArray<GitStatusEntry>
   busy: boolean
-  onCommit: (message: string, paths: ReadonlyArray<string>, andPush: boolean) => Promise<unknown>
+  onCommit: (
+    message: string,
+    paths: ReadonlyArray<string>,
+    andPush: boolean
+  ) => Promise<unknown>
 }
 
 const STATUS_COLOR: Record<GitFileStatus, string> = {
@@ -31,7 +35,9 @@ const STATUS_LETTER: Record<GitFileStatus, string> = {
 
 export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
   const [message, setMessage] = useState("")
-  const [selected, setSelected] = useState<Set<string>>(() => new Set(changes.map((c) => c.path)))
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(changes.map((c) => c.path))
+  )
 
   // Keep the selection in sync as the change set shifts.
   const paths = useMemo(() => changes.map((c) => c.path).join("\n"), [changes])
@@ -40,8 +46,11 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
       const next = new Set<string>()
       for (const c of changes) if (prev.has(c.path)) next.add(c.path)
       // Newly appeared files default to selected.
-      for (const c of changes) if (!prev.has(c.path) && prev.size === 0) next.add(c.path)
-      return next.size === 0 && changes.length > 0 ? new Set(changes.map((c) => c.path)) : next
+      for (const c of changes)
+        if (!prev.has(c.path) && prev.size === 0) next.add(c.path)
+      return next.size === 0 && changes.length > 0
+        ? new Set(changes.map((c) => c.path))
+        : next
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paths])
@@ -76,7 +85,12 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
               onCheckedChange={() => toggle(c.path)}
               className="size-3.5"
             />
-            <span className={cn("w-3 font-mono font-medium", STATUS_COLOR[c.status])}>
+            <span
+              className={cn(
+                "w-3 font-mono font-medium",
+                STATUS_COLOR[c.status]
+              )}
+            >
               {STATUS_LETTER[c.status]}
             </span>
             <span className="truncate">{c.path}</span>
@@ -93,7 +107,12 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
         }}
       />
       <div className="flex gap-2">
-        <Button size="sm" className="flex-1" disabled={!canCommit} onClick={() => void commit(false)}>
+        <Button
+          size="sm"
+          className="flex-1"
+          disabled={!canCommit}
+          onClick={() => void commit(false)}
+        >
           Commit
         </Button>
         <Button

@@ -16,12 +16,21 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { BranchSwitcher } from "@/components/layout/BranchSwitcher"
 import { RepoPicker } from "@/components/RepoPicker"
 import { cn } from "@/lib/utils"
 import { isDesktop } from "@/lib/desktop"
-import type { BranchInfo, RemoteBranchInfo, RepoInfo, WorkspaceInfo } from "@/lib/api/types"
+import type {
+  BranchInfo,
+  RemoteBranchInfo,
+  RepoInfo,
+  WorkspaceInfo,
+} from "@/lib/api/types"
 import type { DiffStyle, ThemePref } from "@/lib/ui-prefs"
 
 interface TopBarProps {
@@ -52,7 +61,11 @@ interface TopBarProps {
   onRefresh: () => void
 }
 
-const THEME_OPTIONS: { value: ThemePref; label: string; icon: typeof IconSun }[] = [
+const THEME_OPTIONS: {
+  value: ThemePref
+  label: string
+  icon: typeof IconSun
+}[] = [
   { value: "light", label: "Light", icon: IconSun },
   { value: "dark", label: "Dark", icon: IconMoon },
   { value: "system", label: "System", icon: IconDeviceDesktop },
@@ -70,7 +83,14 @@ function IconBtn({
   return (
     <Tooltip>
       <TooltipTrigger
-        render={<Button variant="ghost" size="icon-sm" onClick={onClick} aria-label={label} />}
+        render={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={onClick}
+            aria-label={label}
+          />
+        }
       >
         {children}
       </TooltipTrigger>
@@ -80,19 +100,29 @@ function IconBtn({
 }
 
 export function TopBar(props: TopBarProps) {
-  const { repo, branches, remoteBranches, contextLabel, diffStyle, showDiffStyleToggle, busy, themePref } = props
+  const {
+    repo,
+    branches,
+    remoteBranches,
+    contextLabel,
+    diffStyle,
+    showDiffStyleToggle,
+    busy,
+    themePref,
+  } = props
   const current = repo?.currentBranch ?? null
-  const ThemeIcon = THEME_OPTIONS.find((o) => o.value === themePref)?.icon ?? IconDeviceDesktop
+  const ThemeIcon =
+    THEME_OPTIONS.find((o) => o.value === themePref)?.icon ?? IconDeviceDesktop
 
   return (
     <header
       className={cn(
-        "flex h-10 shrink-0 items-center gap-2 px-2 ml-2",
+        "ml-2 flex h-10 shrink-0 items-center gap-2 px-2",
         // In the desktop shell the bar doubles as the window's title bar and lets
         // empty regions drag the window (interactive clusters opt back out below).
         // The rail to the left reserves the bulk of the traffic-light strip; this
         // small left pad just clears the lights' overflow past the rail's edge.
-        isDesktop && "pl-5 [-webkit-app-region:drag]",
+        isDesktop && "pl-5 [-webkit-app-region:drag]"
       )}
     >
       {/* Repo chip — opens the recents + folder-browser dropdown */}
@@ -127,7 +157,9 @@ export function TopBar(props: TopBarProps) {
         </div>
       )}
 
-      <span className="ml-1 truncate text-sm text-muted-foreground">{contextLabel}</span>
+      <span className="ml-1 truncate text-sm text-muted-foreground">
+        {contextLabel}
+      </span>
 
       <div className="ml-auto flex items-center gap-1 [-webkit-app-region:no-drag]">
         {showDiffStyleToggle && (
@@ -170,7 +202,9 @@ export function TopBar(props: TopBarProps) {
         {/* Theme: light / dark / system */}
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={<Button variant="ghost" size="icon-sm" aria-label="Theme" />}
+            render={
+              <Button variant="ghost" size="icon-sm" aria-label="Theme" />
+            }
           >
             <ThemeIcon className="size-4" />
           </DropdownMenuTrigger>

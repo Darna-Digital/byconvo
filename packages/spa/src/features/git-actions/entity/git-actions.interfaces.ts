@@ -9,7 +9,10 @@ export type NoticeKind = "ok" | "err"
 export interface GitActionsDependencies {
   data: Record<string, never>
   sideEffects: {
-    readonly commit: (message: string, paths: ReadonlyArray<string>) => Promise<{ sha: string }>
+    readonly commit: (
+      message: string,
+      paths: ReadonlyArray<string>
+    ) => Promise<{ sha: string }>
     readonly push: () => Promise<{ output: string }>
     readonly notify: (kind: NoticeKind, text: string) => void
     readonly refresh: () => void
@@ -22,12 +25,12 @@ export interface GitActionsFunctions {
   readonly commitChanges: (
     message: string,
     paths: ReadonlyArray<string>,
-    andPush: boolean,
+    andPush: boolean
   ) => Promise<boolean>
   /** Run a branch operation, surfacing its output (or `label`) and refreshing. */
   readonly runOp: (
     label: string,
-    op: () => Promise<{ output?: string } | unknown>,
+    op: () => Promise<{ output?: string } | unknown>
   ) => Promise<void>
 }
 

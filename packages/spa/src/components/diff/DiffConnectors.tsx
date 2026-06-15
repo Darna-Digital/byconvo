@@ -30,7 +30,11 @@ interface Band {
   bottom: number
 }
 
-const rowRects = (column: Element, selector: string, originTop: number): Array<Band> =>
+const rowRects = (
+  column: Element,
+  selector: string,
+  originTop: number
+): Array<Band> =>
   Array.from(column.querySelectorAll(selector)).map((element) => {
     const rect = element.getBoundingClientRect()
     return { top: rect.top - originTop, bottom: rect.bottom - originTop }
@@ -51,7 +55,9 @@ const toBands = (rows: ReadonlyArray<Band>): Array<Band> => {
 }
 
 const spanWithin = (rows: ReadonlyArray<Band>, band: Band): Band | null => {
-  const inside = rows.filter((row) => row.bottom > band.top && row.top < band.bottom)
+  const inside = rows.filter(
+    (row) => row.bottom > band.top && row.top < band.bottom
+  )
   if (inside.length === 0) return null
   return {
     top: Math.min(...inside.map((row) => row.top)),
@@ -74,8 +80,16 @@ const measure = (section: HTMLElement): Geometry | null => {
   const stripRight = addRect.left - base.left
   if (stripRight - stripLeft < 2) return null
 
-  const delChanges = rowRects(deletions, '[data-line-type="change-deletion"]', base.top)
-  const addChanges = rowRects(additions, '[data-line-type="change-addition"]', base.top)
+  const delChanges = rowRects(
+    deletions,
+    '[data-line-type="change-deletion"]',
+    base.top
+  )
+  const addChanges = rowRects(
+    additions,
+    '[data-line-type="change-addition"]',
+    base.top
+  )
   const buffers = [
     ...rowRects(deletions, "[data-gutter-buffer]", base.top),
     ...rowRects(additions, "[data-gutter-buffer]", base.top),
@@ -87,7 +101,8 @@ const measure = (section: HTMLElement): Geometry | null => {
     const right = spanWithin(addChanges, band)
     if (left == null && right == null) continue
     const mid = (band.top + band.bottom) / 2
-    const kind: RibbonKind = left == null ? "add" : right == null ? "del" : "mod"
+    const kind: RibbonKind =
+      left == null ? "add" : right == null ? "del" : "mod"
     ribbons.push({
       kind,
       leftTop: left?.top ?? mid,
@@ -97,10 +112,20 @@ const measure = (section: HTMLElement): Geometry | null => {
     })
   }
 
-  return { width: base.width, height: base.height, stripLeft, stripRight, ribbons }
+  return {
+    width: base.width,
+    height: base.height,
+    stripLeft,
+    stripRight,
+    ribbons,
+  }
 }
 
-const ribbonPath = (ribbon: Ribbon, stripLeft: number, stripRight: number): string => {
+const ribbonPath = (
+  ribbon: Ribbon,
+  stripLeft: number,
+  stripRight: number
+): string => {
   const mid = (stripLeft + stripRight) / 2
   const { leftTop, leftBottom, rightTop, rightBottom } = ribbon
   return (
@@ -121,7 +146,11 @@ interface DiffConnectorsProps {
   enabled: boolean
 }
 
-export function DiffConnectors({ section, recomputeRef, enabled }: DiffConnectorsProps) {
+export function DiffConnectors({
+  section,
+  recomputeRef,
+  enabled,
+}: DiffConnectorsProps) {
   const [geometry, setGeometry] = useState<Geometry | null>(null)
   const observer = useRef<ResizeObserver | null>(null)
   const loop = useRef<number | null>(null)
@@ -140,14 +169,18 @@ export function DiffConnectors({ section, recomputeRef, enabled }: DiffConnector
       let geo: Geometry | null = null
       try {
         const root = section.querySelector("diffs-container")?.shadowRoot
-        root?.querySelectorAll("[data-deletions],[data-additions]").forEach((column) => {
-          observer.current?.observe(column)
-        })
+        root
+          ?.querySelectorAll("[data-deletions],[data-additions]")
+          .forEach((column) => {
+            observer.current?.observe(column)
+          })
         geo = measure(section)
       } catch {
         geo = null
       }
-      const sig = geo ? `${geo.width}|${geo.stripLeft}|${geo.stripRight}|${geo.ribbons.length}` : "∅"
+      const sig = geo
+        ? `${geo.width}|${geo.stripLeft}|${geo.stripRight}|${geo.ribbons.length}`
+        : "∅"
       if (sig !== prevSig) {
         setGeometry(geo)
         prevSig = sig
@@ -155,7 +188,8 @@ export function DiffConnectors({ section, recomputeRef, enabled }: DiffConnector
       } else {
         stable += 1
       }
-      if (stable < 2 && frames++ < 24) loop.current = requestAnimationFrame(tick)
+      if (stable < 2 && frames++ < 24)
+        loop.current = requestAnimationFrame(tick)
     }
     loop.current = requestAnimationFrame(tick)
   }, [enabled, section])

@@ -2,15 +2,25 @@ import type { DiffLineAnnotation, FileDiffMetadata } from "@pierre/diffs"
 import { FileDiff } from "@pierre/diffs/react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { CommentThread, DraftCard, type DraftLocation } from "@/components/comments/CommentThread"
-import { DiffConnectors, connectorGutterCSS } from "@/components/diff/DiffConnectors"
+import {
+  CommentThread,
+  DraftCard,
+  type DraftLocation,
+} from "@/components/comments/CommentThread"
+import {
+  DiffConnectors,
+  connectorGutterCSS,
+} from "@/components/diff/DiffConnectors"
 import type { CommentSide, DiffTarget, ReviewComment } from "@/lib/api/types"
 import type { DiffStyle, Theme } from "@/lib/ui-prefs"
 
 export type { DraftLocation }
 
 type AnnotationMeta =
-  | { readonly kind: "comments"; readonly comments: ReadonlyArray<ReviewComment> }
+  | {
+      readonly kind: "comments"
+      readonly comments: ReadonlyArray<ReviewComment>
+    }
   | { readonly kind: "draft" }
 
 interface DiffPaneProps {
@@ -82,7 +92,11 @@ function FileDiffSection({
   const onPostRender = useCallback(() => recomputeConnectors.current(), [])
 
   return (
-    <section ref={setSectionEl} className="diff-file relative border-b" data-file-anchor={file.name}>
+    <section
+      ref={setSectionEl}
+      className="diff-file relative border-b"
+      data-file-anchor={file.name}
+    >
       <FileDiff<AnnotationMeta>
         fileDiff={file}
         disableWorkerPool
@@ -97,16 +111,26 @@ function FileDiffSection({
           unsafeCSS: connectorsEnabled ? connectorGutterCSS : undefined,
           onPostRender: connectorsEnabled ? onPostRender : undefined,
           onLineNumberClick: (props) =>
-            onDraftOpen({ filePath: file.name, side: props.annotationSide, lineNumber: props.lineNumber }),
+            onDraftOpen({
+              filePath: file.name,
+              side: props.annotationSide,
+              lineNumber: props.lineNumber,
+            }),
         }}
         renderHeaderMetadata={(meta) =>
           meta.type === "deleted" ? null : (
-            <Button variant="ghost" size="xs" onClick={() => onEditFile(meta.name)}>
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => onEditFile(meta.name)}
+            >
               Edit
             </Button>
           )
         }
-        lineAnnotations={annotations as Array<DiffLineAnnotation<AnnotationMeta>>}
+        lineAnnotations={
+          annotations as Array<DiffLineAnnotation<AnnotationMeta>>
+        }
         renderAnnotation={(annotation) => {
           const meta = annotation.metadata
           if (meta.kind === "draft") {
@@ -115,8 +139,12 @@ function FileDiffSection({
                 onCancel={onDraftCancel}
                 onSubmit={(body) =>
                   onCommentSubmit(
-                    { filePath: file.name, side: annotation.side, lineNumber: annotation.lineNumber },
-                    body,
+                    {
+                      filePath: file.name,
+                      side: annotation.side,
+                      lineNumber: annotation.lineNumber,
+                    },
+                    body
                   )
                 }
               />
@@ -131,7 +159,11 @@ function FileDiffSection({
           )
         }}
       />
-      <DiffConnectors section={sectionEl} recomputeRef={recomputeConnectors} enabled={connectorsEnabled} />
+      <DiffConnectors
+        section={sectionEl}
+        recomputeRef={recomputeConnectors}
+        enabled={connectorsEnabled}
+      />
     </section>
   )
 }
@@ -159,34 +191,60 @@ export function DiffPane({
 
   useEffect(() => {
     if (selectedFile === null) return
-    const anchor = containerRef.current?.querySelector(`[data-file-anchor="${CSS.escape(selectedFile)}"]`)
+    const anchor = containerRef.current?.querySelector(
+      `[data-file-anchor="${CSS.escape(selectedFile)}"]`
+    )
     anchor?.scrollIntoView({ behavior: "smooth", block: "start" })
   }, [selectedFile])
 
   const annotationsByFile = useMemo(() => {
     const result = new Map<string, Array<DiffLineAnnotation<AnnotationMeta>>>()
-    const grouped = new Map<string, { filePath: string; side: CommentSide; lineNumber: number; comments: ReviewComment[] }>()
+    const grouped = new Map<
+      string,
+      {
+        filePath: string
+        side: CommentSide
+        lineNumber: number
+        comments: ReviewComment[]
+      }
+    >()
     for (const c of comments) {
       const key = `${c.side}:${c.lineNumber}:${c.filePath}`
       const bucket = grouped.get(key)
       if (bucket) bucket.comments.push(c)
-      else grouped.set(key, { filePath: c.filePath, side: c.side, lineNumber: c.lineNumber, comments: [c] })
+      else
+        grouped.set(key, {
+          filePath: c.filePath,
+          side: c.side,
+          lineNumber: c.lineNumber,
+          comments: [c],
+        })
     }
     for (const g of grouped.values()) {
       const arr = result.get(g.filePath) ?? []
-      arr.push({ side: g.side, lineNumber: g.lineNumber, metadata: { kind: "comments", comments: g.comments } })
+      arr.push({
+        side: g.side,
+        lineNumber: g.lineNumber,
+        metadata: { kind: "comments", comments: g.comments },
+      })
       result.set(g.filePath, arr)
     }
     if (draft !== null) {
       const arr = result.get(draft.filePath) ?? []
-      arr.push({ side: draft.side, lineNumber: draft.lineNumber, metadata: { kind: "draft" } })
+      arr.push({
+        side: draft.side,
+        lineNumber: draft.lineNumber,
+        metadata: { kind: "draft" },
+      })
       result.set(draft.filePath, arr)
     }
     return result
   }, [comments, draft])
 
   if (loading) {
-    return <div className="p-8 text-sm text-muted-foreground">Loading diff…</div>
+    return (
+      <div className="p-8 text-sm text-muted-foreground">Loading diff…</div>
+    )
   }
   if (error !== null) {
     return <div className="p-8 text-sm text-destructive">{error}</div>

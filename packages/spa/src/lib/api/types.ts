@@ -5,7 +5,9 @@
  */
 import type { paths } from "./schema"
 
-type Json<R> = R extends { content: { "application/json": infer J } } ? J : never
+type Json<R> = R extends { content: { "application/json": infer J } }
+  ? J
+  : never
 type Ok<Op> = Op extends { responses: { 200: infer R } } ? Json<R> : never
 
 export type WorkspaceInfo = Ok<paths["/api/workspace"]["get"]>

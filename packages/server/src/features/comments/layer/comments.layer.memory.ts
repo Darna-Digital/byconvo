@@ -6,5 +6,7 @@ import type { ReviewComment } from "../schema/comments.schema.model.ts"
 
 export const CommentsMemory = (seed: ReadonlyArray<ReviewComment> = []) =>
   Layer.effect(CommentsService)(make).pipe(
-    Layer.provide(Layer.effect(CommentsRepository)(makeMemoryCommentsRepository(seed))),
+    Layer.provide(
+      Layer.effect(CommentsRepository)(makeMemoryCommentsRepository(seed))
+    )
   )

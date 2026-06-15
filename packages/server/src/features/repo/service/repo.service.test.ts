@@ -37,10 +37,16 @@ describe("RepoService", () => {
     }).pipe(
       Effect.provide(
         RepoMemory({
-          info: { root: "/r", name: "r", currentBranch: "trunk", remoteUrl: null, github: null },
-        }),
-      ),
-    ),
+          info: {
+            root: "/r",
+            name: "r",
+            currentBranch: "trunk",
+            remoteUrl: null,
+            github: null,
+          },
+        })
+      )
+    )
   )
 
   it.effect("log honours the query limit", () =>
@@ -48,7 +54,11 @@ describe("RepoService", () => {
       const repo = yield* RepoService
       const commits = yield* repo.log({ ...baseQuery, limit: 2 })
       expect(commits.map((c) => c.sha)).toEqual(["a", "b"])
-    }).pipe(Effect.provide(RepoMemory({ commits: [commit("a"), commit("b"), commit("c")] }))),
+    }).pipe(
+      Effect.provide(
+        RepoMemory({ commits: [commit("a"), commit("b"), commit("c")] })
+      )
+    )
   )
 
   it.effect("branches come through from the repository", () =>
@@ -71,9 +81,9 @@ describe("RepoService", () => {
               subject: "",
             },
           ],
-        }),
-      ),
-    ),
+        })
+      )
+    )
   )
 
   it.effect("commit returns the new sha", () =>
@@ -81,6 +91,6 @@ describe("RepoService", () => {
       const repo = yield* RepoService
       const sha = yield* repo.commit("msg", [])
       expect(sha).toBe("newsha1")
-    }).pipe(Effect.provide(RepoMemory())),
+    }).pipe(Effect.provide(RepoMemory()))
   )
 })

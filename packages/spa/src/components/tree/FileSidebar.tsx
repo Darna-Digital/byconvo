@@ -70,7 +70,8 @@ export function FileSidebar({
     // commit/review modes show a small changed-file set, so they start expanded.
     // `mode` is read once here, so AppShell remounts this tree per mode.
     initialExpansion: mode === "browse" ? "closed" : "open",
-    initialExpandedPaths: selectedFile !== null ? [...ancestorDirs(selectedFile)] : undefined,
+    initialExpandedPaths:
+      selectedFile !== null ? [...ancestorDirs(selectedFile)] : undefined,
     initialSelectedPaths: selectedFile !== null ? [selectedFile] : undefined,
     flattenEmptyDirectories: true,
     search: true,
@@ -130,7 +131,12 @@ export function FileSidebar({
     // so it doesn't flash closed. Selection/scroll/focus is re-applied by the
     // reveal effect below (which also depends on `pathsKey`).
     const open = selectedFileRef.current
-    model.resetPaths([...paths], open !== null ? { initialExpandedPaths: [...ancestorDirs(open)] } : undefined)
+    model.resetPaths(
+      [...paths],
+      open !== null
+        ? { initialExpandedPaths: [...ancestorDirs(open)] }
+        : undefined
+    )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathsKey, model])
 
@@ -159,7 +165,7 @@ export function FileSidebar({
   const renderContextMenu = hasMenu
     ? (
         item: { kind: "directory" | "file"; path: string },
-        context: { close: (options?: { restoreFocus?: boolean }) => void },
+        context: { close: (options?: { restoreFocus?: boolean }) => void }
       ) => (
         <div
           role="menu"
@@ -204,7 +210,11 @@ export function FileSidebar({
         )}
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
-        <FileTree model={model} renderContextMenu={renderContextMenu} style={{ height: "100%" }} />
+        <FileTree
+          model={model}
+          renderContextMenu={renderContextMenu}
+          style={{ height: "100%" }}
+        />
       </div>
       {footer}
     </aside>

@@ -3,7 +3,9 @@ import type {
   CommentsFunctions,
 } from "../entity/comments.interfaces"
 
-export function createCommentsFunctions(d: CommentsDependencies): CommentsFunctions {
+export function createCommentsFunctions(
+  d: CommentsDependencies
+): CommentsFunctions {
   const submit: CommentsFunctions["submit"] = async (ctx, location, body) => {
     if (ctx.mode === "review" && ctx.selectedPull !== null) {
       return d.sideEffects.addPullComment(ctx.selectedPull.number, {
@@ -28,11 +30,19 @@ export function createCommentsFunctions(d: CommentsDependencies): CommentsFuncti
     return true
   }
 
-  const reply: CommentsFunctions["reply"] = async (selectedPull, comment, body) => {
+  const reply: CommentsFunctions["reply"] = async (
+    selectedPull,
+    comment,
+    body
+  ) => {
     if (selectedPull === null || comment.source !== "github") return null
     const commentId = Number(comment.id.replace(/^gh-/, ""))
     if (!Number.isInteger(commentId)) return null
-    const created = await d.sideEffects.replyPullComment(selectedPull.number, commentId, body)
+    const created = await d.sideEffects.replyPullComment(
+      selectedPull.number,
+      commentId,
+      body
+    )
     // Anchor the reply to the parent's line so it lands in the same thread even
     // when GitHub reports a null position for an outdated diff.
     return {

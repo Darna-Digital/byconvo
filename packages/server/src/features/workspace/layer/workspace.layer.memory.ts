@@ -8,5 +8,7 @@ import { make, WorkspaceService } from "../service/workspace.service.ts"
 
 export const WorkspaceMemory = (seed: MemoryWorkspaceSeed = {}) =>
   Layer.effect(WorkspaceService)(make).pipe(
-    Layer.provide(Layer.effect(WorkspaceRepository)(makeMemoryWorkspaceRepository(seed))),
+    Layer.provide(
+      Layer.effect(WorkspaceRepository)(makeMemoryWorkspaceRepository(seed))
+    )
   )

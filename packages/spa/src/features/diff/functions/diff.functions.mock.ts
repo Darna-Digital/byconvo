@@ -9,11 +9,14 @@ const fakeParse = (diffText: string): ReadonlyArray<FileDiffMetadata> =>
     .filter((line) => line.startsWith("+++ b/"))
     .map(
       (line) =>
-        ({ name: line.slice("+++ b/".length), type: "modified" }) as unknown as FileDiffMetadata,
+        ({
+          name: line.slice("+++ b/".length),
+          type: "modified",
+        }) as unknown as FileDiffMetadata
     )
 
 export const createDiffDependenciesMock = (
-  overrides?: Partial<DiffDependencies["data"]>,
+  overrides?: Partial<DiffDependencies["data"]>
 ): DiffDependencies => ({
   data: { internalDir: ".reviewer", ...overrides },
   sideEffects: { parsePatch: vi.fn(fakeParse) },

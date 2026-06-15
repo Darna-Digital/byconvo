@@ -2,7 +2,10 @@
 import * as Context from "effect/Context"
 import type * as Effect from "effect/Effect"
 import type { NoRepoSelected, StorageError } from "../../../layers/errors.ts"
-import type { CommentSide, ReviewComment } from "../schema/comments.schema.model.ts"
+import type {
+  CommentSide,
+  ReviewComment,
+} from "../schema/comments.schema.model.ts"
 
 export interface AddCommentInput {
   readonly filePath: string
@@ -17,10 +20,13 @@ export type CommentsFailure = NoRepoSelected | StorageError
 
 export interface CommentsRepo {
   readonly list: Effect.Effect<ReadonlyArray<ReviewComment>, CommentsFailure>
-  readonly add: (input: AddCommentInput) => Effect.Effect<ReviewComment, CommentsFailure>
+  readonly add: (
+    input: AddCommentInput
+  ) => Effect.Effect<ReviewComment, CommentsFailure>
   readonly remove: (id: string) => Effect.Effect<void, CommentsFailure>
 }
 
-export class CommentsRepository extends Context.Service<CommentsRepository, CommentsRepo>()(
-  "CommentsRepository",
-) {}
+export class CommentsRepository extends Context.Service<
+  CommentsRepository,
+  CommentsRepo
+>()("CommentsRepository") {}

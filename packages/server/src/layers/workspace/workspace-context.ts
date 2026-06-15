@@ -33,9 +33,10 @@ export interface WorkspaceContextShape {
   readonly home: string
 }
 
-export class WorkspaceContext extends Context.Service<WorkspaceContext, WorkspaceContextShape>()(
-  "WorkspaceContext",
-) {}
+export class WorkspaceContext extends Context.Service<
+  WorkspaceContext,
+  WorkspaceContextShape
+>()("WorkspaceContext") {}
 
 const STATE_DIR = `${homedir()}/.reviewer`
 const STATE_FILE = `${STATE_DIR}/state.json`
@@ -55,12 +56,12 @@ export interface InitialSelection {
 /** Resolve a path to its repository root, or explain why it isn't one. */
 export const validateRepo = (
   spawner: ChildProcessSpawner.ChildProcessSpawner["Service"],
-  path: string,
+  path: string
 ) =>
   Effect.scoped(
     Effect.gen(function* () {
       const handle = yield* spawner.spawn(
-        ChildProcess.make("git", ["-C", path, "rev-parse", "--show-toplevel"]),
+        ChildProcess.make("git", ["-C", path, "rev-parse", "--show-toplevel"])
       )
       const [stdout, stderr, exitCode] = yield* Effect.all(
         [
@@ -68,13 +69,15 @@ export const validateRepo = (
           Stream.mkString(Stream.decodeText(handle.stderr)),
           handle.exitCode,
         ],
-        { concurrency: "unbounded" },
+        { concurrency: "unbounded" }
       )
       if (exitCode !== 0) {
-        return yield* Effect.fail(new InvalidRepo({ path, reason: stderr.trim() }))
+        return yield* Effect.fail(
+          new InvalidRepo({ path, reason: stderr.trim() })
+        )
       }
       return stdout.trim()
-    }),
+    })
   )
 
 /**
@@ -84,12 +87,16 @@ export const validateRepo = (
 export const resolveWorkspace = (
   fs: FileSystem.FileSystem,
   spawner: ChildProcessSpawner.ChildProcessSpawner["Service"],
-  path: string,
+  path: string
 ) =>
   Effect.gen(function* () {
-    const stat = yield* fs.stat(path).pipe(Effect.catch(() => Effect.succeed(null)))
+    const stat = yield* fs
+      .stat(path)
+      .pipe(Effect.catch(() => Effect.succeed(null)))
     if (stat === null || stat.type !== "Directory") return null
-    const root = yield* validateRepo(spawner, path).pipe(Effect.catch(() => Effect.succeed(null)))
+    const root = yield* validateRepo(spawner, path).pipe(
+      Effect.catch(() => Effect.succeed(null))
+    )
     return root ?? pathResolve(path)
   })
 
@@ -107,7 +114,9 @@ export const make = (initial: InitialSelection | null) =>
         return {
           current: typeof parsed?.current === "string" ? parsed.current : null,
           recents: Array.isArray(parsed?.recents)
-            ? parsed.recents.filter((entry: unknown): entry is string => typeof entry === "string")
+            ? parsed.recents.filter(
+                (entry: unknown): entry is string => typeof entry === "string"
+              )
             : [],
         }
       } catch {
@@ -126,20 +135,32 @@ export const make = (initial: InitialSelection | null) =>
 
     // Boot order: explicit REVIEWER_REPO > last workspace used > cwd guess.
     const persisted = yield* readState
-    const explicitValid = initial !== null && initial.explicit ? yield* validOrNull(initial.path) : null
-    const persistedValid = explicitValid === null ? yield* validOrNull(persisted.current) : null
-    const fallbackValid = explicitValid === null && persistedValid === null
-      ? yield* validOrNull(initial !== null && !initial.explicit ? initial.path : null)
-      : null
+    const explicitValid =
+      initial !== null && initial.explicit
+        ? yield* validOrNull(initial.path)
+        : null
+    const persistedValid =
+      explicitValid === null ? yield* validOrNull(persisted.current) : null
+    const fallbackValid =
+      explicitValid === null && persistedValid === null
+        ? yield* validOrNull(
+            initial !== null && !initial.explicit ? initial.path : null
+          )
+        : null
 
-    const currentRef = yield* Ref.make<string | null>(explicitValid ?? persistedValid ?? fallbackValid)
+    const currentRef = yield* Ref.make<string | null>(
+      explicitValid ?? persistedValid ?? fallbackValid
+    )
     const recentsRef = yield* Ref.make<ReadonlyArray<string>>(persisted.recents)
 
     const select: WorkspaceContextShape["select"] = (root) =>
       Effect.gen(function* () {
         yield* Ref.set(currentRef, root)
         const recents = yield* Ref.updateAndGet(recentsRef, (existing) =>
-          [root, ...existing.filter((entry) => entry !== root)].slice(0, MAX_RECENTS),
+          [root, ...existing.filter((entry) => entry !== root)].slice(
+            0,
+            MAX_RECENTS
+          )
         )
         yield* writeState({ current: root, recents })
       })
@@ -150,15 +171,17 @@ export const make = (initial: InitialSelection | null) =>
       recents: Ref.get(recentsRef),
       requireCurrent: Ref.get(currentRef).pipe(
         Effect.flatMap((current) =>
-          current === null ? Effect.fail(new NoRepoSelected()) : Effect.succeed(current),
-        ),
+          current === null
+            ? Effect.fail(new NoRepoSelected())
+            : Effect.succeed(current)
+        )
       ),
       select,
     })
   })
 
 export const layer = (
-  initial: InitialSelection | null,
+  initial: InitialSelection | null
 ): Layer.Layer<
   WorkspaceContext,
   never,
@@ -169,15 +192,19 @@ export const layer = (
 export const makeMemory = (initial: string | null = null) =>
   Effect.gen(function* () {
     const currentRef = yield* Ref.make<string | null>(initial)
-    const recentsRef = yield* Ref.make<ReadonlyArray<string>>(initial === null ? [] : [initial])
+    const recentsRef = yield* Ref.make<ReadonlyArray<string>>(
+      initial === null ? [] : [initial]
+    )
     return WorkspaceContext.of({
       home: "/home/test",
       current: Ref.get(currentRef),
       recents: Ref.get(recentsRef),
       requireCurrent: Ref.get(currentRef).pipe(
         Effect.flatMap((current) =>
-          current === null ? Effect.fail(new NoRepoSelected()) : Effect.succeed(current),
-        ),
+          current === null
+            ? Effect.fail(new NoRepoSelected())
+            : Effect.succeed(current)
+        )
       ),
       select: (root) =>
         Effect.gen(function* () {
@@ -190,5 +217,7 @@ export const makeMemory = (initial: string | null = null) =>
     })
   })
 
-export const memoryLayer = (initial: string | null = null): Layer.Layer<WorkspaceContext> =>
+export const memoryLayer = (
+  initial: string | null = null
+): Layer.Layer<WorkspaceContext> =>
   Layer.effect(WorkspaceContext)(makeMemory(initial))

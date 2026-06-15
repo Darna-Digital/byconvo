@@ -11,7 +11,7 @@ describe("WorkspaceService", () => {
       const info = yield* ws.info
       expect(info.current).toBe("/repo")
       expect(info.isGitRepo).toBe(true)
-    }).pipe(Effect.provide(WorkspaceMemory({ current: "/repo" }))),
+    }).pipe(Effect.provide(WorkspaceMemory({ current: "/repo" })))
   )
 
   it.effect("setCurrent updates current and prepends to recents", () =>
@@ -20,7 +20,9 @@ describe("WorkspaceService", () => {
       const info = yield* ws.setCurrent("/another")
       expect(info.current).toBe("/another")
       expect(info.recents[0]).toBe("/another")
-    }).pipe(Effect.provide(WorkspaceMemory({ current: "/repo", recents: ["/repo"] }))),
+    }).pipe(
+      Effect.provide(WorkspaceMemory({ current: "/repo", recents: ["/repo"] }))
+    )
   )
 
   it.effect("readFile fails with NoRepoSelected when nothing is selected", () =>
@@ -28,7 +30,7 @@ describe("WorkspaceService", () => {
       const ws = yield* WorkspaceService
       const error = yield* Effect.flip(ws.readFile("a.ts"))
       expect((error as { _tag: string })._tag).toBe("NoRepoSelected")
-    }).pipe(Effect.provide(WorkspaceMemory({ current: null }))),
+    }).pipe(Effect.provide(WorkspaceMemory({ current: null })))
   )
 
   it.effect("writeFile then readFile round-trips contents", () =>
@@ -38,6 +40,6 @@ describe("WorkspaceService", () => {
       const file = yield* ws.readFile("src/x.ts")
       expect(file.contents).toBe("hello")
       expect(file.name).toBe("x.ts")
-    }).pipe(Effect.provide(WorkspaceMemory({ current: "/repo" }))),
+    }).pipe(Effect.provide(WorkspaceMemory({ current: "/repo" })))
   )
 })

@@ -14,25 +14,40 @@ const pull: PullRequestInfo = {
   updatedAt: "",
 }
 
-const draft = { filePath: "src/a.ts", side: "additions" as const, lineNumber: 12 }
+const draft = {
+  filePath: "src/a.ts",
+  side: "additions" as const,
+  lineNumber: 12,
+}
 
 describe("submit", () => {
   it("local comment in commit/browse mode carries the target key", async () => {
     const deps = createCommentsDependenciesMock()
     const fns = createCommentsFunctions(deps)
-    const created = await fns.submit({ mode: "commit", selectedPull: null, targetKey: "worktree" }, draft, "hi")
+    const created = await fns.submit(
+      { mode: "commit", selectedPull: null, targetKey: "worktree" },
+      draft,
+      "hi"
+    )
     expect(created.source).toBe("local")
     expect(deps.sideEffects.addLocalComment).toHaveBeenCalledWith(
-      expect.objectContaining({ target: "worktree", filePath: "src/a.ts" }),
+      expect.objectContaining({ target: "worktree", filePath: "src/a.ts" })
     )
   })
 
   it("PR comment in review mode goes to the selected pull", async () => {
     const deps = createCommentsDependenciesMock()
     const fns = createCommentsFunctions(deps)
-    const created = await fns.submit({ mode: "review", selectedPull: pull, targetKey: "pr-5" }, draft, "nit")
+    const created = await fns.submit(
+      { mode: "review", selectedPull: pull, targetKey: "pr-5" },
+      draft,
+      "nit"
+    )
     expect(created.source).toBe("github")
-    expect(deps.sideEffects.addPullComment).toHaveBeenCalledWith(5, expect.objectContaining({ body: "nit" }))
+    expect(deps.sideEffects.addPullComment).toHaveBeenCalledWith(
+      5,
+      expect.objectContaining({ body: "nit" })
+    )
   })
 })
 
@@ -48,7 +63,9 @@ describe("remove", () => {
   it("refuses to delete GitHub comments", async () => {
     const deps = createCommentsDependenciesMock()
     const fns = createCommentsFunctions(deps)
-    expect(await fns.remove({ id: "gh-1", source: "github" } as ReviewComment)).toBe(false)
+    expect(
+      await fns.remove({ id: "gh-1", source: "github" } as ReviewComment)
+    ).toBe(false)
     expect(deps.sideEffects.deleteComment).not.toHaveBeenCalled()
   })
 })
@@ -73,11 +90,21 @@ describe("reply", () => {
     expect(reply!.filePath).toBe("src/x.ts")
     expect(reply!.side).toBe("deletions")
     expect(reply!.lineNumber).toBe(7)
-    expect(deps.sideEffects.replyPullComment).toHaveBeenCalledWith(5, 42, "agreed")
+    expect(deps.sideEffects.replyPullComment).toHaveBeenCalledWith(
+      5,
+      42,
+      "agreed"
+    )
   })
 
   it("returns null for non-GitHub comments", async () => {
     const fns = createCommentsFunctions(createCommentsDependenciesMock())
-    expect(await fns.reply(pull, { id: "local", source: "local" } as ReviewComment, "x")).toBeNull()
+    expect(
+      await fns.reply(
+        pull,
+        { id: "local", source: "local" } as ReviewComment,
+        "x"
+      )
+    ).toBeNull()
   })
 })

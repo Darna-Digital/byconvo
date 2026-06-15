@@ -9,8 +9,15 @@ import type { PlatformError } from "effect/PlatformError"
 import { ChildProcessSpawner } from "effect/unstable/process"
 import { homedir } from "node:os"
 import { resolve as pathResolve } from "node:path"
-import { InvalidRepo, NoRepoSelected, StorageError } from "../../../layers/errors.ts"
-import { resolveWorkspace, WorkspaceContext } from "../../../layers/workspace/workspace-context.ts"
+import {
+  InvalidRepo,
+  NoRepoSelected,
+  StorageError,
+} from "../../../layers/errors.ts"
+import {
+  resolveWorkspace,
+  WorkspaceContext,
+} from "../../../layers/workspace/workspace-context.ts"
 import type {
   BrowseEntry,
   BrowsePayload,
@@ -19,7 +26,8 @@ import type {
 } from "../schema/workspace.schema.model.ts"
 import type { WorkspaceRepo } from "./workspace.repository.ts"
 
-const toStorageError = (error: PlatformError) => new StorageError({ reason: error.message })
+const toStorageError = (error: PlatformError) =>
+  new StorageError({ reason: error.message })
 
 export const makeGitWorkspaceRepository = Effect.gen(function* () {
   const fs = yield* FileSystem.FileSystem
@@ -30,14 +38,21 @@ export const makeGitWorkspaceRepository = Effect.gen(function* () {
     effect.pipe(Effect.mapError(toStorageError))
 
   /** Git repos within `dir`, searched up to `depth` levels deep. */
-  const scanChildRepos = (dir: string, depth: number): Effect.Effect<Array<RepoEntry>> =>
+  const scanChildRepos = (
+    dir: string,
+    depth: number
+  ): Effect.Effect<Array<RepoEntry>> =>
     Effect.gen(function* () {
-      const names = yield* fs.readDirectory(dir).pipe(Effect.catch(() => Effect.succeed([])))
+      const names = yield* fs
+        .readDirectory(dir)
+        .pipe(Effect.catch(() => Effect.succeed([])))
       const repos: Array<RepoEntry> = []
       for (const name of [...names].sort((a, b) => a.localeCompare(b))) {
         if (name.startsWith(".") || name === "node_modules") continue
         const childPath = `${dir}/${name}`
-        const stat = yield* fs.stat(childPath).pipe(Effect.catch(() => Effect.succeed(null)))
+        const stat = yield* fs
+          .stat(childPath)
+          .pipe(Effect.catch(() => Effect.succeed(null)))
         if (stat === null || stat.type !== "Directory") continue
         const isGitRepo = yield* fs
           .exists(`${childPath}/.git`)
@@ -48,15 +63,19 @@ export const makeGitWorkspaceRepository = Effect.gen(function* () {
         }
         if (depth > 1) {
           const nested = yield* scanChildRepos(childPath, depth - 1)
-          for (const repo of nested) repos.push({ name: `${name}/${repo.name}`, path: repo.path })
+          for (const repo of nested)
+            repos.push({ name: `${name}/${repo.name}`, path: repo.path })
         }
       }
       return repos
     })
 
   const describe = (
-    current: string | null,
-  ): Effect.Effect<{ isGitRepo: boolean; childRepos: ReadonlyArray<RepoEntry> }> =>
+    current: string | null
+  ): Effect.Effect<{
+    isGitRepo: boolean
+    childRepos: ReadonlyArray<RepoEntry>
+  }> =>
     current === null
       ? Effect.succeed({ isGitRepo: false, childRepos: [] })
       : Effect.gen(function* () {
@@ -72,19 +91,33 @@ export const makeGitWorkspaceRepository = Effect.gen(function* () {
     const current = yield* ctx.current
     const recents = yield* ctx.recents
     const described = yield* describe(current)
-    return { current, recents, home: homedir(), ...described } satisfies WorkspaceInfo
+    return {
+      current,
+      recents,
+      home: homedir(),
+      ...described,
+    } satisfies WorkspaceInfo
   })
 
   const setCurrent: WorkspaceRepo["setCurrent"] = (path) =>
     Effect.gen(function* () {
-      const root = yield* resolveWorkspace(fs, spawner, path).pipe(Effect.mapError(toStorageError))
+      const root = yield* resolveWorkspace(fs, spawner, path).pipe(
+        Effect.mapError(toStorageError)
+      )
       if (root === null) {
-        return yield* Effect.fail(new InvalidRepo({ path, reason: "not a directory" }))
+        return yield* Effect.fail(
+          new InvalidRepo({ path, reason: "not a directory" })
+        )
       }
       yield* ctx.select(root)
       const recents = yield* ctx.recents
       const described = yield* describe(root)
-      return { current: root, recents, home: homedir(), ...described } satisfies WorkspaceInfo
+      return {
+        current: root,
+        recents,
+        home: homedir(),
+        ...described,
+      } satisfies WorkspaceInfo
     })
 
   const browse: WorkspaceRepo["browse"] = (requested) =>
@@ -95,14 +128,17 @@ export const makeGitWorkspaceRepository = Effect.gen(function* () {
       for (const name of [...names].sort((a, b) => a.localeCompare(b))) {
         if (name.startsWith(".") || name === "node_modules") continue
         const childPath = `${path}/${name}`
-        const stat = yield* fs.stat(childPath).pipe(Effect.catch(() => Effect.succeed(null)))
+        const stat = yield* fs
+          .stat(childPath)
+          .pipe(Effect.catch(() => Effect.succeed(null)))
         if (stat === null || stat.type !== "Directory") continue
         const isGitRepo = yield* fs
           .exists(`${childPath}/.git`)
           .pipe(Effect.catch(() => Effect.succeed(false)))
         entries.push({ name, path: childPath, isGitRepo })
       }
-      const parent = path === "/" ? null : path.slice(0, path.lastIndexOf("/")) || "/"
+      const parent =
+        path === "/" ? null : path.slice(0, path.lastIndexOf("/")) || "/"
       const isGitRepo = yield* fs
         .exists(`${path}/.git`)
         .pipe(Effect.catch(() => Effect.succeed(false)))
@@ -145,9 +181,18 @@ export const makeGitWorkspaceRepository = Effect.gen(function* () {
       const from = yield* resolveInRepo(fromRel)
       const to = yield* resolveInRepo(toRel)
       const parent = to.resolved.slice(0, to.resolved.lastIndexOf("/"))
-      if (parent.length > 0) yield* tryFs(fs.makeDirectory(parent, { recursive: true }))
+      if (parent.length > 0)
+        yield* tryFs(fs.makeDirectory(parent, { recursive: true }))
       yield* tryFs(fs.rename(from.resolved, to.resolved))
     })
 
-  return { info, setCurrent, browse, readFile, writeFile, deletePath, renamePath } satisfies WorkspaceRepo
+  return {
+    info,
+    setCurrent,
+    browse,
+    readFile,
+    writeFile,
+    deletePath,
+    renamePath,
+  } satisfies WorkspaceRepo
 })

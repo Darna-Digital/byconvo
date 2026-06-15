@@ -22,7 +22,7 @@ describe("CommentsService", () => {
       expect(created.id).not.toBe("")
       const all = yield* comments.list
       expect(all.map((c) => c.body)).toContain("looks good")
-    }).pipe(Effect.provide(CommentsMemory())),
+    }).pipe(Effect.provide(CommentsMemory()))
   )
 
   it.effect("remove deletes by id", () =>
@@ -32,6 +32,6 @@ describe("CommentsService", () => {
       yield* comments.remove(created.id)
       const all = yield* comments.list
       expect(all).toHaveLength(0)
-    }).pipe(Effect.provide(CommentsMemory())),
+    }).pipe(Effect.provide(CommentsMemory()))
   )
 })

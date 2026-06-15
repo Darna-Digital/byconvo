@@ -54,7 +54,8 @@ export function ResizeHandle({
       const axis = orientation === "col" ? "clientX" : "clientY"
       const start = event[axis]
       const startSize = value
-      const cursorClass = orientation === "col" ? "is-resizing-col" : "is-resizing-row"
+      const cursorClass =
+        orientation === "col" ? "is-resizing-col" : "is-resizing-row"
       document.body.classList.add(cursorClass)
 
       let latest = startSize
@@ -72,7 +73,7 @@ export function ResizeHandle({
       window.addEventListener("pointermove", onMove)
       window.addEventListener("pointerup", onUp)
     },
-    [orientation, value, min, max, direction, onResize, onResizeEnd],
+    [orientation, value, min, max, direction, onResize, onResizeEnd]
   )
 
   return (
@@ -82,7 +83,10 @@ export function ResizeHandle({
       aria-label={label}
       title="Drag to resize"
       onPointerDown={onPointerDown}
-      className={cn(orientation === "col" ? "resize-handle-col" : "resize-handle-row", className)}
+      className={cn(
+        orientation === "col" ? "resize-handle-col" : "resize-handle-row",
+        className
+      )}
     />
   )
 }

@@ -9,9 +9,10 @@ export function useDiffFunctions() {
       createDiffFunctions({
         data: { internalDir: ".reviewer" },
         sideEffects: {
-          parsePatch: (text) => parsePatchFiles(text).flatMap((patch) => patch.files),
+          parsePatch: (text) =>
+            parsePatchFiles(text).flatMap((patch) => patch.files),
         },
       }),
-    [],
+    []
   )
 }

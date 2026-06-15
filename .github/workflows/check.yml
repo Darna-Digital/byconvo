@@ -11,17 +11,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Installs pnpm using the version from the "packageManager" field in package.json
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: lts/*
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm lint

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest"
-import type { GitStatusEntry, PullRequestInfo, ReviewComment } from "@/lib/api/types"
+import type {
+  GitStatusEntry,
+  PullRequestInfo,
+  ReviewComment,
+} from "@/lib/api/types"
 import { createDiffFunctions } from "./diff.functions"
 import { createDiffDependenciesMock } from "./diff.functions.mock"
 
@@ -18,15 +22,23 @@ const pull = (number: number): PullRequestInfo => ({
 
 describe("deriveTarget", () => {
   it("commit mode → worktree", () => {
-    expect(fns().deriveTarget({ mode: "commit", selectedPull: null, browse: null })).toEqual({
+    expect(
+      fns().deriveTarget({ mode: "commit", selectedPull: null, browse: null })
+    ).toEqual({
       kind: "worktree",
     })
   })
 
   it("review mode needs a selected pull", () => {
-    expect(fns().deriveTarget({ mode: "review", selectedPull: null, browse: null })).toBeNull()
     expect(
-      fns().deriveTarget({ mode: "review", selectedPull: pull(7), browse: null }),
+      fns().deriveTarget({ mode: "review", selectedPull: null, browse: null })
+    ).toBeNull()
+    expect(
+      fns().deriveTarget({
+        mode: "review",
+        selectedPull: pull(7),
+        browse: null,
+      })
     ).toEqual({ kind: "pull", pull: pull(7) })
   })
 
@@ -36,14 +48,14 @@ describe("deriveTarget", () => {
         mode: "browse",
         selectedPull: null,
         browse: { kind: "commit", sha: "abc", shortSha: "abc1234" },
-      }),
+      })
     ).toEqual({ kind: "commit", sha: "abc", shortSha: "abc1234" })
     expect(
       fns().deriveTarget({
         mode: "browse",
         selectedPull: null,
         browse: { kind: "range", base: "main", head: "feat" },
-      }),
+      })
     ).toEqual({ kind: "range", base: "main", head: "feat" })
   })
 })
@@ -97,24 +109,60 @@ describe("tree derivations", () => {
   })
 
   it("changedFiles strips the internal dir", () => {
-    expect(fns().changedFiles(status).map((e) => e.path)).toEqual(["src/a.ts"])
+    expect(
+      fns()
+        .changedFiles(status)
+        .map((e) => e.path)
+    ).toEqual(["src/a.ts"])
   })
 })
 
 describe("visibleComments", () => {
   const local: ReviewComment[] = [
-    { id: "1", filePath: "a", side: "additions", lineNumber: 1, body: "", author: "", createdAt: "", target: "worktree", source: "local" },
-    { id: "2", filePath: "a", side: "additions", lineNumber: 2, body: "", author: "", createdAt: "", target: "commit-x", source: "local" },
+    {
+      id: "1",
+      filePath: "a",
+      side: "additions",
+      lineNumber: 1,
+      body: "",
+      author: "",
+      createdAt: "",
+      target: "worktree",
+      source: "local",
+    },
+    {
+      id: "2",
+      filePath: "a",
+      side: "additions",
+      lineNumber: 2,
+      body: "",
+      author: "",
+      createdAt: "",
+      target: "commit-x",
+      source: "local",
+    },
   ]
 
   it("filters local comments by target key", () => {
-    const out = fns().visibleComments({ targetKind: "worktree", targetKey: "worktree", localComments: local, pullComments: [] })
+    const out = fns().visibleComments({
+      targetKind: "worktree",
+      targetKey: "worktree",
+      localComments: local,
+      pullComments: [],
+    })
     expect(out.map((c) => c.id)).toEqual(["1"])
   })
 
   it("uses pull comments for a pull target", () => {
-    const pr: ReviewComment[] = [{ ...local[0], id: "pr1", source: "github", target: "pr-3" }]
-    const out = fns().visibleComments({ targetKind: "pull", targetKey: "pr-3", localComments: local, pullComments: pr })
+    const pr: ReviewComment[] = [
+      { ...local[0], id: "pr1", source: "github", target: "pr-3" },
+    ]
+    const out = fns().visibleComments({
+      targetKind: "pull",
+      targetKey: "pr-3",
+      localComments: local,
+      pullComments: pr,
+    })
     expect(out.map((c) => c.id)).toEqual(["pr1"])
   })
 })

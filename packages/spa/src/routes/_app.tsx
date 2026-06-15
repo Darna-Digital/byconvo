@@ -17,7 +17,8 @@ export interface AppSearch {
 export const Route = createFileRoute("/_app")({
   validateSearch: (search: Record<string, unknown>): AppSearch => ({
     file: typeof search["file"] === "string" ? search["file"] : undefined,
-    edit: search["edit"] === true || search["edit"] === "true" ? true : undefined,
+    edit:
+      search["edit"] === true || search["edit"] === "true" ? true : undefined,
     path: typeof search["path"] === "string" ? search["path"] : undefined,
     base: typeof search["base"] === "string" ? search["base"] : undefined,
     head: typeof search["head"] === "string" ? search["head"] : undefined,

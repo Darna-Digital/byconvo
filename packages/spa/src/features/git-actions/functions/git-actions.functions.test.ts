@@ -5,10 +5,17 @@ import { createGitActionsDependenciesMock } from "./git-actions.functions.mock"
 describe("commitChanges", () => {
   it("commits and reports the sha", async () => {
     const deps = createGitActionsDependenciesMock()
-    const ok = await createGitActionsFunctions(deps).commitChanges("msg", ["a.ts"], false)
+    const ok = await createGitActionsFunctions(deps).commitChanges(
+      "msg",
+      ["a.ts"],
+      false
+    )
     expect(ok).toBe(true)
     expect(deps.sideEffects.commit).toHaveBeenCalledWith("msg", ["a.ts"])
-    expect(deps.sideEffects.notify).toHaveBeenCalledWith("ok", "Committed abc1234")
+    expect(deps.sideEffects.notify).toHaveBeenCalledWith(
+      "ok",
+      "Committed abc1234"
+    )
     expect(deps.sideEffects.refresh).toHaveBeenCalled()
   })
 
@@ -16,7 +23,10 @@ describe("commitChanges", () => {
     const deps = createGitActionsDependenciesMock()
     await createGitActionsFunctions(deps).commitChanges("msg", [], true)
     expect(deps.sideEffects.push).toHaveBeenCalled()
-    expect(deps.sideEffects.notify).toHaveBeenCalledWith("ok", "Committed abc1234 and pushed")
+    expect(deps.sideEffects.notify).toHaveBeenCalledWith(
+      "ok",
+      "Committed abc1234 and pushed"
+    )
   })
 
   it("keeps the commit success when the push fails", async () => {
@@ -25,11 +35,15 @@ describe("commitChanges", () => {
         throw new Error("no upstream")
       }),
     })
-    const ok = await createGitActionsFunctions(deps).commitChanges("msg", [], true)
+    const ok = await createGitActionsFunctions(deps).commitChanges(
+      "msg",
+      [],
+      true
+    )
     expect(ok).toBe(true)
     expect(deps.sideEffects.notify).toHaveBeenCalledWith(
       "err",
-      "Committed abc1234, but push failed:\nno upstream",
+      "Committed abc1234, but push failed:\nno upstream"
     )
     expect(deps.sideEffects.refresh).toHaveBeenCalled()
   })
@@ -40,9 +54,16 @@ describe("commitChanges", () => {
         throw new Error("nothing to commit")
       }),
     })
-    const ok = await createGitActionsFunctions(deps).commitChanges("msg", [], false)
+    const ok = await createGitActionsFunctions(deps).commitChanges(
+      "msg",
+      [],
+      false
+    )
     expect(ok).toBe(false)
-    expect(deps.sideEffects.notify).toHaveBeenCalledWith("err", "nothing to commit")
+    expect(deps.sideEffects.notify).toHaveBeenCalledWith(
+      "err",
+      "nothing to commit"
+    )
     expect(deps.sideEffects.refresh).not.toHaveBeenCalled()
   })
 })

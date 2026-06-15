@@ -1,4 +1,9 @@
-import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router"
+import {
+  HeadContent,
+  Outlet,
+  Scripts,
+  createRootRouteWithContext,
+} from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools"
@@ -21,7 +26,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   notFoundComponent: () => (
     <main className="flex min-h-svh flex-col items-center justify-center gap-1 text-sm">
       <h1 className="text-base font-medium">404</h1>
-      <p className="text-muted-foreground">The requested page could not be found.</p>
+      <p className="text-muted-foreground">
+        The requested page could not be found.
+      </p>
     </main>
   ),
   shellComponent: RootDocument,
@@ -47,7 +54,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           <TanStackDevtools
             config={{ position: "bottom-right" }}
             plugins={[
-              { name: "TanStack Router", render: <TanStackRouterDevtoolsPanel /> },
+              {
+                name: "TanStack Router",
+                render: <TanStackRouterDevtoolsPanel />,
+              },
               { name: "TanStack Query", render: <ReactQueryDevtoolsPanel /> },
             ]}
           />
