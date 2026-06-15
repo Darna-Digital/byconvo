@@ -8,7 +8,9 @@
     "dev:desktop": "pnpm --parallel --filter spa --filter @reviewer/desktop dev",
     "desktop": "pnpm --filter spa build && pnpm --filter @reviewer/desktop start",
     "build": "pnpm -r build",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r --if-present lint",
+    "format:check": "pnpm -r --if-present check"
   },
   "packageManager": "pnpm@10.33.4"
 }
