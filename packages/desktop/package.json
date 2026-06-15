@@ -1,5 +1,6 @@
 {
   "name": "@reviewer/desktop",
+  "productName": "Reviewer",
   "private": true,
   "version": "0.1.0",
   "description": "reviewer desktop — Electron shell around the client",
