@@ -11,7 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Installs pnpm using the version from the "packageManager" field in package.json
       - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
@@ -19,14 +18,14 @@ jobs:
           node-version: lts/*
           cache: pnpm
 
-      # --ignore-scripts: this job only runs ESLint + Prettier (pure JS), so we
-      # skip native build scripts (better-sqlite3, esbuild, ...) for a faster,
-      # deterministic install. pnpm 11 otherwise errors on un-approved builds.
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --ignore-scripts
+        run: pnpm install --frozen-lockfile --filter "!@reviewer/desktop..."
 
       - name: Lint
         run: pnpm lint
 
       - name: Check formatting
         run: pnpm format:check
+
+      - name: Test
+        run: pnpm -r --if-present test
