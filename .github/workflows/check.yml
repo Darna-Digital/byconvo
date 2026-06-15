@@ -19,8 +19,11 @@ jobs:
           node-version: lts/*
           cache: pnpm
 
+      # --ignore-scripts: this job only runs ESLint + Prettier (pure JS), so we
+      # skip native build scripts (better-sqlite3, esbuild, ...) for a faster,
+      # deterministic install. pnpm 11 otherwise errors on un-approved builds.
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Lint
         run: pnpm lint
