@@ -13,7 +13,7 @@
     "prettier.config.js"
   ],
   "dependencies": {
-    "@tanstack/eslint-config": "latest",
+    "@tanstack/eslint-config": "^0.4.0",
     "eslint": "^9",
     "prettier": "^3.8.3"
   }

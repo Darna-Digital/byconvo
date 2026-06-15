@@ -9,7 +9,7 @@
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx}\"",
-    "check": "prettier --check \"**/*.{ts,tsx,js,jsx}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx}\"",
     "gen:api": "openapi-typescript http://localhost:41811/api/openapi.json -o src/lib/api/schema.d.ts && perl -0777 -i -pe 's/\\(number \\| \"NaN\" \\| \"Infinity\" \\| \"-Infinity\"\\) \\| \\(\"Infinity\" \\| \"-Infinity\" \\| \"NaN\"\\)/number/g; s/number \\| \"NaN\" \\| \"Infinity\" \\| \"-Infinity\"/number/g;' src/lib/api/schema.d.ts",
     "typecheck": "tsc --noEmit"
   },

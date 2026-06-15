@@ -10,7 +10,7 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r --if-present lint",
-    "format:check": "pnpm -r --if-present check"
+    "format:check": "pnpm -r --if-present format:check"
   },
   "packageManager": "pnpm@11.7.0"
 }
