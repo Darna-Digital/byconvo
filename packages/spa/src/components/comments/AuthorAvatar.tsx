@@ -30,7 +30,7 @@ export function AuthorAvatar({
   useEffect(() => setFailed(false), [githubUrl])
 
   const base = cn(
-    "size-7 shrink-0 select-none overflow-hidden rounded-full",
+    "size-7 shrink-0 overflow-hidden rounded-full select-none",
     className
   )
 
