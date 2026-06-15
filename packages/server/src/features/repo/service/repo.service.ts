@@ -5,7 +5,10 @@ import { RepoRepository, type RepoRepo } from "../repository/repo.repository.ts"
 
 export interface RepoServiceShape extends RepoRepo {}
 
-export class RepoService extends Context.Service<RepoService, RepoServiceShape>()("RepoService") {}
+export class RepoService extends Context.Service<
+  RepoService,
+  RepoServiceShape
+>()("RepoService") {}
 
 export const make = Effect.gen(function* () {
   const repo = yield* RepoRepository

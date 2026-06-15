@@ -1,8 +1,17 @@
-import { getFiletypeFromFileName, getHighlighterOptions, type LineAnnotation, preloadHighlighter } from "@pierre/diffs"
+import {
+  getFiletypeFromFileName,
+  getHighlighterOptions,
+  type LineAnnotation,
+  preloadHighlighter,
+} from "@pierre/diffs"
 import { File } from "@pierre/diffs/react"
 import { IconX } from "@tabler/icons-react"
 import { useEffect, useMemo, useState } from "react"
-import { CommentThread, DraftCard, type DraftLocation } from "@/components/comments/CommentThread"
+import {
+  CommentThread,
+  DraftCard,
+  type DraftLocation,
+} from "@/components/comments/CommentThread"
 import { Button } from "@/components/ui/button"
 import { useFile } from "@/lib/queries"
 import type { ReviewComment } from "@/lib/api/types"
@@ -21,7 +30,10 @@ const readyLangs = new Set<string>()
 const FILE_COMMENT_SIDE = "additions" as const
 
 type AnnotationMeta =
-  | { readonly kind: "comments"; readonly comments: ReadonlyArray<ReviewComment> }
+  | {
+      readonly kind: "comments"
+      readonly comments: ReadonlyArray<ReviewComment>
+    }
   | { readonly kind: "draft" }
 
 interface CodeViewProps {
@@ -53,7 +65,8 @@ export function CodeView({
   const file = useFile(path)
   const lang = getFiletypeFromFileName(path)
   const [langReady, setLangReady] = useState(() => readyLangs.has(lang))
-  const commentsEnabled = onCommentSubmit !== undefined && onCommentDelete !== undefined
+  const commentsEnabled =
+    onCommentSubmit !== undefined && onCommentDelete !== undefined
 
   // Ensure the file's language grammar is attached before mounting `File`;
   // otherwise it renders unhighlighted and won't re-highlight in place when the
@@ -69,7 +82,9 @@ export function CodeView({
       readyLangs.add(lang)
       if (!cancelled) setLangReady(true)
     }
-    void preloadHighlighter(getHighlighterOptions(lang, { theme: THEMES })).then(done, done)
+    void preloadHighlighter(
+      getHighlighterOptions(lang, { theme: THEMES })
+    ).then(done, done)
     return () => {
       cancelled = true
     }
@@ -94,10 +109,14 @@ export function CodeView({
   }, [comments, draft, path])
 
   if (file.isPending || !langReady) {
-    return <div className="p-8 text-sm text-muted-foreground">Loading {path}…</div>
+    return (
+      <div className="p-8 text-sm text-muted-foreground">Loading {path}…</div>
+    )
   }
   if (file.error || file.data === undefined) {
-    return <div className="p-8 text-sm text-destructive">Could not open {path}</div>
+    return (
+      <div className="p-8 text-sm text-destructive">Could not open {path}</div>
+    )
   }
 
   return (
@@ -118,7 +137,11 @@ export function CodeView({
             enableLineSelection: commentsEnabled,
             onLineNumberClick: commentsEnabled
               ? (props) =>
-                  onDraftOpen?.({ filePath: path, side: FILE_COMMENT_SIDE, lineNumber: props.lineNumber })
+                  onDraftOpen?.({
+                    filePath: path,
+                    side: FILE_COMMENT_SIDE,
+                    lineNumber: props.lineNumber,
+                  })
               : undefined,
           }}
           lineAnnotations={commentsEnabled ? annotations : undefined}
@@ -132,24 +155,42 @@ export function CodeView({
                       <DraftCard
                         onCancel={() => onDraftCancel?.()}
                         onSubmit={(body) =>
-                          onCommentSubmit!(
-                            { filePath: path, side: FILE_COMMENT_SIDE, lineNumber: annotation.lineNumber },
-                            body,
+                          onCommentSubmit(
+                            {
+                              filePath: path,
+                              side: FILE_COMMENT_SIDE,
+                              lineNumber: annotation.lineNumber,
+                            },
+                            body
                           )
                         }
                       />
                     )
                   }
-                  return <CommentThread comments={meta.comments} onDelete={onCommentDelete!} />
+                  return (
+                    <CommentThread
+                      comments={meta.comments}
+                      onDelete={onCommentDelete}
+                    />
+                  )
                 }
               : undefined
           }
           renderHeaderMetadata={(meta) => (
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="xs" onClick={() => onEdit(meta.name)}>
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={() => onEdit(meta.name)}
+              >
                 Edit
               </Button>
-              <Button variant="ghost" size="icon-xs" onClick={onClose} aria-label="Close">
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onClick={onClose}
+                aria-label="Close"
+              >
                 <IconX />
               </Button>
             </div>

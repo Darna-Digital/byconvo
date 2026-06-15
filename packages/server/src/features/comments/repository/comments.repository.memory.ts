@@ -4,7 +4,9 @@ import * as Ref from "effect/Ref"
 import type { ReviewComment } from "../schema/comments.schema.model.ts"
 import type { CommentsRepo } from "./comments.repository.ts"
 
-export const makeMemoryCommentsRepository = (seed: ReadonlyArray<ReviewComment> = []) =>
+export const makeMemoryCommentsRepository = (
+  seed: ReadonlyArray<ReviewComment> = []
+) =>
   Effect.gen(function* () {
     const store = yield* Ref.make<ReadonlyArray<ReviewComment>>([...seed])
     let counter = 0
@@ -23,7 +25,8 @@ export const makeMemoryCommentsRepository = (seed: ReadonlyArray<ReviewComment> 
           yield* Ref.update(store, (all) => [...all, created])
           return created
         }),
-      remove: (id) => Ref.update(store, (all) => all.filter((c) => c.id !== id)),
+      remove: (id) =>
+        Ref.update(store, (all) => all.filter((c) => c.id !== id)),
     }
     return repo
   })

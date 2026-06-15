@@ -67,12 +67,19 @@ export function CommentComposer({
       {error !== null && <p className="text-xs text-destructive">{error}</p>}
       <div className="flex items-center justify-end gap-2">
         <span className="mr-auto text-xs text-muted-foreground">
-          <kbd className="rounded-sm border bg-muted px-1 py-0.5 font-mono text-[10px]">⌘↵</kbd> to submit
+          <kbd className="rounded-sm border bg-muted px-1 py-0.5 font-mono text-[10px]">
+            ⌘↵
+          </kbd>{" "}
+          to submit
         </span>
         <Button variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>
-        <Button size="sm" disabled={body.trim().length === 0 || busy} onClick={() => void submit()}>
+        <Button
+          size="sm"
+          disabled={body.trim().length === 0 || busy}
+          onClick={() => void submit()}
+        >
           {busy ? "Saving…" : "Comment"}
         </Button>
       </div>
@@ -158,9 +165,14 @@ export function CommentThread({
   children?: React.ReactNode
 }) {
   return (
-    <div className="my-2 ml-12 mr-3 max-w-2xl min-w-0 divide-y divide-border overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm">
+    <div className="my-2 mr-3 ml-12 max-w-2xl min-w-0 divide-y divide-border overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm">
       {comments.map((comment) => (
-        <CommentCard key={comment.id} comment={comment} onDelete={onDelete} onReply={onReply} />
+        <CommentCard
+          key={comment.id}
+          comment={comment}
+          onDelete={onDelete}
+          onReply={onReply}
+        />
       ))}
       {children}
     </div>
@@ -176,7 +188,7 @@ export function DraftCard({
   onSubmit: (body: string) => Promise<void>
 }) {
   return (
-    <div className="my-2 ml-12 mr-3 max-w-2xl min-w-0 overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm">
+    <div className="my-2 mr-3 ml-12 max-w-2xl min-w-0 overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm">
       <CommentComposer onCancel={onCancel} onSubmit={onSubmit} />
     </div>
   )

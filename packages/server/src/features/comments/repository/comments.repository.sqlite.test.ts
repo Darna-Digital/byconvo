@@ -11,9 +11,9 @@ import { makeSqliteCommentsRepository } from "./comments.repository.sqlite.ts"
 const repoDir = mkdtempSync(`${tmpdir()}/reviewer-comments-`)
 afterAll(() => rmSync(repoDir, { recursive: true, force: true }))
 
-const SqliteRepo = Layer.effect(CommentsRepository)(makeSqliteCommentsRepository).pipe(
-  Layer.provide(memoryLayer(repoDir)),
-)
+const SqliteRepo = Layer.effect(CommentsRepository)(
+  makeSqliteCommentsRepository
+).pipe(Layer.provide(memoryLayer(repoDir)))
 
 const input = {
   filePath: "src/a.ts",
@@ -33,7 +33,7 @@ describe("SqliteCommentsRepository", () => {
       expect(created.id).not.toBe("")
       const all = yield* repo.list
       expect(all.map((c) => c.body)).toContain("looks good")
-    }).pipe(Effect.provide(SqliteRepo)),
+    }).pipe(Effect.provide(SqliteRepo))
   )
 
   it.effect("remove deletes by id", () =>
@@ -43,24 +43,26 @@ describe("SqliteCommentsRepository", () => {
       yield* repo.remove(created.id)
       const remaining = yield* repo.list
       expect(remaining.map((c) => c.id)).not.toContain(created.id)
-    }).pipe(Effect.provide(SqliteRepo)),
+    }).pipe(Effect.provide(SqliteRepo))
   )
 
-  it.effect("persists across repository instances (unlike the in-memory store)", () =>
-    Effect.gen(function* () {
-      // Add through one repository instance...
-      const created = yield* Effect.gen(function* () {
-        const repo = yield* CommentsRepository
-        return yield* repo.add({ ...input, body: "durable" })
-      }).pipe(Effect.provide(SqliteRepo))
+  it.effect(
+    "persists across repository instances (unlike the in-memory store)",
+    () =>
+      Effect.gen(function* () {
+        // Add through one repository instance...
+        const created = yield* Effect.gen(function* () {
+          const repo = yield* CommentsRepository
+          return yield* repo.add({ ...input, body: "durable" })
+        }).pipe(Effect.provide(SqliteRepo))
 
-      // ...and read it back through a freshly-built one (new request).
-      const all = yield* Effect.gen(function* () {
-        const repo = yield* CommentsRepository
-        return yield* repo.list
-      }).pipe(Effect.provide(SqliteRepo))
+        // ...and read it back through a freshly-built one (new request).
+        const all = yield* Effect.gen(function* () {
+          const repo = yield* CommentsRepository
+          return yield* repo.list
+        }).pipe(Effect.provide(SqliteRepo))
 
-      expect(all.map((c) => c.id)).toContain(created.id)
-    }),
+        expect(all.map((c) => c.id)).toContain(created.id)
+      })
   )
 })

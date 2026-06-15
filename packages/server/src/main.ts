@@ -46,16 +46,21 @@ const port = Number(process.env["REVIEWER_PORT"] ?? 41811)
  */
 const ApiLive = Layer.mergeAll(
   HttpApiBuilder.layer(Api, { openapiPath: "/api/openapi.json" }),
-  HttpApiScalar.layer(Api, { path: "/api/docs" }),
+  HttpApiScalar.layer(Api, { path: "/api/docs" })
 ).pipe(
   Layer.provide(WorkspaceController),
   Layer.provide(RepoController),
   Layer.provide(CommentsController),
-  Layer.provide(GitHubController),
+  Layer.provide(GitHubController)
 )
 
 /** Stateless feature services, resolved per request. */
-const RequestServices = Layer.mergeAll(WorkspaceLive, RepoLive, CommentsLive, GitHubLive)
+const RequestServices = Layer.mergeAll(
+  WorkspaceLive,
+  RepoLive,
+  CommentsLive,
+  GitHubLive
+)
 
 /**
  * Global singletons, built once so the selected-repo state persists across
@@ -65,14 +70,14 @@ const RequestServices = Layer.mergeAll(WorkspaceLive, RepoLive, CommentsLive, Gi
 const InfraLive = gitHubClientLayer.pipe(
   Layer.provideMerge(gitExecLayer),
   Layer.provideMerge(workspaceContextLayer(initial)),
-  Layer.provide(FetchHttpClient.layer),
+  Layer.provide(FetchHttpClient.layer)
 )
 
 const HttpLive = HttpRouter.serve(
-  ApiLive.pipe(HttpRouter.provideRequest(RequestServices)),
+  ApiLive.pipe(HttpRouter.provideRequest(RequestServices))
 ).pipe(
   Layer.provide(InfraLive),
-  Layer.provide(NodeHttpServer.layer(createServer, { port })),
+  Layer.provide(NodeHttpServer.layer(createServer, { port }))
 )
 
 NodeRuntime.runMain(Layer.launch(HttpLive))

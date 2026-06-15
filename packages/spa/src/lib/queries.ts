@@ -11,28 +11,37 @@ export const useRepo = () => api.useQuery("get", "/api/repo")
 export const useFiles = () => api.useQuery("get", "/api/files")
 export const useStatus = () => api.useQuery("get", "/api/status")
 export const useBranches = () => api.useQuery("get", "/api/branches")
-export const useRemoteBranches = () => api.useQuery("get", "/api/remote-branches")
+export const useRemoteBranches = () =>
+  api.useQuery("get", "/api/remote-branches")
 export const useComments = () => api.useQuery("get", "/api/comments")
 
 export const usePulls = (enabled: boolean) =>
   api.useQuery("get", "/api/github/pulls", {}, { enabled })
 
 export const useCommitDetail = (sha: string | null) =>
-  api.useQuery("get", "/api/commit/{sha}", { params: { path: { sha: sha ?? "" } } }, {
-    enabled: sha !== null,
-  })
+  api.useQuery(
+    "get",
+    "/api/commit/{sha}",
+    { params: { path: { sha: sha ?? "" } } },
+    {
+      enabled: sha !== null,
+    }
+  )
 
 export const usePullComments = (pullNumber: number | null) =>
   api.useQuery(
     "get",
     "/api/github/pulls/{number}/comments",
     { params: { path: { number: String(pullNumber ?? "") } } },
-    { enabled: pullNumber !== null },
+    { enabled: pullNumber !== null }
   )
 
 /** Commit log for a ref with the active filters. */
 export const useLog = (ref: string | null, filters: LogQuery, limit = 80) => {
-  const query: Record<string, string> = { ref: ref ?? "HEAD", limit: String(limit) }
+  const query: Record<string, string> = {
+    ref: ref ?? "HEAD",
+    limit: String(limit),
+  }
   if (filters.author !== null) query["author"] = filters.author
   if (filters.grep !== null) query["grep"] = filters.grep
   if (filters.regex) query["regex"] = "1"
@@ -40,19 +49,33 @@ export const useLog = (ref: string | null, filters: LogQuery, limit = 80) => {
   if (filters.after !== null) query["after"] = filters.after
   if (filters.before !== null) query["before"] = filters.before
   if (filters.path !== null) query["path"] = filters.path
-  return api.useQuery("get", "/api/log", { params: { query } }, { enabled: ref !== null })
+  return api.useQuery(
+    "get",
+    "/api/log",
+    { params: { query } },
+    { enabled: ref !== null }
+  )
 }
 
 /** The right diff for the current target (worktree / commit / range / PR). */
 export const useDiffText = (target: DiffTarget | null) => {
-  const worktree = api.useQuery("get", "/api/diff", {}, {
-    enabled: target?.kind === "worktree",
-  })
+  const worktree = api.useQuery(
+    "get",
+    "/api/diff",
+    {},
+    {
+      enabled: target?.kind === "worktree",
+    }
+  )
   const commit = api.useQuery(
     "get",
     "/api/diff",
-    { params: { query: { commit: target?.kind === "commit" ? target.sha : "" } } },
-    { enabled: target?.kind === "commit" },
+    {
+      params: {
+        query: { commit: target?.kind === "commit" ? target.sha : "" },
+      },
+    },
+    { enabled: target?.kind === "commit" }
   )
   const range = api.useQuery(
     "get",
@@ -65,13 +88,19 @@ export const useDiffText = (target: DiffTarget | null) => {
             : { base: "", head: "" },
       },
     },
-    { enabled: target?.kind === "range" },
+    { enabled: target?.kind === "range" }
   )
   const pull = api.useQuery(
     "get",
     "/api/github/pulls/{number}/diff",
-    { params: { path: { number: target?.kind === "pull" ? String(target.pull.number) : "" } } },
-    { enabled: target?.kind === "pull" },
+    {
+      params: {
+        path: {
+          number: target?.kind === "pull" ? String(target.pull.number) : "",
+        },
+      },
+    },
+    { enabled: target?.kind === "pull" }
   )
 
   switch (target?.kind) {
@@ -93,5 +122,5 @@ export const useFile = (path: string | null) =>
     "get",
     "/api/file",
     { params: { query: { path: path ?? "" } } },
-    { enabled: path !== null },
+    { enabled: path !== null }
   )

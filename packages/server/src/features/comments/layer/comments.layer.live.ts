@@ -4,5 +4,5 @@ import { makeSqliteCommentsRepository } from "../repository/comments.repository.
 import { CommentsService, make } from "../service/comments.service.ts"
 
 export const CommentsLive = Layer.effect(CommentsService)(make).pipe(
-  Layer.provide(Layer.effect(CommentsRepository)(makeSqliteCommentsRepository)),
+  Layer.provide(Layer.effect(CommentsRepository)(makeSqliteCommentsRepository))
 )

@@ -1,11 +1,20 @@
 import { useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-import { IconArrowUp, IconChevronDown, IconFolder, IconGitBranch } from "@tabler/icons-react"
+import {
+  IconArrowUp,
+  IconChevronDown,
+  IconFolder,
+  IconGitBranch,
+} from "@tabler/icons-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { api, fetchClient } from "@/lib/api/client"
 import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { repoAvatar } from "@/lib/repo-avatar"
 import type { RepoInfo, WorkspaceInfo } from "@/lib/api/types"
 
@@ -16,7 +25,13 @@ interface RepoPickerProps {
   onOpenChange: (open: boolean) => void
 }
 
-function Avatar({ name, className = "size-4 text-[9px]" }: { name: string; className?: string }) {
+function Avatar({
+  name,
+  className = "size-4 text-[9px]",
+}: {
+  name: string
+  className?: string
+}) {
   const a = repoAvatar(name)
   return (
     <span
@@ -30,7 +45,12 @@ function Avatar({ name, className = "size-4 text-[9px]" }: { name: string; class
 
 /** The repo chip in the top bar; opening it reveals a recents + folder browser
  * dropdown (a Popover, so the folder browser's controls don't auto-close it). */
-export function RepoPicker({ repo, workspace, open, onOpenChange }: RepoPickerProps) {
+export function RepoPicker({
+  repo,
+  workspace,
+  open,
+  onOpenChange,
+}: RepoPickerProps) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [path, setPath] = useState<string | null>(null)
@@ -38,13 +58,17 @@ export function RepoPicker({ repo, workspace, open, onOpenChange }: RepoPickerPr
     "get",
     "/api/fs/browse",
     { params: { query: path === null ? {} : { path } } },
-    { enabled: open },
+    { enabled: open }
   )
 
   const choose = async (target: string) => {
-    const { error } = await fetchClient.POST("/api/workspace", { body: { path: target } })
+    const { error } = await fetchClient.POST("/api/workspace", {
+      body: { path: target },
+    })
     if (error) {
-      toast.error((error as { reason?: string }).reason ?? "could not open repository")
+      toast.error(
+        (error as { reason?: string }).reason ?? "could not open repository"
+      )
       return
     }
     await queryClient.invalidateQueries()
@@ -66,7 +90,9 @@ export function RepoPicker({ repo, workspace, open, onOpenChange }: RepoPickerPr
       <PopoverContent align="start" className="w-96 p-0">
         {workspace !== undefined && workspace.recents.length > 0 && (
           <div className="border-b p-1">
-            <div className="px-2 py-1 text-xs font-medium text-muted-foreground">Recent</div>
+            <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
+              Recent
+            </div>
             {workspace.recents.map((recent) => {
               const name = recent.split("/").at(-1) ?? recent
               return (
@@ -77,7 +103,9 @@ export function RepoPicker({ repo, workspace, open, onOpenChange }: RepoPickerPr
                 >
                   <Avatar name={name} className="size-5 text-[10px]" />
                   <span className="shrink-0">{name}</span>
-                  <span className="ml-auto min-w-0 truncate text-xs text-muted-foreground">{recent}</span>
+                  <span className="ml-auto min-w-0 truncate text-xs text-muted-foreground">
+                    {recent}
+                  </span>
                 </button>
               )
             })}
@@ -115,7 +143,12 @@ export function RepoPicker({ repo, workspace, open, onOpenChange }: RepoPickerPr
                   <span className="truncate">{entry.name}</span>
                 </button>
                 {entry.isGitRepo && (
-                  <Button size="xs" variant="outline" className="shrink-0" onClick={() => void choose(entry.path)}>
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    className="shrink-0"
+                    onClick={() => void choose(entry.path)}
+                  >
                     Open
                   </Button>
                 )}
@@ -124,7 +157,11 @@ export function RepoPicker({ repo, workspace, open, onOpenChange }: RepoPickerPr
           </div>
           {data !== undefined && data.isGitRepo && (
             <div className="border-t p-1 pt-2">
-              <Button size="sm" className="w-full" onClick={() => void choose(data.path)}>
+              <Button
+                size="sm"
+                className="w-full"
+                onClick={() => void choose(data.path)}
+              >
                 Open this repository
               </Button>
             </div>

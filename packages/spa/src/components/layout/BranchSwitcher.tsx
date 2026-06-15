@@ -63,7 +63,11 @@ interface BranchSwitcherProps {
  * focus transition, so the create/rename never ran).
  */
 type BranchPrompt =
-  | { readonly kind: "create"; readonly startPoint: string | null; readonly label: string }
+  | {
+      readonly kind: "create"
+      readonly startPoint: string | null
+      readonly label: string
+    }
   | { readonly kind: "rename"; readonly from: string }
   | { readonly kind: "revision" }
   | { readonly kind: "delete"; readonly name: string }
@@ -93,7 +97,7 @@ interface FolderGroup<T> {
 /** Group rows by their first path segment, preserving order. */
 const groupByFolder = <T,>(
   rows: ReadonlyArray<T>,
-  nameOf: (row: T) => string,
+  nameOf: (row: T) => string
 ): ReadonlyArray<FolderGroup<T>> => {
   const groups: Array<{ folder: string | null; items: Array<T> }> = []
   const index = new Map<string | null, number>()
@@ -105,7 +109,7 @@ const groupByFolder = <T,>(
       index.set(folder, at)
       groups.push({ folder, items: [] })
     }
-    groups[at]!.items.push(row)
+    groups[at].items.push(row)
   }
   return groups
 }
@@ -131,7 +135,8 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
   }, [open])
 
   const q = query.trim().toLowerCase()
-  const matches = (text: string) => q.length === 0 || text.toLowerCase().includes(q)
+  const matches = (text: string) =>
+    q.length === 0 || text.toLowerCase().includes(q)
   // While searching, force every section open so hits are never hidden.
   const isCollapsed = (id: string) => q.length === 0 && collapsed[id] === true
   const toggleSection = (id: string) =>
@@ -142,17 +147,25 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
   const recent = useMemo(
     () => branches.filter((b) => matches(b.name)).slice(0, 5),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [branches, q],
+    [branches, q]
   )
   const localGroups = useMemo(
-    () => groupByFolder(branches.filter((b) => matches(b.name)), (b) => b.name),
+    () =>
+      groupByFolder(
+        branches.filter((b) => matches(b.name)),
+        (b) => b.name
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [branches, q],
+    [branches, q]
   )
   const remoteGroups = useMemo(
-    () => groupByFolder(remoteBranches.filter((b) => matches(b.name)), (b) => b.name),
+    () =>
+      groupByFolder(
+        remoteBranches.filter((b) => matches(b.name)),
+        (b) => b.name
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [remoteBranches, q],
+    [remoteBranches, q]
   )
   const localCount = localGroups.reduce((n, g) => n + g.items.length, 0)
   const remoteCount = remoteGroups.reduce((n, g) => n + g.items.length, 0)
@@ -168,7 +181,9 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
   const renderActions = (t: BranchTarget) => (
     <>
       {!t.isCurrent && (
-        <DropdownMenuItem onClick={() => props.onCheckout(t.ref)}>Checkout</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => props.onCheckout(t.ref)}>
+          Checkout
+        </DropdownMenuItem>
       )}
       <DropdownMenuItem onClick={() => newBranch(t.ref, t.display)}>
         New Branch from ‘{t.display}’…
@@ -200,7 +215,9 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
       {!t.isRemote && (
         <>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setPrompt({ kind: "rename", from: t.ref })}>
+          <DropdownMenuItem
+            onClick={() => setPrompt({ kind: "rename", from: t.ref })}
+          >
             Rename…
           </DropdownMenuItem>
           {!t.isCurrent && (
@@ -216,17 +233,27 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
     </>
   )
 
-  const LocalRow = ({ branch, flat }: { branch: BranchInfo; flat?: boolean }) => {
+  const LocalRow = ({
+    branch,
+    flat,
+  }: {
+    branch: BranchInfo
+    flat?: boolean
+  }) => {
     const leaf = flat ? branch.name : splitFolder(branch.name)[1]
     return (
       <DropdownMenuSub>
-        <DropdownMenuSubTrigger className={cn(branch.isCurrent && "text-foreground")}>
+        <DropdownMenuSubTrigger
+          className={cn(branch.isCurrent && "text-foreground")}
+        >
           {branch.isCurrent ? (
             <IconStarFilled className="size-3.5 text-amber-500" />
           ) : (
             <IconGitBranch className="size-3.5 text-muted-foreground" />
           )}
-          <span className={cn("truncate", branch.isCurrent && "font-medium")}>{leaf}</span>
+          <span className={cn("truncate", branch.isCurrent && "font-medium")}>
+            {leaf}
+          </span>
           {(branch.ahead > 0 || branch.behind > 0) && (
             <span className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums">
               {branch.ahead > 0 ? `↑${branch.ahead}` : ""}
@@ -251,7 +278,9 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
       <DropdownMenuSubTrigger>
         <IconGitBranch className="size-3.5 text-muted-foreground" />
         <span className="truncate">{splitFolder(branch.name)[1]}</span>
-        <span className="ml-auto shrink-0 text-xs text-muted-foreground">{branch.remote}</span>
+        <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+          {branch.remote}
+        </span>
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent className="w-64">
         {renderActions({
@@ -266,100 +295,113 @@ export function BranchSwitcher(props: BranchSwitcherProps) {
 
   return (
     <>
-    <DropdownMenu
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next)
-        if (!next) setQuery("")
-      }}
-    >
-      <DropdownMenuTrigger
-        render={
-          <Button variant="ghost" size="sm" className="gap-1.5">
-            <IconGitBranch className="size-3.5 text-muted-foreground" />
-            {currentName}
-            <IconChevronDown className="size-3.5 text-muted-foreground" />
-          </Button>
-        }
-      />
-      <DropdownMenuContent align="start" className="max-h-[70vh] w-72 overflow-auto p-0">
-        {/* Filter box — a plain row, not a menu item, so typing never navigates. */}
-        <div className="sticky top-0 z-10 flex items-center gap-2 border-b bg-popover px-2 py-1.5">
-          <IconSearch className="size-3.5 shrink-0 text-muted-foreground" />
-          <input
-            ref={searchRef}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              // Let Escape bubble to dismiss the menu; swallow everything else
-              // so base-ui's typeahead/arrow navigation doesn't hijack typing.
-              if (e.key !== "Escape") e.stopPropagation()
-            }}
-            placeholder="Search for branches and actions"
-            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-          />
-        </div>
+      <DropdownMenu
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next)
+          if (!next) setQuery("")
+        }}
+      >
+        <DropdownMenuTrigger
+          render={
+            <Button variant="ghost" size="sm" className="gap-1.5">
+              <IconGitBranch className="size-3.5 text-muted-foreground" />
+              {currentName}
+              <IconChevronDown className="size-3.5 text-muted-foreground" />
+            </Button>
+          }
+        />
+        <DropdownMenuContent
+          align="start"
+          className="max-h-[70vh] w-72 overflow-auto p-0"
+        >
+          {/* Filter box — a plain row, not a menu item, so typing never navigates. */}
+          <div className="sticky top-0 z-10 flex items-center gap-2 border-b bg-popover px-2 py-1.5">
+            <IconSearch className="size-3.5 shrink-0 text-muted-foreground" />
+            <input
+              ref={searchRef}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                // Let Escape bubble to dismiss the menu; swallow everything else
+                // so base-ui's typeahead/arrow navigation doesn't hijack typing.
+                if (e.key !== "Escape") e.stopPropagation()
+              }}
+              placeholder="Search for branches and actions"
+              className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+          </div>
 
-        <div className="p-1">
-          {showNew && (
-            <DropdownMenuItem onClick={() => newBranch(null, "")}>New Branch…</DropdownMenuItem>
-          )}
-          {showRevision && (
-            <DropdownMenuItem onClick={checkoutRevision}>
-              Checkout Tag or Revision…
-            </DropdownMenuItem>
-          )}
-          {(showNew || showRevision) && <DropdownMenuSeparator />}
+          <div className="p-1">
+            {showNew && (
+              <DropdownMenuItem onClick={() => newBranch(null, "")}>
+                New Branch…
+              </DropdownMenuItem>
+            )}
+            {showRevision && (
+              <DropdownMenuItem onClick={checkoutRevision}>
+                Checkout Tag or Revision…
+              </DropdownMenuItem>
+            )}
+            {(showNew || showRevision) && <DropdownMenuSeparator />}
 
-          <Section
-            title="Recent"
-            count={recent.length}
-            collapsed={isCollapsed("recent")}
-            onToggle={() => toggleSection("recent")}
-          >
-            {recent.map((b) => (
-              <LocalRow key={`r-${b.name}`} branch={b} flat />
-            ))}
-          </Section>
+            <Section
+              title="Recent"
+              count={recent.length}
+              collapsed={isCollapsed("recent")}
+              onToggle={() => toggleSection("recent")}
+            >
+              {recent.map((b) => (
+                <LocalRow key={`r-${b.name}`} branch={b} flat />
+              ))}
+            </Section>
 
-          <Section
-            title="Local"
-            count={localCount}
-            collapsed={isCollapsed("local")}
-            onToggle={() => toggleSection("local")}
-          >
-            {localGroups.map((g) => (
-              <Folder key={`l-${g.folder ?? "_"}`} folder={g.folder} forceOpen={q.length > 0}>
-                {g.items.map((b) => (
-                  <LocalRow key={b.name} branch={b} />
-                ))}
-              </Folder>
-            ))}
-          </Section>
+            <Section
+              title="Local"
+              count={localCount}
+              collapsed={isCollapsed("local")}
+              onToggle={() => toggleSection("local")}
+            >
+              {localGroups.map((g) => (
+                <Folder
+                  key={`l-${g.folder ?? "_"}`}
+                  folder={g.folder}
+                  forceOpen={q.length > 0}
+                >
+                  {g.items.map((b) => (
+                    <LocalRow key={b.name} branch={b} />
+                  ))}
+                </Folder>
+              ))}
+            </Section>
 
-          <Section
-            title="Remote"
-            count={remoteCount}
-            collapsed={isCollapsed("remote")}
-            onToggle={() => toggleSection("remote")}
-          >
-            {remoteGroups.map((g) => (
-              <Folder key={`rm-${g.folder ?? "_"}`} folder={g.folder} forceOpen={q.length > 0}>
-                {g.items.map((b) => (
-                  <RemoteRow key={b.name} branch={b} />
-                ))}
-              </Folder>
-            ))}
-          </Section>
+            <Section
+              title="Remote"
+              count={remoteCount}
+              collapsed={isCollapsed("remote")}
+              onToggle={() => toggleSection("remote")}
+            >
+              {remoteGroups.map((g) => (
+                <Folder
+                  key={`rm-${g.folder ?? "_"}`}
+                  folder={g.folder}
+                  forceOpen={q.length > 0}
+                >
+                  {g.items.map((b) => (
+                    <RemoteRow key={b.name} branch={b} />
+                  ))}
+                </Folder>
+              ))}
+            </Section>
 
-          {recent.length === 0 && localCount === 0 && remoteCount === 0 && (
-            <div className="px-2 py-6 text-center text-sm text-muted-foreground">
-              No branches match “{query}”
-            </div>
-          )}
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+            {recent.length === 0 && localCount === 0 && remoteCount === 0 && (
+              <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+                No branches match “{query}”
+              </div>
+            )}
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <BranchPromptDialog
         prompt={prompt}
@@ -409,7 +451,8 @@ function BranchPromptDialog({
             key={prompt.kind === "rename" ? prompt.from : prompt.kind}
             prompt={prompt}
             onSubmit={(value) => {
-              if (prompt.kind === "create") onCreateBranch(value, prompt.startPoint)
+              if (prompt.kind === "create")
+                onCreateBranch(value, prompt.startPoint)
               else if (prompt.kind === "rename") {
                 if (value !== prompt.from) onRenameBranch(prompt.from, value)
               } else onCheckout(value)
@@ -427,7 +470,12 @@ const PROMPT_COPY = (prompt: BranchPrompt) => {
   switch (prompt.kind) {
     case "create":
       return prompt.startPoint === null
-        ? { title: "New branch", label: "Branch name", action: "Create", initial: "" }
+        ? {
+            title: "New branch",
+            label: "Branch name",
+            action: "Create",
+            initial: "",
+          }
         : {
             title: `New branch from ‘${prompt.label}’`,
             label: "Branch name",
@@ -435,7 +483,12 @@ const PROMPT_COPY = (prompt: BranchPrompt) => {
             initial: "",
           }
     case "rename":
-      return { title: `Rename ‘${prompt.from}’`, label: "New name", action: "Rename", initial: prompt.from }
+      return {
+        title: `Rename ‘${prompt.from}’`,
+        label: "New name",
+        action: "Rename",
+        initial: prompt.from,
+      }
     case "revision":
       return {
         title: "Checkout tag or revision",
@@ -485,7 +538,9 @@ function BranchNameForm({
         className="my-4"
       />
       <DialogFooter>
-        <DialogClose render={<Button variant="outline" type="button" />}>Cancel</DialogClose>
+        <DialogClose render={<Button variant="outline" type="button" />}>
+          Cancel
+        </DialogClose>
         <Button type="submit" disabled={trimmed.length === 0}>
           {copy.action}
         </Button>
@@ -494,7 +549,13 @@ function BranchNameForm({
   )
 }
 
-function DeleteConfirm({ name, onConfirm }: { name: string; onConfirm: () => void }) {
+function DeleteConfirm({
+  name,
+  onConfirm,
+}: {
+  name: string
+  onConfirm: () => void
+}) {
   return (
     <>
       <DialogHeader>
@@ -536,7 +597,10 @@ function Section({
         className="gap-1 px-1.5 py-1 text-xs font-medium text-muted-foreground"
       >
         <IconChevronRight
-          className={cn("size-3.5 transition-transform", !collapsed && "rotate-90")}
+          className={cn(
+            "size-3.5 transition-transform",
+            !collapsed && "rotate-90"
+          )}
         />
         <span>{title}</span>
         <span className="text-muted-foreground/70">{count}</span>
@@ -571,7 +635,10 @@ function Folder({
         className="gap-1.5 py-1 text-sm"
       >
         <IconChevronRight
-          className={cn("size-3.5 transition-transform", expanded && "rotate-90")}
+          className={cn(
+            "size-3.5 transition-transform",
+            expanded && "rotate-90"
+          )}
         />
         <IconFolder className="size-3.5 text-muted-foreground" />
         <span className="truncate">{folder}</span>

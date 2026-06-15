@@ -1,5 +1,11 @@
 import { Toaster as Sonner, type ToasterProps } from "sonner"
-import { IconCircleCheck, IconInfoCircle, IconAlertTriangle, IconAlertOctagon, IconLoader } from "@tabler/icons-react"
+import {
+  IconCircleCheck,
+  IconInfoCircle,
+  IconAlertTriangle,
+  IconAlertOctagon,
+  IconLoader,
+} from "@tabler/icons-react"
 import { useUiPrefs } from "@/lib/ui-prefs"
 
 const Toaster = ({ ...props }: ToasterProps) => {
@@ -10,21 +16,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme}
       className="toaster group"
       icons={{
-        success: (
-          <IconCircleCheck className="size-4" />
-        ),
-        info: (
-          <IconInfoCircle className="size-4" />
-        ),
-        warning: (
-          <IconAlertTriangle className="size-4" />
-        ),
-        error: (
-          <IconAlertOctagon className="size-4" />
-        ),
-        loading: (
-          <IconLoader className="size-4 animate-spin" />
-        ),
+        success: <IconCircleCheck className="size-4" />,
+        info: <IconInfoCircle className="size-4" />,
+        warning: <IconAlertTriangle className="size-4" />,
+        error: <IconAlertOctagon className="size-4" />,
+        loading: <IconLoader className="size-4 animate-spin" />,
       }}
       style={
         {

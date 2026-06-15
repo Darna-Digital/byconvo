@@ -14,10 +14,15 @@ export interface MemoryWorkspaceSeed {
 export const makeMemoryWorkspaceRepository = (seed: MemoryWorkspaceSeed = {}) =>
   Effect.gen(function* () {
     const currentRef = yield* Ref.make<string | null>(seed.current ?? null)
-    const recentsRef = yield* Ref.make<ReadonlyArray<string>>(seed.recents ?? [])
+    const recentsRef = yield* Ref.make<ReadonlyArray<string>>(
+      seed.recents ?? []
+    )
     const filesRef = yield* Ref.make<Record<string, string>>({ ...seed.files })
 
-    const infoFrom = (current: string | null, recents: ReadonlyArray<string>): WorkspaceInfo => ({
+    const infoFrom = (
+      current: string | null,
+      recents: ReadonlyArray<string>
+    ): WorkspaceInfo => ({
       current,
       recents,
       home: "/home/test",
@@ -34,7 +39,7 @@ export const makeMemoryWorkspaceRepository = (seed: MemoryWorkspaceSeed = {}) =>
         Effect.gen(function* () {
           yield* Ref.set(currentRef, path)
           const recents = yield* Ref.updateAndGet(recentsRef, (existing) =>
-            [path, ...existing.filter((entry) => entry !== path)].slice(0, 10),
+            [path, ...existing.filter((entry) => entry !== path)].slice(0, 10)
           )
           return infoFrom(path, recents)
         }),
@@ -51,13 +56,15 @@ export const makeMemoryWorkspaceRepository = (seed: MemoryWorkspaceSeed = {}) =>
         Effect.gen(function* () {
           yield* Ref.get(currentRef).pipe(
             Effect.flatMap((current) =>
-              current === null ? Effect.fail(new NoRepoSelected()) : Effect.void,
-            ),
+              current === null ? Effect.fail(new NoRepoSelected()) : Effect.void
+            )
           )
           const files = yield* Ref.get(filesRef)
           const contents = files[relPath]
           if (contents === undefined) {
-            return yield* Effect.fail(new StorageError({ reason: `no such file: ${relPath}` }))
+            return yield* Effect.fail(
+              new StorageError({ reason: `no such file: ${relPath}` })
+            )
           }
           return { name: relPath.split("/").at(-1) ?? relPath, contents }
         }),

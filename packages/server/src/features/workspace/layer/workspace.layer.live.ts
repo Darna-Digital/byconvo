@@ -4,5 +4,5 @@ import { makeGitWorkspaceRepository } from "../repository/workspace.repository.g
 import { make, WorkspaceService } from "../service/workspace.service.ts"
 
 export const WorkspaceLive = Layer.effect(WorkspaceService)(make).pipe(
-  Layer.provide(Layer.effect(WorkspaceRepository)(makeGitWorkspaceRepository)),
+  Layer.provide(Layer.effect(WorkspaceRepository)(makeGitWorkspaceRepository))
 )

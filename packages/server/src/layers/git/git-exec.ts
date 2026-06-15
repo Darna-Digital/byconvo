@@ -16,27 +16,38 @@ export type GitFailure = GitError | NoRepoSelected
 
 export interface GitExecShape {
   /** Run a git command, returning stdout; fails with GitError on non-zero exit. */
-  readonly run: (...args: ReadonlyArray<string>) => Effect.Effect<string, GitFailure>
+  readonly run: (
+    ...args: ReadonlyArray<string>
+  ) => Effect.Effect<string, GitFailure>
   /** Like `run` but folds stderr into the result — for push/pull progress. */
-  readonly runVerbose: (...args: ReadonlyArray<string>) => Effect.Effect<string, GitFailure>
+  readonly runVerbose: (
+    ...args: ReadonlyArray<string>
+  ) => Effect.Effect<string, GitFailure>
   /** `run` split into non-empty lines. */
-  readonly lines: (...args: ReadonlyArray<string>) => Effect.Effect<ReadonlyArray<string>, GitFailure>
+  readonly lines: (
+    ...args: ReadonlyArray<string>
+  ) => Effect.Effect<ReadonlyArray<string>, GitFailure>
 }
 
-export class GitExec extends Context.Service<GitExec, GitExecShape>()("GitExec") {}
+export class GitExec extends Context.Service<GitExec, GitExecShape>()(
+  "GitExec"
+) {}
 
 export const make = Effect.gen(function* () {
   const spawner = yield* ChildProcessSpawner.ChildProcessSpawner
   const workspace = yield* WorkspaceContext
 
   const spawn = (
-    args: ReadonlyArray<string>,
-  ): Effect.Effect<{ stdout: string; stderr: string; exitCode: number }, GitFailure> =>
+    args: ReadonlyArray<string>
+  ): Effect.Effect<
+    { stdout: string; stderr: string; exitCode: number },
+    GitFailure
+  > =>
     Effect.scoped(
       Effect.gen(function* () {
         const repoPath = yield* workspace.requireCurrent
         const handle = yield* spawner.spawn(
-          ChildProcess.make("git", args as Array<string>, { cwd: repoPath }),
+          ChildProcess.make("git", args as Array<string>, { cwd: repoPath })
         )
         const [stdout, stderr, exitCode] = yield* Effect.all(
           [
@@ -44,24 +55,26 @@ export const make = Effect.gen(function* () {
             Stream.mkString(Stream.decodeText(handle.stderr)),
             handle.exitCode,
           ],
-          { concurrency: "unbounded" },
+          { concurrency: "unbounded" }
         )
         return { stdout, stderr, exitCode }
-      }),
+      })
     ).pipe(
       // Spawn/IO failures (git missing, decode errors) become GitError so the
       // public error channel stays schema-friendly; NoRepoSelected passes through.
-      Effect.catch((error): Effect.Effect<never, GitFailure> =>
-        Effect.fail(
-          error instanceof NoRepoSelected
-            ? error
-            : new GitError({
-                args,
-                exitCode: -1,
-                stderr: error instanceof Error ? error.message : String(error),
-              }),
-        ),
-      ),
+      Effect.catch(
+        (error): Effect.Effect<never, GitFailure> =>
+          Effect.fail(
+            error instanceof NoRepoSelected
+              ? error
+              : new GitError({
+                  args,
+                  exitCode: -1,
+                  stderr:
+                    error instanceof Error ? error.message : String(error),
+                })
+          )
+      )
     )
 
   const run: GitExecShape["run"] = (...args) =>
@@ -69,8 +82,8 @@ export const make = Effect.gen(function* () {
       Effect.flatMap(({ exitCode, stderr, stdout }) =>
         exitCode !== 0
           ? Effect.fail(new GitError({ args, exitCode, stderr }))
-          : Effect.succeed(stdout),
-      ),
+          : Effect.succeed(stdout)
+      )
     )
 
   const runVerbose: GitExecShape["runVerbose"] = (...args) =>
@@ -78,12 +91,14 @@ export const make = Effect.gen(function* () {
       Effect.flatMap(({ exitCode, stderr, stdout }) =>
         exitCode !== 0
           ? Effect.fail(new GitError({ args, exitCode, stderr }))
-          : Effect.succeed(`${stdout}${stderr}`.trim()),
-      ),
+          : Effect.succeed(`${stdout}${stderr}`.trim())
+      )
     )
 
   const lines: GitExecShape["lines"] = (...args) =>
-    run(...args).pipe(Effect.map((out) => out.split("\n").filter((line) => line.length > 0)))
+    run(...args).pipe(
+      Effect.map((out) => out.split("\n").filter((line) => line.length > 0))
+    )
 
   return GitExec.of({ run, runVerbose, lines })
 })

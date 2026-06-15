@@ -37,7 +37,10 @@ export const CreateBranch = Schema.Struct({
   name: Schema.String,
   startPoint: Schema.optionalKey(Schema.String),
 })
-export const RenameBranch = Schema.Struct({ from: Schema.String, to: Schema.String })
+export const RenameBranch = Schema.Struct({
+  from: Schema.String,
+  to: Schema.String,
+})
 export const DeleteBranch = Schema.Struct({
   name: Schema.String,
   force: Schema.optionalKey(Schema.Boolean),

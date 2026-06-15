@@ -5,7 +5,7 @@ import type { CommentsDependencies } from "../entity/comments.interfaces"
 const comment = (over: Partial<ReviewComment>): ReviewComment => ({
   id: "c1",
   filePath: "a.ts",
-  side: "additions" as CommentSide,
+  side: "additions",
   lineNumber: 1,
   body: "",
   author: "you",
@@ -18,13 +18,27 @@ const comment = (over: Partial<ReviewComment>): ReviewComment => ({
 export const createCommentsDependenciesMock = (): CommentsDependencies => ({
   data: {},
   sideEffects: {
-    addLocalComment: vi.fn(async (input) => comment({ ...input, id: "local-1", source: "local" })),
+    addLocalComment: vi.fn(async (input) =>
+      comment({ ...input, id: "local-1", source: "local" })
+    ),
     addPullComment: vi.fn(async (pullNumber, input) =>
-      comment({ ...input, id: "pr-new", source: "github", target: `pr-${pullNumber}` }),
+      comment({
+        ...input,
+        id: "pr-new",
+        source: "github",
+        target: `pr-${pullNumber}`,
+      })
     ),
     deleteComment: vi.fn(async () => undefined),
     replyPullComment: vi.fn(async (pullNumber, _commentId, body) =>
-      comment({ id: "pr-reply", body, source: "github", target: `pr-${pullNumber}`, filePath: "", lineNumber: 0 }),
+      comment({
+        id: "pr-reply",
+        body,
+        source: "github",
+        target: `pr-${pullNumber}`,
+        filePath: "",
+        lineNumber: 0,
+      })
     ),
   },
 })

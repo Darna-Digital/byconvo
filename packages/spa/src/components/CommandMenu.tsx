@@ -65,7 +65,7 @@ function fuzzyScore(text: string, query: string): number | null {
   let firstHit = -1
   let lastHit = -1
   for (let qi = 0; qi < query.length; qi++) {
-    const c = query[qi]!
+    const c = query[qi]
     const found = t.indexOf(c, ti)
     if (found === -1) return null
     if (firstHit === -1) firstHit = found
@@ -76,7 +76,13 @@ function fuzzyScore(text: string, query: string): number | null {
   return firstHit + (lastHit - firstHit) * 0.5
 }
 
-export function CommandMenu({ open, onOpenChange, commands, files, onOpenFile }: CommandMenuProps) {
+export function CommandMenu({
+  open,
+  onOpenChange,
+  commands,
+  files,
+  onOpenFile,
+}: CommandMenuProps) {
   const [query, setQuery] = useState("")
   const [active, setActive] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -106,7 +112,10 @@ export function CommandMenu({ open, onOpenChange, commands, files, onOpenFile }:
 
   const entries = useMemo<Entry[]>(() => {
     const cmdMatches = commands
-      .map((c) => ({ c, score: fuzzyScore(`${c.label} ${c.keywords ?? ""} ${c.group}`, q) }))
+      .map((c) => ({
+        c,
+        score: fuzzyScore(`${c.label} ${c.keywords ?? ""} ${c.group}`, q),
+      }))
       .filter((m): m is { c: Command; score: number } => m.score !== null)
       .sort((a, b) => a.score - b.score)
       .map(
@@ -117,7 +126,7 @@ export function CommandMenu({ open, onOpenChange, commands, files, onOpenFile }:
           label: c.label,
           hint: c.hint,
           run: c.run,
-        }),
+        })
       )
 
     // Only search files once the user types — the full repo list would bury the
@@ -137,7 +146,7 @@ export function CommandMenu({ open, onOpenChange, commands, files, onOpenFile }:
                 icon: IconFile,
                 label: p,
                 run: () => onOpenFile(p),
-              }),
+              })
             )
 
     // Commands first so the most-common actions stay reachable from the top.
@@ -146,7 +155,9 @@ export function CommandMenu({ open, onOpenChange, commands, files, onOpenFile }:
 
   // Keep the active index in range as the result set shrinks/grows.
   useEffect(() => {
-    setActive((a) => (entries.length === 0 ? 0 : Math.min(a, entries.length - 1)))
+    setActive((a) =>
+      entries.length === 0 ? 0 : Math.min(a, entries.length - 1)
+    )
   }, [entries.length])
 
   const run = (entry: Entry | undefined) => {
@@ -161,7 +172,9 @@ export function CommandMenu({ open, onOpenChange, commands, files, onOpenFile }:
       setActive((a) => (entries.length === 0 ? 0 : (a + 1) % entries.length))
     } else if (e.key === "ArrowUp") {
       e.preventDefault()
-      setActive((a) => (entries.length === 0 ? 0 : (a - 1 + entries.length) % entries.length))
+      setActive((a) =>
+        entries.length === 0 ? 0 : (a - 1 + entries.length) % entries.length
+      )
     } else if (e.key === "Enter") {
       e.preventDefault()
       run(entries[active])
@@ -176,7 +189,9 @@ export function CommandMenu({ open, onOpenChange, commands, files, onOpenFile }:
 
   // Scroll the active row into view on keyboard movement.
   useEffect(() => {
-    const el = listRef.current?.querySelector<HTMLElement>(`[data-index="${active}"]`)
+    const el = listRef.current?.querySelector<HTMLElement>(
+      `[data-index="${active}"]`
+    )
     el?.scrollIntoView({ block: "nearest" })
   }, [active])
 
@@ -189,10 +204,12 @@ export function CommandMenu({ open, onOpenChange, commands, files, onOpenFile }:
           initialFocus={inputRef}
           className={cn(
             "fixed top-[12vh] left-1/2 z-50 flex max-h-[70vh] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 flex-col overflow-hidden rounded-[min(var(--radius-4xl),20px)] bg-popover text-sm text-popover-foreground shadow-xl ring-1 ring-foreground/5 duration-100 outline-none sm:max-w-xl dark:ring-foreground/10",
-            "data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            "data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
           )}
         >
-          <DialogPrimitive.Title className="sr-only">Command menu</DialogPrimitive.Title>
+          <DialogPrimitive.Title className="sr-only">
+            Command menu
+          </DialogPrimitive.Title>
 
           <div className="flex items-center gap-2 border-b px-3.5">
             <IconSearch className="size-4 shrink-0 text-muted-foreground" />
@@ -211,13 +228,19 @@ export function CommandMenu({ open, onOpenChange, commands, files, onOpenFile }:
             />
           </div>
 
-          <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-1.5">
+          <div
+            ref={listRef}
+            className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-1.5"
+          >
             {entries.length === 0 ? (
-              <div className="px-3 py-6 text-center text-muted-foreground">No results found.</div>
+              <div className="px-3 py-6 text-center text-muted-foreground">
+                No results found.
+              </div>
             ) : (
               entries.map((entry, i) => {
                 const prev = entries[i - 1]
-                const showHeader = prev === undefined || prev.group !== entry.group
+                const showHeader =
+                  prev === undefined || prev.group !== entry.group
                 const Icon = entry.icon
                 const isActive = i === active
                 const isFile = entry.group === "Files"
@@ -236,15 +259,24 @@ export function CommandMenu({ open, onOpenChange, commands, files, onOpenFile }:
                       onClick={() => run(entry)}
                       className={cn(
                         "flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left outline-none",
-                        isActive ? "bg-accent text-accent-foreground" : "text-foreground",
+                        isActive
+                          ? "bg-accent text-accent-foreground"
+                          : "text-foreground"
                       )}
                     >
                       <Icon className="size-4 shrink-0 text-muted-foreground" />
-                      <span className={cn("min-w-0 flex-1 truncate", isFile && "font-mono text-[0.8125rem]")}>
+                      <span
+                        className={cn(
+                          "min-w-0 flex-1 truncate",
+                          isFile && "font-mono text-[0.8125rem]"
+                        )}
+                      >
                         {isFile ? <FilePath path={entry.label} /> : entry.label}
                       </span>
                       {entry.hint !== undefined && (
-                        <span className="shrink-0 text-xs text-muted-foreground">{entry.hint}</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {entry.hint}
+                        </span>
                       )}
                       {isActive && (
                         <IconCornerDownLeft className="size-3.5 shrink-0 text-muted-foreground" />

@@ -1,20 +1,18 @@
 //  @ts-check
 
-import { tanstackConfig } from "@tanstack/eslint-config"
+import baseConfig from "@reviewer/lint/eslint"
+import reactHooks from "eslint-plugin-react-hooks"
 
 export default [
-  ...tanstackConfig,
+  ...baseConfig,
   {
+    plugins: { "react-hooks": reactHooks },
     rules: {
-      "import/no-cycle": "off",
-      "import/order": "off",
-      "sort-imports": "off",
-      "@typescript-eslint/array-type": "off",
-      "@typescript-eslint/require-await": "off",
-      "pnpm/json-enforce-catalog": "off",
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
     },
   },
   {
-    ignores: ["eslint.config.js", ".prettierrc"],
+    ignores: ["eslint.config.js", "prettier.config.js", "src/routeTree.gen.ts"],
   },
 ]

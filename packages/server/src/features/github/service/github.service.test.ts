@@ -22,7 +22,7 @@ describe("GitHubService", () => {
       const gh = yield* GitHubService
       const pulls = yield* gh.pulls
       expect(pulls.map((p) => p.number)).toEqual([1, 2])
-    }).pipe(Effect.provide(GitHubMemory({ pulls: [pr(1, "a"), pr(2, "b")] }))),
+    }).pipe(Effect.provide(GitHubMemory({ pulls: [pr(1, "a"), pr(2, "b")] })))
   )
 
   it.effect("creates a PR comment with source=github", () =>
@@ -37,6 +37,6 @@ describe("GitHubService", () => {
       })
       expect(created.source).toBe("github")
       expect(created.target).toBe("pr-3")
-    }).pipe(Effect.provide(GitHubMemory())),
+    }).pipe(Effect.provide(GitHubMemory()))
   )
 })

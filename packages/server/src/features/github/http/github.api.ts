@@ -15,35 +15,43 @@ export class GitHubApi extends HttpApiGroup.make("github")
     HttpApiEndpoint.get("pulls", "/github/pulls", {
       success: Schema.Array(PullRequestInfo),
       error: GitHubError,
-    }),
+    })
   )
   .add(
     HttpApiEndpoint.get("pullDiff", "/github/pulls/:number/diff", {
       params: PullNumberParam,
       success: DiffText,
       error: GitHubError,
-    }),
+    })
   )
   .add(
     HttpApiEndpoint.get("pullComments", "/github/pulls/:number/comments", {
       params: PullNumberParam,
       success: Schema.Array(ReviewComment),
       error: GitHubError,
-    }),
+    })
   )
   .add(
-    HttpApiEndpoint.post("createPullComment", "/github/pulls/:number/comments", {
-      params: PullNumberParam,
-      payload: PrComment,
-      success: ReviewComment,
-      error: GitHubError,
-    }),
+    HttpApiEndpoint.post(
+      "createPullComment",
+      "/github/pulls/:number/comments",
+      {
+        params: PullNumberParam,
+        payload: PrComment,
+        success: ReviewComment,
+        error: GitHubError,
+      }
+    )
   )
   .add(
-    HttpApiEndpoint.post("replyPullComment", "/github/pulls/:number/comments/:commentId/replies", {
-      params: PullReplyParams,
-      payload: PrReply,
-      success: ReviewComment,
-      error: GitHubError,
-    }),
+    HttpApiEndpoint.post(
+      "replyPullComment",
+      "/github/pulls/:number/comments/:commentId/replies",
+      {
+        params: PullReplyParams,
+        payload: PrReply,
+        success: ReviewComment,
+        error: GitHubError,
+      }
+    )
   ) {}

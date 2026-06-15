@@ -1,8 +1,9 @@
 packages:
   - packages/*
 
-onlyBuiltDependencies:
-  - esbuild
-  - msgpackr-extract
-  - electron
-  - better-sqlite3
+allowBuilds:
+  better-sqlite3: true
+  electron: true
+  esbuild: true
+  msgpackr-extract: true
+  unrs-resolver: true

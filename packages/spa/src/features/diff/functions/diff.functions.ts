@@ -18,10 +18,18 @@ export function createDiffFunctions(d: DiffDependencies): DiffFunctions {
         : { kind: "pull", pull: selection.selectedPull }
     }
     if (selection.browse?.kind === "commit") {
-      return { kind: "commit", sha: selection.browse.sha, shortSha: selection.browse.shortSha }
+      return {
+        kind: "commit",
+        sha: selection.browse.sha,
+        shortSha: selection.browse.shortSha,
+      }
     }
     if (selection.browse?.kind === "range") {
-      return { kind: "range", base: selection.browse.base, head: selection.browse.head }
+      return {
+        kind: "range",
+        base: selection.browse.base,
+        head: selection.browse.head,
+      }
     }
     return null
   }
@@ -42,19 +50,31 @@ export function createDiffFunctions(d: DiffDependencies): DiffFunctions {
     parsedFiles,
     commentedPaths = [],
   }: TreeInputs) => {
-    if (mode === "browse") return allPaths.filter((path) => !isInternalPath(path))
+    if (mode === "browse")
+      return allPaths.filter((path) => !isInternalPath(path))
     if (mode === "commit") {
       const commented = new Set(commentedPaths)
       return allPaths
         .filter((path) => !isInternalPath(path))
-        .filter((path) => gitStatus.some((entry) => entry.path === path) || commented.has(path))
+        .filter(
+          (path) =>
+            gitStatus.some((entry) => entry.path === path) ||
+            commented.has(path)
+        )
     }
     return parsedFiles.map((file) => file.name)
   }
 
-  const treeGitStatus: DiffFunctions["treeGitStatus"] = ({ mode, gitStatus, parsedFiles }: TreeInputs) => {
+  const treeGitStatus: DiffFunctions["treeGitStatus"] = ({
+    mode,
+    gitStatus,
+    parsedFiles,
+  }: TreeInputs) => {
     if (mode === "review") {
-      return parsedFiles.map((file) => ({ path: file.name, status: fileTypeToStatus(file.type) }))
+      return parsedFiles.map((file) => ({
+        path: file.name,
+        status: fileTypeToStatus(file.type),
+      }))
     }
     return gitStatus.filter((entry) => !isInternalPath(entry.path))
   }

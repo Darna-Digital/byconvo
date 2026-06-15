@@ -16,11 +16,22 @@ export interface CursorPosition {
   col: number
 }
 
-const MONO = '"SF Mono", Monaco, Consolas, "Ubuntu Mono", "Liberation Mono", "Courier New", monospace'
+const MONO =
+  '"SF Mono", Monaco, Consolas, "Ubuntu Mono", "Liberation Mono", "Courier New", monospace'
 
 const SURFACE = {
-  light: { bg: "var(--background)", fg: "#24292e", gutter: "#afb8c1", active: "rgba(0,0,0,0.03)" },
-  dark: { bg: "var(--background)", fg: "#e1e4e8", gutter: "#545d68", active: "rgba(255,255,255,0.04)" },
+  light: {
+    bg: "var(--background)",
+    fg: "#24292e",
+    gutter: "#afb8c1",
+    active: "rgba(0,0,0,0.03)",
+  },
+  dark: {
+    bg: "var(--background)",
+    fg: "#e1e4e8",
+    gutter: "#545d68",
+    active: "rgba(255,255,255,0.04)",
+  },
 } as const
 
 // Wrapped in Prec.highest so our background wins over the github theme's own
@@ -30,15 +41,30 @@ const pierreSurface = (theme: Theme): Extension =>
   Prec.highest(
     EditorView.theme(
       {
-        "&": { backgroundColor: SURFACE[theme].bg, color: SURFACE[theme].fg, height: "100%" },
+        "&": {
+          backgroundColor: SURFACE[theme].bg,
+          color: SURFACE[theme].fg,
+          height: "100%",
+        },
         ".cm-content": { caretColor: SURFACE[theme].fg, fontFamily: MONO },
-        ".cm-scroller": { fontFamily: MONO, fontSize: "13px", lineHeight: "20px" },
-        ".cm-gutters": { backgroundColor: SURFACE[theme].bg, color: SURFACE[theme].gutter, border: "none" },
+        ".cm-scroller": {
+          fontFamily: MONO,
+          fontSize: "13px",
+          lineHeight: "20px",
+        },
+        ".cm-gutters": {
+          backgroundColor: SURFACE[theme].bg,
+          color: SURFACE[theme].gutter,
+          border: "none",
+        },
         ".cm-activeLine": { backgroundColor: SURFACE[theme].active },
-        ".cm-activeLineGutter": { backgroundColor: SURFACE[theme].active, color: SURFACE[theme].fg },
+        ".cm-activeLineGutter": {
+          backgroundColor: SURFACE[theme].active,
+          color: SURFACE[theme].fg,
+        },
       },
-      { dark: theme === "dark" },
-    ),
+      { dark: theme === "dark" }
+    )
   )
 
 const EXT_ALIAS: Record<string, LanguageName> = { yml: "yaml", htm: "html" }
@@ -46,7 +72,7 @@ const EXT_ALIAS: Record<string, LanguageName> = { yml: "yaml", htm: "html" }
 const languageForPath = (path: string): Extension | null => {
   const ext = path.split(".").at(-1)?.toLowerCase()
   if (ext === undefined) return null
-  const name = (EXT_ALIAS[ext] ?? ext) as LanguageName
+  const name = EXT_ALIAS[ext] ?? ext
   const loader = langs[name]
   return typeof loader === "function" ? loader() : null
 }
@@ -59,7 +85,13 @@ interface CodeEditorProps {
   onCursor?: (pos: CursorPosition | null) => void
 }
 
-export function CodeEditor({ path, theme, onClose, onSaved, onCursor }: CodeEditorProps) {
+export function CodeEditor({
+  path,
+  theme,
+  onClose,
+  onSaved,
+  onCursor,
+}: CodeEditorProps) {
   const loaded = useFile(path)
   const [value, setValue] = useState<string | null>(null)
   const [original, setOriginal] = useState("")
@@ -76,7 +108,10 @@ export function CodeEditor({ path, theme, onClose, onSaved, onCursor }: CodeEdit
 
   const extensions = useMemo(() => {
     const lang = languageForPath(path)
-    const base = [theme === "dark" ? githubDark : githubLight, pierreSurface(theme)]
+    const base = [
+      theme === "dark" ? githubDark : githubLight,
+      pierreSurface(theme),
+    ]
     return lang === null ? base : [lang, ...base]
   }, [path, theme])
 
@@ -85,12 +120,13 @@ export function CodeEditor({ path, theme, onClose, onSaved, onCursor }: CodeEdit
   const reportCursor = useCallback(
     (update: ViewUpdate) => {
       if (onCursor === undefined) return
-      if (!update.selectionSet && !update.docChanged && !update.focusChanged) return
+      if (!update.selectionSet && !update.docChanged && !update.focusChanged)
+        return
       const head = update.state.selection.main.head
       const line = update.state.doc.lineAt(head)
       onCursor({ line: line.number, col: head - line.from + 1 })
     },
-    [onCursor],
+    [onCursor]
   )
 
   useEffect(() => () => onCursor?.(null), [onCursor])
@@ -102,7 +138,8 @@ export function CodeEditor({ path, theme, onClose, onSaved, onCursor }: CodeEdit
       const { error } = await fetchClient.PUT("/api/file", {
         body: { path, contents: valueRef.current },
       })
-      if (error) throw new Error((error as { reason?: string }).reason ?? "save failed")
+      if (error)
+        throw new Error((error as { reason?: string }).reason ?? "save failed")
       setOriginal(valueRef.current)
       toast.success("Saved")
       onSaved()
@@ -129,20 +166,36 @@ export function CodeEditor({ path, theme, onClose, onSaved, onCursor }: CodeEdit
       <div className="flex h-10 shrink-0 items-center justify-between border-b px-3">
         <span className="flex items-center gap-2 font-mono text-xs">
           {path}
-          {dirty && <span className="size-1.5 rounded-full bg-primary" title="Unsaved changes" />}
+          {dirty && (
+            <span
+              className="size-1.5 rounded-full bg-primary"
+              title="Unsaved changes"
+            />
+          )}
         </span>
         <div className="flex items-center gap-1">
-          <Button size="xs" disabled={!dirty || saving} onClick={() => void save()}>
+          <Button
+            size="xs"
+            disabled={!dirty || saving}
+            onClick={() => void save()}
+          >
             {saving ? "Saving…" : "Save"}
           </Button>
-          <Button variant="ghost" size="icon-xs" onClick={onClose} aria-label="Close editor">
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={onClose}
+            aria-label="Close editor"
+          >
             <IconX />
           </Button>
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-hidden">
         {value === null ? (
-          <div className="p-8 text-sm text-muted-foreground">Loading {path}…</div>
+          <div className="p-8 text-sm text-muted-foreground">
+            Loading {path}…
+          </div>
         ) : (
           <CodeMirror
             value={value}

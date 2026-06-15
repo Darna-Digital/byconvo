@@ -4,7 +4,12 @@
  * anchored to its parent line is real business logic, so it lives here behind
  * injected side effects (the API mutations).
  */
-import type { AppMode, CommentSide, PullRequestInfo, ReviewComment } from "@/lib/api/types"
+import type {
+  AppMode,
+  CommentSide,
+  PullRequestInfo,
+  ReviewComment,
+} from "@/lib/api/types"
 
 export interface DraftLocation {
   readonly filePath: string
@@ -30,13 +35,18 @@ export interface CommentsDependencies {
     }) => Promise<ReviewComment>
     readonly addPullComment: (
       pullNumber: number,
-      input: { filePath: string; side: CommentSide; lineNumber: number; body: string },
+      input: {
+        filePath: string
+        side: CommentSide
+        lineNumber: number
+        body: string
+      }
     ) => Promise<ReviewComment>
     readonly deleteComment: (id: string) => Promise<void>
     readonly replyPullComment: (
       pullNumber: number,
       commentId: number,
-      body: string,
+      body: string
     ) => Promise<ReviewComment>
   }
 }
@@ -46,7 +56,7 @@ export interface CommentsFunctions {
   readonly submit: (
     ctx: SubmitContext,
     location: DraftLocation,
-    body: string,
+    body: string
   ) => Promise<ReviewComment>
   /** Delete a comment — only local comments are deletable; returns true if removed. */
   readonly remove: (comment: ReviewComment) => Promise<boolean>
@@ -54,6 +64,6 @@ export interface CommentsFunctions {
   readonly reply: (
     selectedPull: PullRequestInfo | null,
     comment: ReviewComment,
-    body: string,
+    body: string
   ) => Promise<ReviewComment | null>
 }

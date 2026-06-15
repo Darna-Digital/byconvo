@@ -15,7 +15,7 @@ export class GitError extends Schema.TaggedErrorClass<GitError>()(
     exitCode: Schema.Number,
     stderr: Schema.String,
   },
-  { httpApiStatus: 500 },
+  { httpApiStatus: 500 }
 ) {
   override get message(): string {
     return `git ${this.args.join(" ")} failed (${this.exitCode}): ${this.stderr.trim()}`
@@ -26,7 +26,7 @@ export class GitError extends Schema.TaggedErrorClass<GitError>()(
 export class NoRepoSelected extends Schema.TaggedErrorClass<NoRepoSelected>()(
   "NoRepoSelected",
   {},
-  { httpApiStatus: 409 },
+  { httpApiStatus: 409 }
 ) {
   override get message(): string {
     return "no repository selected — pick one with the repository picker"
@@ -37,7 +37,7 @@ export class NoRepoSelected extends Schema.TaggedErrorClass<NoRepoSelected>()(
 export class InvalidRepo extends Schema.TaggedErrorClass<InvalidRepo>()(
   "InvalidRepo",
   { path: Schema.String, reason: Schema.String },
-  { httpApiStatus: 400 },
+  { httpApiStatus: 400 }
 ) {
   override get message(): string {
     return `${this.path} is not a git repository: ${this.reason}`
@@ -48,7 +48,7 @@ export class InvalidRepo extends Schema.TaggedErrorClass<InvalidRepo>()(
 export class StorageError extends Schema.TaggedErrorClass<StorageError>()(
   "StorageError",
   { reason: Schema.String },
-  { httpApiStatus: 500 },
+  { httpApiStatus: 500 }
 ) {
   override get message(): string {
     return this.reason
@@ -59,7 +59,7 @@ export class StorageError extends Schema.TaggedErrorClass<StorageError>()(
 export class GitHubError extends Schema.TaggedErrorClass<GitHubError>()(
   "GitHubError",
   { reason: Schema.String },
-  { httpApiStatus: 502 },
+  { httpApiStatus: 502 }
 ) {
   override get message(): string {
     return this.reason
@@ -70,7 +70,7 @@ export class GitHubError extends Schema.TaggedErrorClass<GitHubError>()(
 export class NotFound extends Schema.TaggedErrorClass<NotFound>()(
   "NotFound",
   { reason: Schema.String },
-  { httpApiStatus: 404 },
+  { httpApiStatus: 404 }
 ) {
   override get message(): string {
     return this.reason

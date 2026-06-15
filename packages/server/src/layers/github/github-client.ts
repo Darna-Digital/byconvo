@@ -23,13 +23,20 @@ export interface GitHubClientShape {
   /** owner/repo for `origin`, or fail when it is not a GitHub remote. */
   readonly repo: Effect.Effect<GitHubRepo, GitHubError>
   readonly getJson: (path: string) => Effect.Effect<unknown, GitHubError>
-  readonly getText: (path: string, accept: string) => Effect.Effect<string, GitHubError>
-  readonly postJson: (path: string, body: unknown) => Effect.Effect<unknown, GitHubError>
+  readonly getText: (
+    path: string,
+    accept: string
+  ) => Effect.Effect<string, GitHubError>
+  readonly postJson: (
+    path: string,
+    body: unknown
+  ) => Effect.Effect<unknown, GitHubError>
 }
 
-export class GitHubClient extends Context.Service<GitHubClient, GitHubClientShape>()(
-  "GitHubClient",
-) {}
+export class GitHubClient extends Context.Service<
+  GitHubClient,
+  GitHubClientShape
+>()("GitHubClient") {}
 
 const parseGitHubRemote = (url: string): GitHubRepo | null => {
   const match = url.match(/github\.com[/:]([^/]+)\/([^/]+?)(?:\.git)?\/?$/)
@@ -48,7 +55,7 @@ export const make = Effect.gen(function* () {
     .pipe(
       Effect.map((out) => out.trim()),
       Effect.map((out) => (out.length > 0 ? out : null)),
-      Effect.catch(() => Effect.succeed(null)),
+      Effect.catch(() => Effect.succeed(null))
     )
 
   const resolveToken = Effect.gen(function* () {
@@ -64,9 +71,11 @@ export const make = Effect.gen(function* () {
       Effect.flatMap((out) => {
         const parsed = parseGitHubRemote(out.trim())
         return parsed === null
-          ? Effect.fail(new GitHubError({ reason: "origin is not a GitHub remote" }))
+          ? Effect.fail(
+              new GitHubError({ reason: "origin is not a GitHub remote" })
+            )
           : Effect.succeed(parsed)
-      }),
+      })
     )
 
   const headers = (accept: string) =>
@@ -81,16 +90,22 @@ export const make = Effect.gen(function* () {
     Effect.gen(function* () {
       const requestHeaders = yield* headers("application/vnd.github+json")
       const response = yield* client
-        .execute(HttpClientRequest.get(`${API}${path}`, { headers: requestHeaders }))
-        .pipe(Effect.mapError((error) => new GitHubError({ reason: String(error) })))
+        .execute(
+          HttpClientRequest.get(`${API}${path}`, { headers: requestHeaders })
+        )
+        .pipe(
+          Effect.mapError((error) => new GitHubError({ reason: String(error) }))
+        )
       if (response.status >= 400) {
         const body = yield* response.text.pipe(Effect.orElseSucceed(() => ""))
         return yield* Effect.fail(
-          new GitHubError({ reason: `GitHub responded ${response.status}: ${body}` }),
+          new GitHubError({
+            reason: `GitHub responded ${response.status}: ${body}`,
+          })
         )
       }
       return yield* response.json.pipe(
-        Effect.mapError((error) => new GitHubError({ reason: String(error) })),
+        Effect.mapError((error) => new GitHubError({ reason: String(error) }))
       )
     })
 
@@ -98,12 +113,18 @@ export const make = Effect.gen(function* () {
     Effect.gen(function* () {
       const requestHeaders = yield* headers(accept)
       const response = yield* client
-        .execute(HttpClientRequest.get(`${API}${path}`, { headers: requestHeaders }))
-        .pipe(Effect.mapError((error) => new GitHubError({ reason: String(error) })))
+        .execute(
+          HttpClientRequest.get(`${API}${path}`, { headers: requestHeaders })
+        )
+        .pipe(
+          Effect.mapError((error) => new GitHubError({ reason: String(error) }))
+        )
       const body = yield* response.text.pipe(Effect.orElseSucceed(() => ""))
       if (response.status >= 400) {
         return yield* Effect.fail(
-          new GitHubError({ reason: `GitHub responded ${response.status}: ${body}` }),
+          new GitHubError({
+            reason: `GitHub responded ${response.status}: ${body}`,
+          })
         )
       }
       return body
@@ -115,19 +136,25 @@ export const make = Effect.gen(function* () {
       const response = yield* client
         .execute(
           HttpClientRequest.bodyJsonUnsafe(
-            HttpClientRequest.post(`${API}${path}`, { headers: requestHeaders }),
-            body,
-          ),
+            HttpClientRequest.post(`${API}${path}`, {
+              headers: requestHeaders,
+            }),
+            body
+          )
         )
-        .pipe(Effect.mapError((error) => new GitHubError({ reason: String(error) })))
+        .pipe(
+          Effect.mapError((error) => new GitHubError({ reason: String(error) }))
+        )
       if (response.status >= 400) {
         const text = yield* response.text.pipe(Effect.orElseSucceed(() => ""))
         return yield* Effect.fail(
-          new GitHubError({ reason: `GitHub responded ${response.status}: ${text}` }),
+          new GitHubError({
+            reason: `GitHub responded ${response.status}: ${text}`,
+          })
         )
       }
       return yield* response.json.pipe(
-        Effect.mapError((error) => new GitHubError({ reason: String(error) })),
+        Effect.mapError((error) => new GitHubError({ reason: String(error) }))
       )
     })
 
