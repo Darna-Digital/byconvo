@@ -2,16 +2,22 @@
  * Shared review-comment UI — the composer, a single comment card, and the
  * thread container that stacks them. Used by both the diff surface (`DiffPane`)
  * and the single-file browse surface (`CodeView`) so inline comments look and
- * behave identically wherever they appear. Styled with the shadcn primitives
- * (Button/Textarea, card/border tokens) like the rest of the app.
+ * behave identically wherever they appear.
+ *
+ * Visually modelled on the Pierre / diffs.com comment threads: a soft rounded
+ * card, round author avatars, name + relative timestamp, replies nested under
+ * the opening comment, and a blue "Add reply… / Resolve" action row. Built on
+ * the shadcn primitives and theme tokens so it adapts to light & dark.
  */
-import { IconBrandGithub, IconTrash } from "@tabler/icons-react"
+import { IconBrandGithub, IconCornerDownRight } from "@tabler/icons-react"
 import { useEffect, useRef, useState } from "react"
 import Markdown from "react-markdown"
 import rehypeHighlight from "rehype-highlight"
 import remarkGfm from "remark-gfm"
+import { AuthorAvatar } from "@/components/comments/AuthorAvatar"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { timeAgo } from "@/lib/relative-time"
 import type { CommentSide, ReviewComment } from "@/lib/api/types"
 
 /** Where a draft (or new) comment is anchored. */
@@ -21,14 +27,21 @@ export interface DraftLocation {
   readonly lineNumber: number
 }
 
+/** Indent (avatar + gap) used to nest replies under the opening comment. */
+const REPLY_INDENT = "ml-10"
+
 export function CommentComposer({
   onCancel,
   onSubmit,
   autoFocus = true,
+  submitLabel = "Comment",
+  placeholder = "Leave a comment…",
 }: {
   onCancel: () => void
   onSubmit: (body: string) => Promise<void>
   autoFocus?: boolean
+  submitLabel?: string
+  placeholder?: string
 }) {
   const [body, setBody] = useState("")
   const [busy, setBusy] = useState(false)
@@ -52,12 +65,12 @@ export function CommentComposer({
   }
 
   return (
-    <div className="flex flex-col gap-2 p-3">
+    <div className="flex flex-col gap-2">
       <Textarea
         ref={ref}
         value={body}
-        placeholder="Leave a comment…"
-        className="min-h-20 text-sm"
+        placeholder={placeholder}
+        className="min-h-20 resize-none bg-background text-sm"
         onChange={(e) => setBody(e.target.value)}
         onKeyDown={(e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === "Enter") void submit()
@@ -80,101 +93,141 @@ export function CommentComposer({
           disabled={body.trim().length === 0 || busy}
           onClick={() => void submit()}
         >
-          {busy ? "Saving…" : "Comment"}
+          {busy ? "Saving…" : submitLabel}
         </Button>
       </div>
     </div>
   )
 }
 
-export function CommentCard({
-  comment,
-  onDelete,
-  onReply,
-}: {
-  comment: ReviewComment
-  onDelete: (c: ReviewComment) => Promise<void>
-  onReply?: (c: ReviewComment, body: string) => Promise<void>
-}) {
-  const [replying, setReplying] = useState(false)
-  const canReply = comment.source === "github" && onReply !== undefined
+function CommentCard({ comment }: { comment: ReviewComment }) {
   return (
-    <div className="p-3 text-sm">
-      <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-        <span className="font-medium text-foreground">{comment.author}</span>
-        {comment.source === "github" && (
-          <span className="inline-flex items-center gap-1 rounded-sm bg-muted px-1.5 py-0.5">
-            <IconBrandGithub className="size-3" /> GitHub
+    <div className="flex gap-3">
+      <AuthorAvatar author={comment.author} source={comment.source} />
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <span className="text-sm font-semibold text-foreground">
+            {comment.author}
           </span>
-        )}
-        <span>{new Date(comment.createdAt).toLocaleString()}</span>
-        <span className="ml-auto flex shrink-0 gap-1">
-          {comment.source === "local" && (
-            <button
-              type="button"
-              className="inline-flex items-center gap-1 transition-colors hover:text-destructive"
-              onClick={() => void onDelete(comment)}
-            >
-              <IconTrash className="size-3" /> Delete
-            </button>
+          {comment.source === "github" && (
+            <IconBrandGithub
+              className="size-3.5 text-muted-foreground"
+              aria-label="GitHub"
+            />
           )}
-          {canReply && (
-            <button
-              type="button"
-              className="transition-colors hover:text-foreground"
-              onClick={() => setReplying((o) => !o)}
-            >
-              Reply
-            </button>
-          )}
-        </span>
-      </div>
-      <div className="markdown min-w-0 text-sm">
-        <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
-          {comment.body}
-        </Markdown>
-      </div>
-      {replying && onReply !== undefined && (
-        <div className="mt-1 border-t">
-          <CommentComposer
-            onCancel={() => setReplying(false)}
-            onSubmit={async (body) => {
-              await onReply(comment, body)
-              setReplying(false)
-            }}
-          />
+          <span className="text-xs text-muted-foreground">
+            {timeAgo(comment.createdAt)}
+          </span>
         </div>
-      )}
+        <div className="markdown mt-0.5 min-w-0 text-sm">
+          <Markdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeHighlight]}
+          >
+            {comment.body}
+          </Markdown>
+        </div>
+      </div>
     </div>
   )
 }
 
+/** A blue, link-styled thread action (Add reply… / Resolve). */
+function ThreadAction({
+  onClick,
+  icon,
+  children,
+}: {
+  onClick: () => void
+  icon?: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 transition-colors hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+    >
+      {icon}
+      {children}
+    </button>
+  )
+}
+
 /**
- * A stack of comments anchored to one line, rendered as a single shadcn-style
- * card. `children` lets callers append a reply/extra composer below the list.
+ * A stack of comments anchored to one line, rendered as a single rounded card.
+ * The opening comment sits flush; later comments are nested as replies. The
+ * footer offers "Add reply…" (GitHub threads) and "Resolve" (removes the local
+ * comments — deletion is how a local thread is resolved).
  */
 export function CommentThread({
   comments,
   onDelete,
   onReply,
-  children,
 }: {
   comments: ReadonlyArray<ReviewComment>
   onDelete: (c: ReviewComment) => Promise<void>
   onReply?: (c: ReviewComment, body: string) => Promise<void>
-  children?: React.ReactNode
 }) {
+  const [replying, setReplying] = useState(false)
+  const [resolving, setResolving] = useState(false)
+
+  const lastGithub = [...comments].reverse().find((c) => c.source === "github")
+  const localComments = comments.filter((c) => c.source === "local")
+  const canReply = onReply !== undefined && lastGithub !== undefined
+  const canResolve = localComments.length > 0
+
+  const resolve = async () => {
+    if (resolving) return
+    setResolving(true)
+    try {
+      await Promise.all(localComments.map((c) => onDelete(c)))
+    } finally {
+      setResolving(false)
+    }
+  }
+
   return (
-    <div className="my-2 mr-3 ml-12 max-w-2xl min-w-0 divide-y divide-border overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm">
-      {comments.map((comment) => (
-        <CommentCard
-          key={comment.id}
-          comment={comment}
-          onDelete={onDelete}
-          onReply={onReply}
-        />
-      ))}
-      {children}
+    <div className="my-2 mr-3 ml-12 max-w-2xl min-w-0 overflow-hidden rounded-xl border bg-card p-4 font-sans text-card-foreground shadow-sm">
+      <div className="flex flex-col gap-4">
+        {comments.map((comment, i) => (
+          <div key={comment.id} className={i === 0 ? undefined : REPLY_INDENT}>
+            <CommentCard comment={comment} />
+          </div>
+        ))}
+      </div>
+
+      <div className={`mt-3 ${REPLY_INDENT}`}>
+        {replying && onReply !== undefined && lastGithub !== undefined ? (
+          <CommentComposer
+            submitLabel="Reply"
+            placeholder="Reply…"
+            onCancel={() => setReplying(false)}
+            onSubmit={async (body) => {
+              await onReply(lastGithub, body)
+              setReplying(false)
+            }}
+          />
+        ) : (
+          (canReply || canResolve) && (
+            <div className="flex items-center gap-4">
+              {canReply && (
+                <ThreadAction
+                  onClick={() => setReplying(true)}
+                  icon={<IconCornerDownRight className="size-4" />}
+                >
+                  Add reply…
+                </ThreadAction>
+              )}
+              {canResolve && (
+                <ThreadAction onClick={() => void resolve()}>
+                  {resolving ? "Resolving…" : "Resolve"}
+                </ThreadAction>
+              )}
+            </div>
+          )
+        )}
+      </div>
     </div>
   )
 }
@@ -188,7 +241,7 @@ export function DraftCard({
   onSubmit: (body: string) => Promise<void>
 }) {
   return (
-    <div className="my-2 mr-3 ml-12 max-w-2xl min-w-0 overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm">
+    <div className="my-2 mr-3 ml-12 max-w-2xl min-w-0 overflow-hidden rounded-xl border bg-card p-4 font-sans text-card-foreground shadow-sm">
       <CommentComposer onCancel={onCancel} onSubmit={onSubmit} />
     </div>
   )

@@ -132,11 +132,28 @@
 /* Comment bodies live in a narrow gutter, so wrap aggressively: long words,
    URLs and inline code must break rather than force the card to overflow. */
 .markdown {
+  /* Comment prose uses the UI sans font (Inter) and wraps normally, overriding
+     the monospace + `white-space: pre` it would otherwise inherit from the
+     surrounding Pierre diff surface (which would make long lines overflow the
+     card instead of wrapping). Only real code (code/pre, below) opts back in. */
+  font-family: var(--font-sans);
+  white-space: normal;
+  line-height: 1.55;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 .markdown :where(p, ul, ol, pre, blockquote) {
-  margin: 0.25rem 0;
+  margin: 0.4rem 0;
+}
+.markdown :where(p, ul, ol, blockquote):first-child {
+  margin-top: 0;
+}
+.markdown :where(p, ul, ol, blockquote):last-child {
+  margin-bottom: 0;
+}
+.markdown :where(code, pre) {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
 }
 .markdown :where(ul, ol) {
   padding-left: 1.25rem;
@@ -149,10 +166,12 @@
   padding: 0.1em 0.3em;
 }
 .markdown pre {
-  /* Code blocks keep their own lines intact and scroll horizontally instead of
-     stretching the card; max-width pins them to the available width. */
+  /* Code blocks wrap to the card width rather than scrolling horizontally, so a
+     comment never overflows its column. Long unbreakable tokens still break. */
   max-width: 100%;
-  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   background: var(--muted);
   border-radius: var(--radius-md);
   padding: 0.6rem 0.75rem;
@@ -160,9 +179,7 @@
 .markdown pre code {
   background: transparent;
   padding: 0;
-  white-space: pre;
-  overflow-wrap: normal;
-  word-break: normal;
+  white-space: inherit;
 }
 .markdown a {
   color: var(--primary);
