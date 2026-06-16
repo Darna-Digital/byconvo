@@ -96,6 +96,17 @@ export function AppShell() {
       ? "browse"
       : "commit"
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "b") {
+        e.preventDefault()
+        setUiPrefs({ bottomVisible: !prefs.bottomVisible })
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [prefs.bottomVisible])
+
   // --- queries ---------------------------------------------------------------
   const workspace = useWorkspace()
   const repo = useRepo()
