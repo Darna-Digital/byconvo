@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { IconLoader } from "@tabler/icons-react"
 import { ResizeHandle } from "@/components/layout/ResizeHandle"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -41,6 +42,8 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
   const [filesHeight, setFilesHeight] = useState(commitFilesHeight)
   const [messageHeight, setMessageHeight] = useState(commitMessageHeight)
   const [message, setMessage] = useState("")
+  // Which action is in flight, so its button can show a spinner.
+  const [pending, setPending] = useState<"commit" | "push" | null>(null)
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(changes.map((c) => c.path))
   )
@@ -74,8 +77,13 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
 
   const commit = async (andPush: boolean) => {
     if (!canCommit) return
-    const ok = await onCommit(message.trim(), chosen, andPush)
-    if (ok !== false) setMessage("")
+    setPending(andPush ? "push" : "commit")
+    try {
+      const ok = await onCommit(message.trim(), chosen, andPush)
+      if (ok !== false) setMessage("")
+    } finally {
+      setPending(null)
+    }
   }
 
   return (
@@ -152,6 +160,9 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
             disabled={!canCommit}
             onClick={() => void commit(false)}
           >
+            {pending === "commit" && (
+              <IconLoader className="size-4 animate-spin" />
+            )}
             Commit
           </Button>
           <Button
@@ -160,6 +171,9 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
             disabled={!canCommit}
             onClick={() => void commit(true)}
           >
+            {pending === "push" && (
+              <IconLoader className="size-4 animate-spin" />
+            )}
             Commit & push
           </Button>
         </div>
