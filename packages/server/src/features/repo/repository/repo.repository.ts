@@ -7,7 +7,9 @@ import type {
   BranchInfo,
   CommitDetail,
   CommitInfo,
+  ConflictBlobs,
   FilesPayload,
+  MergeState,
   RemoteBranchInfo,
   RepoInfo,
   RepoStatus,
@@ -52,6 +54,21 @@ export interface RepoRepo {
   readonly fetch: Effect.Effect<string, GitFailure>
   readonly merge: (branch: string) => Effect.Effect<string, GitFailure>
   readonly rebase: (onto: string) => Effect.Effect<string, GitFailure>
+  /** The in-progress merge/rebase operation and its remaining conflicts. */
+  readonly mergeState: Effect.Effect<MergeState, GitFailure>
+  /** The base/ours/theirs index stages of a conflicted file. */
+  readonly conflictBlobs: (
+    path: string
+  ) => Effect.Effect<ConflictBlobs, GitFailure>
+  /** Resolve a conflicted file by taking a side, or staging on-disk content. */
+  readonly resolveConflict: (
+    path: string,
+    resolution: "ours" | "theirs" | "content"
+  ) => Effect.Effect<void, GitFailure>
+  /** Abort the in-progress operation, restoring the pre-operation state. */
+  readonly abortMerge: Effect.Effect<string, GitFailure>
+  /** Finish the in-progress operation once all conflicts are resolved. */
+  readonly continueMerge: Effect.Effect<string, GitFailure>
   readonly renameBranch: (
     from: string,
     to: string

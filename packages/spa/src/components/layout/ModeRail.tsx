@@ -20,6 +20,7 @@ interface ModeRailProps {
   hasGitHub: boolean
   bottomVisible: boolean
   onBottomToggle: () => void
+  onModeSelect?: (mode: AppMode) => void
 }
 
 const MODES: {
@@ -72,7 +73,11 @@ function RailButton({
         className={className}
         aria-label={label}
         render={
-          to ? <Link to={to} /> : <button type="button" onClick={onClick} />
+          to ? (
+            <Link to={to} onClick={onClick} />
+          ) : (
+            <button type="button" onClick={onClick} />
+          )
         }
       >
         {children}
@@ -87,6 +92,7 @@ export function ModeRail({
   hasGitHub,
   bottomVisible,
   onBottomToggle,
+  onModeSelect,
 }: ModeRailProps) {
   return (
     <nav
@@ -101,7 +107,13 @@ export function ModeRail({
     >
       {MODES.filter((m) => m.mode !== "review" || hasGitHub).map(
         ({ mode: m, to, label, icon: Icon }) => (
-          <RailButton key={m} to={to} label={label} active={mode === m}>
+          <RailButton
+            key={m}
+            to={to}
+            label={label}
+            active={mode === m}
+            onClick={() => onModeSelect?.(m)}
+          >
             <Icon className="size-5" />
           </RailButton>
         )

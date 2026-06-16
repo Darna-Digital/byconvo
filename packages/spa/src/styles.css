@@ -263,7 +263,10 @@ file-tree-container {
   --trees-border-color-override: var(--border);
   --trees-selected-bg-override: var(--muted);
   --trees-selected-fg-override: var(--foreground);
-  --trees-search-bg-override: var(--muted);
+  /* Match the app's shadcn inputs (background fill + subtle border) rather than
+     a solid muted block, so the tree's search field blends in instead of
+     reading as a grey slab against the sidebar. */
+  --trees-search-bg-override: var(--background);
   --trees-search-fg-override: var(--foreground);
 }
 
@@ -312,6 +315,30 @@ file-tree-container {
 :root { color-scheme: light; }
 .dark { color-scheme: dark; }
 
+/* Thin, theme-aware scrollbar for compact scroll areas (e.g. the commit
+   changed-files list) — an unobtrusive rounded thumb that only firms up on
+   hover, instead of the chunky default native bar. */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.scroll-thin::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted-foreground);
+}
+
 /* Custom drag handles for resizable panels (see ResizeHandle.tsx). The thin
    strip straddles the panel border via a negative margin; a centred ::after
    line lights up on hover / while dragging. */
@@ -347,8 +374,8 @@ file-tree-container {
 .resize-handle-row::after { height: 2px; }
 .resize-handle-col:hover::after,
 .resize-handle-row:hover::after,
-body.is-resizing-col .resize-handle-col::after,
-body.is-resizing-row .resize-handle-row::after {
+.resize-handle-col[data-dragging]::after,
+.resize-handle-row[data-dragging]::after {
   background: var(--primary);
 }
 

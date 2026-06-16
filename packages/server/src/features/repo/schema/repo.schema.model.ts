@@ -123,3 +123,50 @@ export type GeneratedMessage = typeof GeneratedMessage.Type
 export const DiffText = Schema.String
 
 export const Ok = Schema.Struct({ ok: Schema.Boolean })
+
+/** How a file conflicts, derived from the porcelain v2 `u` sub-codes. */
+export const ConflictKind = Schema.Literals([
+  "both-modified",
+  "both-added",
+  "both-deleted",
+  "added-by-us",
+  "added-by-them",
+  "deleted-by-us",
+  "deleted-by-them",
+])
+export type ConflictKind = typeof ConflictKind.Type
+
+export const ConflictedFile = Schema.Struct({
+  path: Schema.String,
+  kind: ConflictKind,
+})
+export type ConflictedFile = typeof ConflictedFile.Type
+
+/**
+ * The in-progress merge/rebase/etc. operation, with the files still conflicted.
+ * `operation` is `"none"` when the worktree is not mid-operation.
+ */
+export const MergeState = Schema.Struct({
+  operation: Schema.Literals([
+    "merge",
+    "rebase",
+    "cherry-pick",
+    "revert",
+    "none",
+  ]),
+  /** The ref/commit being brought in (the "theirs" side), if known. */
+  incoming: Schema.NullOr(Schema.String),
+  /** The branch the operation is replaying onto (the "ours" side), if known. */
+  onto: Schema.NullOr(Schema.String),
+  conflicted: Schema.Array(ConflictedFile),
+})
+export type MergeState = typeof MergeState.Type
+
+/** The three index stages of a conflicted file (base may be absent). */
+export const ConflictBlobs = Schema.Struct({
+  path: Schema.String,
+  base: Schema.NullOr(Schema.String),
+  ours: Schema.String,
+  theirs: Schema.String,
+})
+export type ConflictBlobs = typeof ConflictBlobs.Type

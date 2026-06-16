@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BranchTree } from "@/components/git/BranchTree"
@@ -12,8 +11,11 @@ import type {
   RemoteBranchInfo,
 } from "@/lib/api/types"
 
+type BottomTab = "branches" | "history" | "pulls"
+
 interface BottomPanelProps {
-  defaultTab: "branches" | "history" | "pulls"
+  tab: BottomTab
+  onTabChange: (tab: BottomTab) => void
   hasGitHub: boolean
   branches: ReadonlyArray<BranchInfo>
   remoteBranches: ReadonlyArray<RemoteBranchInfo>
@@ -35,25 +37,29 @@ interface BottomPanelProps {
 }
 
 export function BottomPanel(props: BottomPanelProps) {
-  const [tab, setTab] = useState<string>(props.defaultTab)
-
   // Picking a branch from the tree sets the history ref and jumps to History.
   const selectRef = (ref: string) => {
     props.onLogRefChange(ref)
-    setTab("history")
+    props.onTabChange("history")
   }
 
   return (
     <Tabs
-      value={tab}
-      onValueChange={setTab}
+      value={props.tab}
+      onValueChange={(value) => props.onTabChange(value as BottomTab)}
       className="flex h-full flex-col gap-0"
     >
-      <TabsList className="h-9 w-full justify-start rounded-none border-b bg-transparent px-2">
-        <TabsTrigger value="branches">Branches</TabsTrigger>
-        <TabsTrigger value="history">History</TabsTrigger>
+      <TabsList className="h-9 w-full justify-start gap-1 rounded-none border-b bg-transparent px-2">
+        <TabsTrigger value="branches" className="flex-none">
+          Branches
+        </TabsTrigger>
+        <TabsTrigger value="history" className="flex-none">
+          History
+        </TabsTrigger>
         {props.hasGitHub && (
-          <TabsTrigger value="pulls">Pull requests</TabsTrigger>
+          <TabsTrigger value="pulls" className="flex-none">
+            Pull requests
+          </TabsTrigger>
         )}
       </TabsList>
 

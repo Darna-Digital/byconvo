@@ -15,6 +15,18 @@ export const useRemoteBranches = () =>
   api.useQuery("get", "/api/remote-branches")
 export const useComments = () => api.useQuery("get", "/api/comments")
 
+/** The in-progress merge/rebase operation and its remaining conflicts. */
+export const useMergeState = () => api.useQuery("get", "/api/merge-state")
+
+/** The base/ours/theirs index stages of a conflicted file. */
+export const useConflictBlobs = (path: string | null) =>
+  api.useQuery(
+    "get",
+    "/api/conflict",
+    { params: { query: { path: path ?? "" } } },
+    { enabled: path !== null }
+  )
+
 export const usePulls = (enabled: boolean) =>
   api.useQuery("get", "/api/github/pulls", {}, { enabled })
 

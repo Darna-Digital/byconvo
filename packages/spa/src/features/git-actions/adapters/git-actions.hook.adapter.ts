@@ -135,6 +135,40 @@ export function useGitActions() {
     push: () => fns.runOp("Pushed", post(fetchClient.POST("/api/push", {}))),
     pull: () => fns.runOp("Pulled", post(fetchClient.POST("/api/pull", {}))),
 
+    // --- conflicts -----------------------------------------------------------
+    /** Resolve a conflicted file by taking one whole side. */
+    resolveConflict: (path: string, resolution: "ours" | "theirs") =>
+      fns.runOp(`Resolved ${path}`, () =>
+        unwrap(
+          fetchClient.POST("/api/conflicts/resolve", {
+            body: { path, resolution },
+          })
+        )
+      ),
+
+    /** Write the user-merged content, then stage it as resolved. */
+    resolveConflictWithContent: async (path: string, contents: string) => {
+      try {
+        await unwrap(
+          fetchClient.PUT("/api/file", { body: { path, contents } })
+        )
+        await unwrap(
+          fetchClient.POST("/api/conflicts/resolve", {
+            body: { path, resolution: "content" },
+          })
+        )
+        notify("ok", `Resolved ${path}`)
+        refresh()
+      } catch (cause) {
+        notify("err", errorText(cause))
+      }
+    },
+
+    abortMerge: () =>
+      fns.runOp("Aborted", post(fetchClient.POST("/api/merge/abort", {}))),
+    continueMerge: () =>
+      fns.runOp("Continued", post(fetchClient.POST("/api/merge/continue", {}))),
+
     refresh,
   }
 }
