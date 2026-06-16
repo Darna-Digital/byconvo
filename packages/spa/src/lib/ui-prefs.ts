@@ -21,6 +21,10 @@ export interface UiPrefs {
   sidebarWidth: number
   /** Drag-resizable bottom panel height, in px. */
   bottomHeight: number
+  /** Drag-resizable changed-files list height in the commit panel, in px. */
+  commitFilesHeight: number
+  /** Drag-resizable commit-message textarea height, in px. */
+  commitMessageHeight: number
 }
 
 const STORE_KEY = "reviewer-ui"
@@ -42,6 +46,8 @@ const defaults: Omit<UiPrefs, "resolvedTheme"> = {
   bottomVisible: true,
   sidebarWidth: 288,
   bottomHeight: 256,
+  commitFilesHeight: 180,
+  commitMessageHeight: 80,
 }
 
 function load(): UiPrefs {
@@ -78,6 +84,8 @@ function persist() {
       bottomVisible,
       sidebarWidth,
       bottomHeight,
+      commitFilesHeight,
+      commitMessageHeight,
     } = state
     window.localStorage.setItem(
       STORE_KEY,
@@ -88,6 +96,8 @@ function persist() {
         bottomVisible,
         sidebarWidth,
         bottomHeight,
+        commitFilesHeight,
+        commitMessageHeight,
       })
     )
     window.localStorage.setItem(THEME_KEY, state.theme)

@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react"
+import { ResizeHandle } from "@/components/layout/ResizeHandle"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import type { GitFileStatus, GitStatusEntry } from "@/lib/api/types"
+import { setUiPrefs, useUiPrefs } from "@/lib/ui-prefs"
 
 interface CommitPanelProps {
   changes: ReadonlyArray<GitStatusEntry>
@@ -34,6 +36,10 @@ const STATUS_LETTER: Record<GitFileStatus, string> = {
 }
 
 export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
+  const { commitFilesHeight, commitMessageHeight } = useUiPrefs()
+  // Live heights for smooth dragging; committed back to prefs on release.
+  const [filesHeight, setFilesHeight] = useState(commitFilesHeight)
+  const [messageHeight, setMessageHeight] = useState(commitMessageHeight)
   const [message, setMessage] = useState("")
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(changes.map((c) => c.path))
@@ -73,8 +79,24 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
   }
 
   return (
-    <div className="flex shrink-0 flex-col gap-2 border-t p-3">
-      <div className="max-h-40 overflow-auto">
+    <div className="flex shrink-0 flex-col border-t">
+      {/* Drag the top edge to grow/shrink the changed-files list. The handle
+          straddles the panel's top border (negative margin), so dragging up
+          expands the list into the tree above it. */}
+      <ResizeHandle
+        orientation="row"
+        value={filesHeight}
+        min={80}
+        max={() => Math.max(120, window.innerHeight - 320)}
+        direction={-1}
+        onResize={setFilesHeight}
+        onResizeEnd={(h) => setUiPrefs({ commitFilesHeight: h })}
+        label="Resize changed files"
+      />
+      <div
+        className="scroll-thin overflow-y-auto px-3 pt-2"
+        style={{ height: filesHeight }}
+      >
         {changes.map((c) => (
           <label
             key={c.path}
@@ -97,32 +119,50 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
           </label>
         ))}
       </div>
-      <Textarea
-        value={message}
-        placeholder="Commit message…"
-        className="min-h-16 text-sm"
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === "Enter") void commit(false)
-        }}
+      {/* Drag the message box's top border to grow/shrink the composer. */}
+      <ResizeHandle
+        orientation="row"
+        value={messageHeight}
+        min={48}
+        max={() => Math.max(80, window.innerHeight - 360)}
+        direction={-1}
+        onResize={setMessageHeight}
+        onResizeEnd={(h) => setUiPrefs({ commitMessageHeight: h })}
+        label="Resize commit message"
       />
-      <div className="flex gap-2">
-        <Button
-          size="sm"
-          className="flex-1"
-          disabled={!canCommit}
-          onClick={() => void commit(false)}
-        >
-          Commit
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={!canCommit}
-          onClick={() => void commit(true)}
-        >
-          Commit & Push
-        </Button>
+      {/* pb-2.5 vertically centres the commit button box on the rail's bottom
+          icon (its hover box, not the glyph): the rail icon button is 8px off
+          the viewport bottom and taller than our sm button, so matching its
+          centre — not its bottom edge — is what visually lines them up. */}
+      <div className="flex flex-col gap-2 border-t px-3 pt-3 pb-2.5">
+        <Textarea
+          value={message}
+          placeholder="Commit message…"
+          className="resize-none text-sm"
+          style={{ height: messageHeight }}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "Enter")
+              void commit(false)
+          }}
+        />
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            disabled={!canCommit}
+            onClick={() => void commit(false)}
+          >
+            Commit
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={!canCommit}
+            onClick={() => void commit(true)}
+          >
+            Commit & push
+          </Button>
+        </div>
       </div>
     </div>
   )

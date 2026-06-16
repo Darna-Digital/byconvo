@@ -7,7 +7,11 @@
  * parent, which keeps the size in state. The parent stays the source of truth;
  * the handle is purely the gesture.
  */
-import { useCallback, type PointerEvent as ReactPointerEvent } from "react"
+import {
+  useCallback,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react"
 import { cn } from "@/lib/utils"
 
 interface ResizeHandleProps {
@@ -48,6 +52,11 @@ export function ResizeHandle({
   className,
   label = "Resize panel",
 }: ResizeHandleProps) {
+  // Only the handle actually being dragged should light up. The body cursor
+  // class is global (so the resize cursor shows everywhere mid-drag), but the
+  // highlight keys off this per-handle flag — otherwise every sibling row/col
+  // handle would glow at once.
+  const [dragging, setDragging] = useState(false)
   const onPointerDown = useCallback(
     (event: ReactPointerEvent) => {
       event.preventDefault()
@@ -57,6 +66,7 @@ export function ResizeHandle({
       const cursorClass =
         orientation === "col" ? "is-resizing-col" : "is-resizing-row"
       document.body.classList.add(cursorClass)
+      setDragging(true)
 
       let latest = startSize
       const onMove = (move: PointerEvent) => {
@@ -66,6 +76,7 @@ export function ResizeHandle({
       }
       const onUp = () => {
         document.body.classList.remove(cursorClass)
+        setDragging(false)
         window.removeEventListener("pointermove", onMove)
         window.removeEventListener("pointerup", onUp)
         onResizeEnd?.(latest)
@@ -82,6 +93,7 @@ export function ResizeHandle({
       aria-orientation={orientation === "col" ? "vertical" : "horizontal"}
       aria-label={label}
       title="Drag to resize"
+      data-dragging={dragging || undefined}
       onPointerDown={onPointerDown}
       className={cn(
         orientation === "col" ? "resize-handle-col" : "resize-handle-row",
