@@ -96,17 +96,6 @@ export function AppShell() {
       ? "browse"
       : "commit"
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "b") {
-        e.preventDefault()
-        setUiPrefs({ bottomVisible: !prefs.bottomVisible })
-      }
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [prefs.bottomVisible])
-
   // --- queries ---------------------------------------------------------------
   const workspace = useWorkspace()
   const repo = useRepo()
@@ -128,6 +117,34 @@ export function AppShell() {
   )
   const hasGitHub = repo.data?.github != null
   const pulls = usePulls(hasGitHub)
+
+  // Global keyboard shortcuts: Cmd/Ctrl+B toggles the bottom panel; Cmd/Ctrl+1/2/3
+  // jump between the commit / review / browse modes (review only when on GitHub).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return
+      if (e.key.toLowerCase() === "b") {
+        e.preventDefault()
+        setUiPrefs({ bottomVisible: !prefs.bottomVisible })
+        return
+      }
+      if (e.key === "1") {
+        e.preventDefault()
+        void navigate({ to: "/commit" })
+      } else if (e.key === "2") {
+        if (!hasGitHub) return
+        e.preventDefault()
+        setUiPrefs({ bottomVisible: true })
+        setBottomTab("pulls")
+        void navigate({ to: "/review" })
+      } else if (e.key === "3") {
+        e.preventDefault()
+        void navigate({ to: "/browse" })
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [prefs.bottomVisible, hasGitHub, navigate])
   // The in-progress merge/rebase, if any — drives the conflict banner + resolver.
   const mergeState = useMergeState()
   const conflictedPaths = useMemo(
