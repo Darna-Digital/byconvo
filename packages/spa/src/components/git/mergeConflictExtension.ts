@@ -6,7 +6,12 @@
  * with the chosen side, so the editor's text is always the authoritative merge
  * result — the user can also edit freely between or instead of accepting.
  */
-import { EditorState, StateField, type Extension, type Range } from "@codemirror/state"
+import {
+  StateField,
+  type EditorState,
+  type Extension,
+  type Range,
+} from "@codemirror/state"
 import {
   Decoration,
   EditorView,

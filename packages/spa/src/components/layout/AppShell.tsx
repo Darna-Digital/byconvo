@@ -151,7 +151,7 @@ export function AppShell() {
   useEffect(() => {
     if (workspace.isSuccess && workspace.data.current === null)
       setPickerOpen(true)
-  }, [workspace.isSuccess, workspace.data?.current])
+  }, [workspace.isSuccess, workspace.data])
 
   // --- selection / diff target ----------------------------------------------
   const selectedPull = useMemo(() => {
@@ -205,8 +205,10 @@ export function AppShell() {
   useEffect(() => setDraft(null), [targetKey, search.file])
 
   // --- derived tree / comments (memoised: these run over the whole repo) -----
-  const gitStatus = files.data?.gitStatus ?? []
-  const allPaths = files.data?.paths ?? []
+  const gitStatus = useMemo(() => files.data?.gitStatus ?? [], [
+    files.data?.gitStatus,
+  ])
+  const allPaths = useMemo(() => files.data?.paths ?? [], [files.data?.paths])
   const treePaths = useMemo(
     () =>
       diffFns.treePaths({

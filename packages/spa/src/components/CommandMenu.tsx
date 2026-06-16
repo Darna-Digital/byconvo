@@ -61,11 +61,11 @@ const MAX_FILES = 40
 function fuzzyScore(text: string, query: string): number | null {
   if (query === "") return 0
   const t = text.toLowerCase()
+  const q = query.toLowerCase()
   let ti = 0
   let firstHit = -1
   let lastHit = -1
-  for (let qi = 0; qi < query.length; qi++) {
-    const c = query[qi]
+  for (const c of q) {
     const found = t.indexOf(c, ti)
     if (found === -1) return null
     if (firstHit === -1) firstHit = found

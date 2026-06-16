@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useMemo } from "react"
+import { useCallback, useMemo } from "react"
 import { toast } from "sonner"
 import { fetchClient } from "@/lib/api/client"
 import { createGitActionsFunctions } from "../functions/git-actions.functions"
@@ -26,11 +26,14 @@ const unwrap = async <T>(
 export function useGitActions() {
   const queryClient = useQueryClient()
 
-  const notify = (kind: NoticeKind, text: string) =>
-    kind === "ok" ? toast.success(text) : toast.error(text)
-  const refresh = () => {
+  const notify = useCallback(
+    (kind: NoticeKind, text: string) =>
+      kind === "ok" ? toast.success(text) : toast.error(text),
+    []
+  )
+  const refresh = useCallback(() => {
     void queryClient.invalidateQueries()
-  }
+  }, [queryClient])
 
   const fns = useMemo(
     () =>
@@ -48,8 +51,7 @@ export function useGitActions() {
           refresh,
         },
       }),
-    // notify/refresh are stable closures over queryClient
-    [queryClient]
+    [notify, refresh]
   )
 
   const post =

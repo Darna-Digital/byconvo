@@ -33,7 +33,7 @@ export function createConflictsFunctions(
     }
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i] as string
+      const line = lines[i]
       if (!isMarker(line, OURS)) {
         context.push(line)
         continue
@@ -49,7 +49,7 @@ export function createConflictsFunctions(
       let section: "ours" | "base" | "theirs" = "ours"
       i++
       for (; i < lines.length; i++) {
-        const inner = lines[i] as string
+        const inner = lines[i]
         if (isMarker(inner, BASE)) {
           hasBase = true
           section = "base"
