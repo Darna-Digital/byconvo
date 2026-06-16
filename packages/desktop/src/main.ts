@@ -37,9 +37,11 @@ const spaUrl = process.env["REVIEWER_DEV_URL"] ?? "http://localhost:41812";
 const repoRoot = resolve(__dirname, "..", "..", "..");
 
 // The Reviewer brand logo, used for the window and the macOS dock icon so the
-// app no longer shows Electron's default icon.
+// app no longer shows Electron's default icon. This is the dock-grid variant:
+// the artwork sits inside ~80% of the tile with transparent margin, so macOS
+// renders it at the same size as other dock icons rather than full-bleed.
 const brandIcon = nativeImage.createFromPath(
-  resolve(repoRoot, "brand", "reviewer-square-logo.png"),
+  resolve(repoRoot, "brand", "reviewer-dock-icon.png"),
 );
 
 let serverProcess: ChildProcess | null = null;
