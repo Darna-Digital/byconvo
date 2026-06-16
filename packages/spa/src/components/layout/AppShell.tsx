@@ -127,6 +127,12 @@ export function AppShell() {
   const [logRef, setLogRef] = useState<string | null>(null)
   const log = useLog(logRef ?? repo.data?.currentBranch ?? null, logFilters)
 
+  // Which tab the bottom panel shows. Lifted here so the mode rail can both
+  // reveal the panel and jump to a tab (e.g. clicking "Pull requests").
+  const [bottomTab, setBottomTab] = useState<"branches" | "history" | "pulls">(
+    mode === "review" ? "pulls" : mode === "browse" ? "history" : "branches"
+  )
+
   const [pickerOpen, setPickerOpen] = useState(false)
   const [commandOpen, setCommandOpen] = useState(false)
   const [draft, setDraft] = useState<DraftLocation | null>(null)
@@ -579,6 +585,12 @@ export function AppShell() {
         onBottomToggle={() =>
           setUiPrefs({ bottomVisible: !prefs.bottomVisible })
         }
+        onModeSelect={(m) => {
+          if (m === "review") {
+            setUiPrefs({ bottomVisible: true })
+            setBottomTab("pulls")
+          }
+        }}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar
@@ -696,13 +708,8 @@ export function AppShell() {
               style={{ height: bottomHeight }}
             >
               <BottomPanel
-                defaultTab={
-                  mode === "review"
-                    ? "pulls"
-                    : mode === "browse"
-                      ? "history"
-                      : "branches"
-                }
+                tab={bottomTab}
+                onTabChange={setBottomTab}
                 hasGitHub={hasGitHub}
                 branches={branches.data ?? []}
                 remoteBranches={remoteBranches.data ?? []}
