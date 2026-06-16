@@ -1,7 +1,11 @@
 /** HTTP endpoints for git: repo info, files, branches, log, diff, commit, sync. */
 import * as Schema from "effect/Schema"
 import { HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi"
-import { GitError, NoRepoSelected } from "../../../layers/errors.ts"
+import {
+  ClaudeError,
+  GitError,
+  NoRepoSelected,
+} from "../../../layers/errors.ts"
 import {
   BranchInfo,
   CommandOutput,
@@ -10,6 +14,7 @@ import {
   CommitResult,
   DiffText,
   FilesPayload,
+  GeneratedMessage,
   Ok,
   RemoteBranchInfo,
   RepoInfo,
@@ -22,6 +27,7 @@ import {
   CreateBranch,
   DeleteBranch,
   DiffQuery,
+  GenerateMessageBody,
   LogQueryParams,
   Merge,
   Rebase,
@@ -91,6 +97,13 @@ export class RepoApi extends HttpApiGroup.make("repo")
       payload: CommitBody,
       success: CommitResult,
       error: gitError,
+    })
+  )
+  .add(
+    HttpApiEndpoint.post("generateCommitMessage", "/commit/generate-message", {
+      payload: GenerateMessageBody,
+      success: GeneratedMessage,
+      error: [GitError, NoRepoSelected, ClaudeError] as const,
     })
   )
   .add(

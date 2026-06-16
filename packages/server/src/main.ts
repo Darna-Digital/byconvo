@@ -25,6 +25,7 @@ import { RepoController } from "./features/repo/http/repo.controller.ts"
 import { RepoLive } from "./features/repo/layer/repo.layer.live.ts"
 import { WorkspaceController } from "./features/workspace/http/workspace.controller.ts"
 import { WorkspaceLive } from "./features/workspace/layer/workspace.layer.live.ts"
+import { layer as claudeExecLayer } from "./layers/claude/claude-exec.ts"
 import { layer as gitExecLayer } from "./layers/git/git-exec.ts"
 import { layer as gitHubClientLayer } from "./layers/github/github-client.ts"
 import {
@@ -68,7 +69,7 @@ const RequestServices = Layer.mergeAll(
  * GitHub client.
  */
 const InfraLive = gitHubClientLayer.pipe(
-  Layer.provideMerge(gitExecLayer),
+  Layer.provideMerge(Layer.mergeAll(gitExecLayer, claudeExecLayer)),
   Layer.provideMerge(workspaceContextLayer(initial)),
   Layer.provide(FetchHttpClient.layer)
 )

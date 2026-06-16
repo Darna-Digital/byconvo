@@ -22,6 +22,17 @@ export class GitError extends Schema.TaggedErrorClass<GitError>()(
   }
 }
 
+/** The local `claude` CLI failed or produced no usable output. */
+export class ClaudeError extends Schema.TaggedErrorClass<ClaudeError>()(
+  "ClaudeError",
+  { reason: Schema.String },
+  { httpApiStatus: 502 }
+) {
+  override get message(): string {
+    return this.reason
+  }
+}
+
 /** No repository is currently selected in the workspace. */
 export class NoRepoSelected extends Schema.TaggedErrorClass<NoRepoSelected>()(
   "NoRepoSelected",

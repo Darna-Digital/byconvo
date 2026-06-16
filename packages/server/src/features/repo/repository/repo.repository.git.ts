@@ -4,6 +4,8 @@
  * shared `GitExec` service instead of spawning inline.
  */
 import * as Effect from "effect/Effect"
+import { ClaudeExec } from "../../../layers/claude/claude-exec.ts"
+import { ClaudeError } from "../../../layers/errors.ts"
 import { GitExec } from "../../../layers/git/git-exec.ts"
 import type {
   BranchInfo,
@@ -122,6 +124,34 @@ const detailFormat = [
   "%b",
 ].join(US)
 
+/**
+ * Commit-message generation uses Haiku from the user's local Claude Code — the
+ * cheapest, fastest model, which is plenty for summarizing a diff. The diff is
+ * capped so the prompt stays small and the call returns quickly.
+ */
+const COMMIT_MESSAGE_MODEL = "haiku"
+const MAX_DIFF_CHARS = 16_000
+
+const COMMIT_MESSAGE_PROMPT = [
+  "Write a git commit message for the changes below.",
+  "Use a concise, imperative subject line under ~72 characters, optionally",
+  "prefixed with a Conventional Commits type (feat:, fix:, refactor:, docs:,",
+  "chore:, test:). Add a short body only when it explains something the subject",
+  "cannot. Output ONLY the raw commit message — no surrounding quotes, no",
+  "markdown, no code fences, no preamble or sign-off.",
+].join("\n")
+
+/** Strip any code fences or wrapping quotes a model might add despite asking. */
+const cleanMessage = (raw: string): string => {
+  let text = raw.trim()
+  const fence = text.match(/^```[^\n]*\n([\s\S]*?)\n```$/)
+  if (fence?.[1] !== undefined) text = fence[1].trim()
+  if (text.length >= 2 && text.startsWith('"') && text.endsWith('"')) {
+    text = text.slice(1, -1).trim()
+  }
+  return text
+}
+
 const emptyStatus: RepoStatus = {
   branch: "",
   upstream: null,
@@ -137,6 +167,7 @@ const emptyStatus: RepoStatus = {
 
 export const makeGitRepoRepository = Effect.gen(function* () {
   const git = yield* GitExec
+  const claude = yield* ClaudeExec
   const { lines, run, runVerbose } = git
 
   const info: RepoRepo["info"] = Effect.gen(function* () {
@@ -408,6 +439,46 @@ export const makeGitRepoRepository = Effect.gen(function* () {
       return yield* headShortSha
     })
 
+  const generateCommitMessage: RepoRepo["generateCommitMessage"] = (paths) =>
+    Effect.gen(function* () {
+      // Working-tree diff vs HEAD for the chosen paths (empty = everything).
+      // Tolerate failures (e.g. unborn HEAD) by falling back to an empty diff.
+      const diff = yield* run(
+        ...(paths.length === 0
+          ? ["diff", "HEAD"]
+          : ["diff", "HEAD", "--", ...paths])
+      ).pipe(Effect.catchTag("GitError", () => Effect.succeed("")))
+
+      // git diff omits untracked files; name them so Claude knows they're new.
+      const untracked = yield* lines(
+        ...(paths.length === 0
+          ? ["ls-files", "--others", "--exclude-standard"]
+          : ["ls-files", "--others", "--exclude-standard", "--", ...paths])
+      ).pipe(Effect.catchTag("GitError", () => Effect.succeed([] as const)))
+
+      const truncated =
+        diff.length > MAX_DIFF_CHARS
+          ? `${diff.slice(0, MAX_DIFF_CHARS)}\n…[diff truncated]`
+          : diff
+      const newFiles =
+        untracked.length > 0
+          ? `\n\nNew untracked files:\n${untracked.map((f) => `  ${f}`).join("\n")}`
+          : ""
+      const changes = `${truncated}${newFiles}`.trim()
+
+      if (changes.length === 0) {
+        return yield* Effect.fail(
+          new ClaudeError({ reason: "no changes to summarize" })
+        )
+      }
+
+      const message = yield* claude.prompt(
+        `${COMMIT_MESSAGE_PROMPT}\n\n--- DIFF ---\n${changes}`,
+        COMMIT_MESSAGE_MODEL
+      )
+      return cleanMessage(message)
+    })
+
   const push: RepoRepo["push"] = Effect.gen(function* () {
     const upstream = yield* run(
       "rev-parse",
@@ -445,6 +516,7 @@ export const makeGitRepoRepository = Effect.gen(function* () {
     checkout,
     createBranch,
     commit,
+    generateCommitMessage,
     push,
     pull,
     fetch,

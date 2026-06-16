@@ -30,6 +30,11 @@ export const CommitBody = Schema.Struct({
   paths: Schema.optionalKey(Schema.Array(Schema.String)),
 })
 
+/** Generate a commit message for the given changed paths (empty = all). */
+export const GenerateMessageBody = Schema.Struct({
+  paths: Schema.optionalKey(Schema.Array(Schema.String)),
+})
+
 export const Merge = Schema.Struct({ branch: Schema.String })
 export const Rebase = Schema.Struct({ onto: Schema.String })
 

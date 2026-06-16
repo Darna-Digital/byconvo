@@ -16,6 +16,7 @@ export interface MemoryRepoSeed {
   readonly branches?: ReadonlyArray<BranchInfo>
   readonly commits?: ReadonlyArray<CommitInfo>
   readonly diff?: string
+  readonly generatedMessage?: string
 }
 
 const defaultInfo: RepoInfo = {
@@ -69,6 +70,8 @@ export const makeMemoryRepoRepository = (seed: MemoryRepoSeed = {}) =>
       checkout: () => Effect.void,
       createBranch: () => Effect.void,
       commit: () => Effect.succeed("newsha1"),
+      generateCommitMessage: () =>
+        Effect.succeed(seed.generatedMessage ?? "chore: update files"),
       push: Effect.succeed("pushed"),
       pull: Effect.succeed("pulled"),
       fetch: Effect.succeed("fetched"),

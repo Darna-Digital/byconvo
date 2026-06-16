@@ -1,3 +1,4 @@
+import { IconLoader2, IconSparkles } from "@tabler/icons-react"
 import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -13,6 +14,8 @@ interface CommitPanelProps {
     paths: ReadonlyArray<string>,
     andPush: boolean
   ) => Promise<unknown>
+  /** Draft a commit message for the chosen paths (local Claude Code, Haiku). */
+  onGenerate?: (paths: ReadonlyArray<string>) => Promise<string | null>
 }
 
 const STATUS_COLOR: Record<GitFileStatus, string> = {
@@ -33,8 +36,14 @@ const STATUS_LETTER: Record<GitFileStatus, string> = {
   ignored: "I",
 }
 
-export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
+export function CommitPanel({
+  changes,
+  busy,
+  onCommit,
+  onGenerate,
+}: CommitPanelProps) {
   const [message, setMessage] = useState("")
+  const [generating, setGenerating] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(changes.map((c) => c.path))
   )
@@ -65,11 +74,24 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
 
   const chosen = changes.filter((c) => selected.has(c.path)).map((c) => c.path)
   const canCommit = message.trim().length > 0 && chosen.length > 0 && !busy
+  const canGenerate =
+    onGenerate !== undefined && chosen.length > 0 && !generating && !busy
 
   const commit = async (andPush: boolean) => {
     if (!canCommit) return
     const ok = await onCommit(message.trim(), chosen, andPush)
     if (ok !== false) setMessage("")
+  }
+
+  const generate = async () => {
+    if (onGenerate === undefined || chosen.length === 0 || generating) return
+    setGenerating(true)
+    try {
+      const generated = await onGenerate(chosen)
+      if (generated !== null && generated.length > 0) setMessage(generated)
+    } finally {
+      setGenerating(false)
+    }
   }
 
   return (
@@ -97,15 +119,36 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
           </label>
         ))}
       </div>
-      <Textarea
-        value={message}
-        placeholder="Commit message…"
-        className="min-h-16 text-sm"
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === "Enter") void commit(false)
-        }}
-      />
+      <div className="relative">
+        <Textarea
+          value={message}
+          placeholder="Commit message…"
+          className="min-h-16 text-sm"
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "Enter")
+              void commit(false)
+          }}
+        />
+        {onGenerate !== undefined && (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="absolute right-1.5 bottom-1.5 h-6 gap-1 px-2 text-xs text-muted-foreground"
+            disabled={!canGenerate}
+            title="Generate a commit message with Claude (Haiku)"
+            onClick={() => void generate()}
+          >
+            {generating ? (
+              <IconLoader2 className="size-3.5 animate-spin" />
+            ) : (
+              <IconSparkles className="size-3.5" />
+            )}
+            {generating ? "Generating…" : "Generate"}
+          </Button>
+        )}
+      </div>
       <div className="flex gap-2">
         <Button
           size="sm"

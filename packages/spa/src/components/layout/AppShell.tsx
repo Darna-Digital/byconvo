@@ -608,6 +608,7 @@ export function AppShell() {
                       changes={changedFiles}
                       busy={false}
                       onCommit={(m, p, push) => git.commitChanges(m, p, push)}
+                      onGenerate={(p) => git.generateCommitMessage(p)}
                     />
                   ) : undefined
                 }
