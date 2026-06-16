@@ -135,10 +135,7 @@ export function createConflictsFunctions(
   const isFullyResolved: ConflictsFunctions["isFullyResolved"] = (
     regions,
     choices
-  ) =>
-    conflicts(regions).every(
-      (region) => choices[region.id] !== undefined
-    )
+  ) => conflicts(regions).every((region) => choices[region.id] !== undefined)
 
   return { parse, conflicts, reconstruct, applyResolutions, isFullyResolved }
 }

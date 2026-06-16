@@ -205,9 +205,10 @@ export function AppShell() {
   useEffect(() => setDraft(null), [targetKey, search.file])
 
   // --- derived tree / comments (memoised: these run over the whole repo) -----
-  const gitStatus = useMemo(() => files.data?.gitStatus ?? [], [
-    files.data?.gitStatus,
-  ])
+  const gitStatus = useMemo(
+    () => files.data?.gitStatus ?? [],
+    [files.data?.gitStatus]
+  )
   const allPaths = useMemo(() => files.data?.paths ?? [], [files.data?.paths])
   const treePaths = useMemo(
     () =>

@@ -153,7 +153,9 @@ function buildDecorations(state: EditorState): DecorationSet {
           : section === "base"
             ? "cm-conflict-base"
             : "cm-conflict-ours"
-      ranges.push(Decoration.line({ attributes: { class: cls } }).range(line.from))
+      ranges.push(
+        Decoration.line({ attributes: { class: cls } }).range(line.from)
+      )
       if (BASE.test(line.text)) section = "base"
       else if (SEP.test(line.text)) section = "theirs"
       if (line.to + 1 > doc.length) break

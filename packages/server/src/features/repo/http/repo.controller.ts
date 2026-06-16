@@ -78,7 +78,9 @@ export const RepoController = HttpApiBuilder.group(Api, "repo", (handlers) =>
         Effect.map((output) => ({ output }))
       )
     )
-    .handle("mergeState", () => Effect.flatMap(RepoService, (s) => s.mergeState))
+    .handle("mergeState", () =>
+      Effect.flatMap(RepoService, (s) => s.mergeState)
+    )
     .handle("conflict", ({ query }) =>
       Effect.flatMap(RepoService, (s) => s.conflictBlobs(query.path))
     )

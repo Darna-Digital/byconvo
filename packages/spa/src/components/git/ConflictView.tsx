@@ -38,7 +38,11 @@ const surface = (theme: Theme): Extension =>
       {
         "&": { backgroundColor: "var(--background)", height: "100%" },
         ".cm-content": { fontFamily: MONO },
-        ".cm-scroller": { fontFamily: MONO, fontSize: "13px", lineHeight: "20px" },
+        ".cm-scroller": {
+          fontFamily: MONO,
+          fontSize: "13px",
+          lineHeight: "20px",
+        },
         ".cm-gutters": { backgroundColor: "var(--background)", border: "none" },
       },
       { dark: theme === "dark" }
@@ -93,9 +97,7 @@ export function ConflictView({
 
   const remaining = useMemo(
     () =>
-      result === null
-        ? 0
-        : conflicts.conflicts(conflicts.parse(result)).length,
+      result === null ? 0 : conflicts.conflicts(conflicts.parse(result)).length,
     [result, conflicts]
   )
 

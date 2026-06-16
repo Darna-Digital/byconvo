@@ -67,12 +67,7 @@ export function ConflictBanner({
               : `${remaining} conflicted ${remaining === 1 ? "file" : "files"} remaining.`}
           </div>
         </div>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onAbort}
-          className="gap-1.5"
-        >
+        <Button size="sm" variant="ghost" onClick={onAbort} className="gap-1.5">
           <IconX className="size-3.5" />
           Abort
         </Button>

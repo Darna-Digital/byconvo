@@ -151,9 +151,7 @@ export function useGitActions() {
     /** Write the user-merged content, then stage it as resolved. */
     resolveConflictWithContent: async (path: string, contents: string) => {
       try {
-        await unwrap(
-          fetchClient.PUT("/api/file", { body: { path, contents } })
-        )
+        await unwrap(fetchClient.PUT("/api/file", { body: { path, contents } }))
         await unwrap(
           fetchClient.POST("/api/conflicts/resolve", {
             body: { path, resolution: "content" },

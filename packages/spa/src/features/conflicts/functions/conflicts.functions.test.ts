@@ -47,14 +47,18 @@ describe("reconstruct", () => {
     const f = fns()
     const regions = f.parse(sampleConflict)
     expect(f.reconstruct(regions, "ours")).toBe(
-      ["import { a } from './a'", "const value = 1", "export default value"].join(
-        "\n"
-      )
+      [
+        "import { a } from './a'",
+        "const value = 1",
+        "export default value",
+      ].join("\n")
     )
     expect(f.reconstruct(regions, "theirs")).toBe(
-      ["import { a } from './a'", "const value = 2", "export default value"].join(
-        "\n"
-      )
+      [
+        "import { a } from './a'",
+        "const value = 2",
+        "export default value",
+      ].join("\n")
     )
   })
 })

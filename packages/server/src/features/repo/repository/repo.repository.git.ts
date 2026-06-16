@@ -469,7 +469,8 @@ export const makeGitRepoRepository = Effect.gen(function* () {
 
   const merge: RepoRepo["merge"] = (branch) =>
     softOp(runVerbose("merge", branch))
-  const rebase: RepoRepo["rebase"] = (onto) => softOp(runVerbose("rebase", onto))
+  const rebase: RepoRepo["rebase"] = (onto) =>
+    softOp(runVerbose("rebase", onto))
 
   // --- conflicts -------------------------------------------------------------
   const gitDir = Effect.map(run("rev-parse", "--absolute-git-dir"), (out) =>
@@ -478,12 +479,10 @@ export const makeGitRepoRepository = Effect.gen(function* () {
   const exists = (path: string) =>
     fs.exists(path).pipe(Effect.catch(() => Effect.succeed(false)))
   const readTrim = (path: string) =>
-    fs
-      .readFileString(path)
-      .pipe(
-        Effect.map((s) => s.trim()),
-        Effect.catch(() => Effect.succeed<string | null>(null))
-      )
+    fs.readFileString(path).pipe(
+      Effect.map((s) => s.trim()),
+      Effect.catch(() => Effect.succeed<string | null>(null))
+    )
   /** A friendly name for a ref/commit, falling back to its short sha. */
   const nameRev = (ref: string) =>
     run("name-rev", "--name-only", "--no-undefined", ref).pipe(
