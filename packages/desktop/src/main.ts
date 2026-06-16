@@ -137,6 +137,9 @@ async function createWindow(): Promise<void> {
     title: "Reviewer",
     icon: brandIcon,
     titleBarStyle: "hiddenInset",
+    // Center the traffic lights in the 40px (h-10) TopBar. The hiddenInset
+    // default is tuned for a ~28px toolbar, leaving the lights sitting too high.
+    trafficLightPosition: { x: 19, y: 13 },
     webPreferences: {
       preload: resolve(__dirname, "preload.js"),
       contextIsolation: true,

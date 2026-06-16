@@ -122,7 +122,7 @@ export function TopBar(props: TopBarProps) {
         // empty regions drag the window (interactive clusters opt back out below).
         // The rail to the left reserves the bulk of the traffic-light strip; this
         // small left pad just clears the lights' overflow past the rail's edge.
-        isDesktop && "pl-5 [-webkit-app-region:drag]"
+        isDesktop && "pl-10 [-webkit-app-region:drag]"
       )}
     >
       {/* Repo chip — opens the recents + folder-browser dropdown */}
