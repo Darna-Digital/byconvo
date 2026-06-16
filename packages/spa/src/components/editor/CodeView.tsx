@@ -135,6 +135,15 @@ export function CodeView({
             overflow: "wrap",
             stickyHeader: false,
             enableLineSelection: commentsEnabled,
+            enableGutterUtility: commentsEnabled,
+            onGutterUtilityClick: commentsEnabled
+              ? (range) =>
+                  onDraftOpen?.({
+                    filePath: path,
+                    side: FILE_COMMENT_SIDE,
+                    lineNumber: range.end,
+                  })
+              : undefined,
             onLineNumberClick: commentsEnabled
               ? (props) =>
                   onDraftOpen?.({

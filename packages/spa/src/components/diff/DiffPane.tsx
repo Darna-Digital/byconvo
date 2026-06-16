@@ -108,8 +108,15 @@ function FileDiffSection({
           overflow: diffStyle === "split" ? "scroll" : "wrap",
           stickyHeader: false,
           enableLineSelection: true,
+          enableGutterUtility: true,
           unsafeCSS: connectorsEnabled ? connectorGutterCSS : undefined,
           onPostRender: connectorsEnabled ? onPostRender : undefined,
+          onGutterUtilityClick: (range) =>
+            onDraftOpen({
+              filePath: file.name,
+              side: range.side ?? "additions",
+              lineNumber: range.end,
+            }),
           onLineNumberClick: (props) =>
             onDraftOpen({
               filePath: file.name,
