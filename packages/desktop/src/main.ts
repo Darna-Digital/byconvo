@@ -13,7 +13,18 @@
  */
 import { type ChildProcess, spawn } from "node:child_process";
 import { resolve } from "node:path";
-import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  nativeImage,
+  shell,
+} from "electron";
+
+// Branding: the product name shown in the macOS menu bar, dock, and window
+// title. Set before the app is ready so it replaces Electron's default name.
+app.setName("Reviewer");
 
 const isDev = process.env["REVIEWER_DESKTOP_DEV"] === "1";
 const serverPort = Number(process.env["REVIEWER_PORT"] ?? 41811);
@@ -24,6 +35,15 @@ const spaUrl = process.env["REVIEWER_DEV_URL"] ?? "http://localhost:41812";
 
 // packages/desktop/dist/main.js → repository root.
 const repoRoot = resolve(__dirname, "..", "..", "..");
+
+// The Reviewer brand logo, used for the window and the macOS dock icon so the
+// app no longer shows Electron's default icon. This is the dock-grid variant:
+// the artwork sits inside ~80% of the tile with transparent margin, so macOS
+// renders it at the same size as other dock icons rather than full-bleed.
+// Resolved relative to `dist/` (../assets) so it works in packaged builds too.
+const brandIcon = nativeImage.createFromPath(
+  resolve(__dirname, "..", "assets", "reviewer-dock-icon.png"),
+);
 
 let serverProcess: ChildProcess | null = null;
 let spaProcess: ChildProcess | null = null;
@@ -114,7 +134,8 @@ async function createWindow(): Promise<void> {
     minWidth: 900,
     minHeight: 600,
     backgroundColor: "#131316",
-    title: "reviewer",
+    title: "Reviewer",
+    icon: brandIcon,
     titleBarStyle: "hiddenInset",
     webPreferences: {
       preload: resolve(__dirname, "preload.js"),
@@ -149,6 +170,11 @@ ipcMain.handle("dialog:open-directory", async (event) => {
 });
 
 app.whenReady().then(async () => {
+  // On macOS the dock icon is set at runtime; window `icon` covers the rest.
+  if (process.platform === "darwin" && !brandIcon.isEmpty()) {
+    app.dock?.setIcon(brandIcon);
+  }
+
   try {
     await ensureServer();
     await ensureSpa();
