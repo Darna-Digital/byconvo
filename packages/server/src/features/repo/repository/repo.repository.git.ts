@@ -4,18 +4,42 @@
  * shared `GitExec` service instead of spawning inline.
  */
 import * as Effect from "effect/Effect"
-import { GitExec } from "../../../layers/git/git-exec.ts"
+import * as FileSystem from "effect/FileSystem"
+import { GitExec, type GitFailure } from "../../../layers/git/git-exec.ts"
 import type {
   BranchInfo,
   CommitDetail,
   CommitFileChange,
   CommitInfo,
+  ConflictedFile,
+  ConflictKind,
   GitFileStatus,
   GitStatusEntry,
+  MergeState,
   RemoteBranchInfo,
   RepoStatus,
 } from "../schema/repo.schema.model.ts"
 import type { RepoRepo } from "./repo.repository.ts"
+
+/** Map a porcelain v2 unmerged `XY` field to a conflict kind. */
+const conflictKindFromXY = (xy: string): ConflictKind => {
+  switch (xy) {
+    case "DD":
+      return "both-deleted"
+    case "AU":
+      return "added-by-us"
+    case "UD":
+      return "deleted-by-them"
+    case "UA":
+      return "added-by-them"
+    case "DU":
+      return "deleted-by-us"
+    case "AA":
+      return "both-added"
+    default:
+      return "both-modified"
+  }
+}
 
 const parseStatusLine = (line: string): GitStatusEntry | null => {
   if (line.length < 4) return null
@@ -137,6 +161,7 @@ const emptyStatus: RepoStatus = {
 
 export const makeGitRepoRepository = Effect.gen(function* () {
   const git = yield* GitExec
+  const fs = yield* FileSystem.FileSystem
   const { lines, run, runVerbose } = git
 
   const info: RepoRepo["info"] = Effect.gen(function* () {
@@ -167,7 +192,10 @@ export const makeGitRepoRepository = Effect.gen(function* () {
     const gitStatus = statusLines
       .map(parseStatusLine)
       .filter((entry): entry is GitStatusEntry => entry !== null)
-    return { paths: [...tracked, ...untracked], gitStatus }
+    // `git ls-files` lists an unmerged (conflicted) file once per index stage,
+    // so dedupe before the tree consumes these — it requires unique paths.
+    const paths = [...new Set([...tracked, ...untracked])]
+    return { paths, gitStatus }
   })
 
   const status: RepoRepo["status"] = run(
@@ -422,8 +450,189 @@ export const makeGitRepoRepository = Effect.gen(function* () {
 
   const pull: RepoRepo["pull"] = runVerbose("pull", "--no-rebase")
   const fetch: RepoRepo["fetch"] = runVerbose("fetch", "--all", "--prune")
-  const merge: RepoRepo["merge"] = (branch) => runVerbose("merge", branch)
-  const rebase: RepoRepo["rebase"] = (onto) => runVerbose("rebase", onto)
+
+  // A conflict is an expected outcome, not an error: if the command left an
+  // operation mid-flight, succeed with its message so the UI can show the
+  // conflict banner; otherwise (bad ref, etc.) re-fail as before.
+  const softOp = (op: Effect.Effect<string, GitFailure>) =>
+    op.pipe(
+      Effect.catchTag("GitError", (error) =>
+        mergeState.pipe(
+          Effect.flatMap((state) =>
+            state.operation === "none"
+              ? Effect.fail(error)
+              : Effect.succeed(error.stderr.trim() || error.message)
+          )
+        )
+      )
+    )
+
+  const merge: RepoRepo["merge"] = (branch) =>
+    softOp(runVerbose("merge", branch))
+  const rebase: RepoRepo["rebase"] = (onto) => softOp(runVerbose("rebase", onto))
+
+  // --- conflicts -------------------------------------------------------------
+  const gitDir = Effect.map(run("rev-parse", "--absolute-git-dir"), (out) =>
+    out.trim()
+  )
+  const exists = (path: string) =>
+    fs.exists(path).pipe(Effect.catch(() => Effect.succeed(false)))
+  const readTrim = (path: string) =>
+    fs
+      .readFileString(path)
+      .pipe(
+        Effect.map((s) => s.trim()),
+        Effect.catch(() => Effect.succeed<string | null>(null))
+      )
+  /** A friendly name for a ref/commit, falling back to its short sha. */
+  const nameRev = (ref: string) =>
+    run("name-rev", "--name-only", "--no-undefined", ref).pipe(
+      Effect.map((out) => out.trim()),
+      Effect.flatMap((name) =>
+        name.length > 0
+          ? Effect.succeed(name)
+          : Effect.map(run("rev-parse", "--short", ref), (s) => s.trim())
+      ),
+      Effect.catchTag("GitError", () =>
+        Effect.map(run("rev-parse", "--short", ref), (s) => s.trim()).pipe(
+          Effect.catchTag("GitError", () => Effect.succeed(ref))
+        )
+      )
+    )
+
+  const conflictedFiles: Effect.Effect<
+    ReadonlyArray<ConflictedFile>,
+    GitFailure
+  > = run("status", "--porcelain=2", "--untracked-files=no").pipe(
+    Effect.map((out) =>
+      out
+        .split("\n")
+        .filter((line) => line.startsWith("u "))
+        .flatMap((line): Array<ConflictedFile> => {
+          // u <XY> <sub> <m1> <m2> <m3> <mW> <h1> <h2> <h3> <path>
+          // 9 space-separated fields precede the (possibly space-containing) path.
+          const fields = line.slice(2).split(" ")
+          const xy = fields[0] ?? ""
+          const path = fields.slice(9).join(" ")
+          return path.length === 0
+            ? []
+            : [{ path, kind: conflictKindFromXY(xy) }]
+        })
+    )
+  )
+
+  const mergeState: RepoRepo["mergeState"] = Effect.gen(function* () {
+    const dir = yield* gitDir
+    const conflicted = yield* conflictedFiles
+    const none: MergeState = {
+      operation: "none",
+      incoming: null,
+      onto: null,
+      conflicted,
+    }
+
+    if (yield* exists(`${dir}/MERGE_HEAD`)) {
+      const msg = yield* readTrim(`${dir}/MERGE_MSG`)
+      const quoted = msg?.match(/'([^']+)'/)?.[1]
+      const incoming = quoted ?? (yield* nameRev("MERGE_HEAD"))
+      const onto = yield* run("rev-parse", "--abbrev-ref", "HEAD").pipe(
+        Effect.map((s) => s.trim()),
+        Effect.catchTag("GitError", () => Effect.succeed(""))
+      )
+      return { ...none, operation: "merge", incoming, onto: onto || null }
+    }
+
+    const rebaseMerge = yield* exists(`${dir}/rebase-merge`)
+    const rebaseApply = yield* exists(`${dir}/rebase-apply`)
+    if (rebaseMerge || rebaseApply) {
+      const base = `${dir}/${rebaseMerge ? "rebase-merge" : "rebase-apply"}`
+      const headName = yield* readTrim(`${base}/head-name`)
+      const ontoSha = yield* readTrim(`${base}/onto`)
+      const incoming = headName?.replace(/^refs\/heads\//, "") ?? null
+      const onto: string | null =
+        ontoSha === null || ontoSha.length === 0
+          ? null
+          : yield* nameRev(ontoSha)
+      return { ...none, operation: "rebase", incoming, onto }
+    }
+
+    if (yield* exists(`${dir}/CHERRY_PICK_HEAD`)) {
+      const incoming = yield* nameRev("CHERRY_PICK_HEAD")
+      return { ...none, operation: "cherry-pick", incoming }
+    }
+
+    if (yield* exists(`${dir}/REVERT_HEAD`)) {
+      const incoming = yield* nameRev("REVERT_HEAD")
+      return { ...none, operation: "revert", incoming }
+    }
+
+    return none
+  })
+
+  const showStage = (stage: 1 | 2 | 3, path: string) =>
+    run("show", `:${stage}:${path}`).pipe(
+      Effect.catchTag("GitError", () => Effect.succeed(""))
+    )
+
+  const conflictBlobs: RepoRepo["conflictBlobs"] = (path) =>
+    Effect.gen(function* () {
+      const [base, ours, theirs] = yield* Effect.all(
+        [showStage(1, path), showStage(2, path), showStage(3, path)],
+        { concurrency: "unbounded" }
+      )
+      return { path, base: base.length === 0 ? null : base, ours, theirs }
+    })
+
+  const resolveConflict: RepoRepo["resolveConflict"] = (path, resolution) =>
+    Effect.gen(function* () {
+      if (resolution !== "content") {
+        // The chosen side may not exist (e.g. a deletion) — ignore that and let
+        // `git add -A` record whatever the checkout produced on disk.
+        yield* run(
+          "checkout",
+          resolution === "ours" ? "--ours" : "--theirs",
+          "--",
+          path
+        ).pipe(Effect.catchTag("GitError", () => Effect.void))
+      }
+      // `-A` so a path the user deleted to resolve the conflict stages as a
+      // deletion rather than failing with "did not match any files".
+      yield* run("add", "-A", "--", path).pipe(Effect.asVoid)
+    })
+
+  const abortMerge: RepoRepo["abortMerge"] = mergeState.pipe(
+    Effect.flatMap((state) => {
+      switch (state.operation) {
+        case "rebase":
+          return runVerbose("rebase", "--abort")
+        case "cherry-pick":
+          return runVerbose("cherry-pick", "--abort")
+        case "revert":
+          return runVerbose("revert", "--abort")
+        case "merge":
+          return runVerbose("merge", "--abort")
+        case "none":
+          return Effect.succeed("Nothing to abort")
+      }
+    })
+  )
+
+  const continueMerge: RepoRepo["continueMerge"] = mergeState.pipe(
+    Effect.flatMap((state) => {
+      // `-c core.editor=true` keeps the prepared message and never blocks on an
+      // interactive editor.
+      switch (state.operation) {
+        case "rebase":
+          return runVerbose("-c", "core.editor=true", "rebase", "--continue")
+        case "merge":
+        case "cherry-pick":
+        case "revert":
+          return runVerbose("-c", "core.editor=true", "commit", "--no-edit")
+        case "none":
+          return Effect.succeed("Nothing to continue")
+      }
+    })
+  )
 
   const renameBranch: RepoRepo["renameBranch"] = (from, to) =>
     run("branch", "-m", from, to).pipe(Effect.asVoid)
@@ -450,6 +659,11 @@ export const makeGitRepoRepository = Effect.gen(function* () {
     fetch,
     merge,
     rebase,
+    mergeState,
+    conflictBlobs,
+    resolveConflict,
+    abortMerge,
+    continueMerge,
     renameBranch,
     deleteBranch,
   } satisfies RepoRepo

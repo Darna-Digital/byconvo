@@ -3,7 +3,9 @@ import * as Effect from "effect/Effect"
 import type {
   BranchInfo,
   CommitInfo,
+  ConflictBlobs,
   FilesPayload,
+  MergeState,
   RepoInfo,
   RepoStatus,
 } from "../schema/repo.schema.model.ts"
@@ -16,6 +18,8 @@ export interface MemoryRepoSeed {
   readonly branches?: ReadonlyArray<BranchInfo>
   readonly commits?: ReadonlyArray<CommitInfo>
   readonly diff?: string
+  readonly mergeState?: MergeState
+  readonly conflictBlobs?: ConflictBlobs
 }
 
 const defaultInfo: RepoInfo = {
@@ -74,6 +78,21 @@ export const makeMemoryRepoRepository = (seed: MemoryRepoSeed = {}) =>
       fetch: Effect.succeed("fetched"),
       merge: () => Effect.succeed("merged"),
       rebase: () => Effect.succeed("rebased"),
+      mergeState: Effect.succeed(
+        seed.mergeState ?? {
+          operation: "none",
+          incoming: null,
+          onto: null,
+          conflicted: [],
+        }
+      ),
+      conflictBlobs: (path) =>
+        Effect.succeed(
+          seed.conflictBlobs ?? { path, base: null, ours: "", theirs: "" }
+        ),
+      resolveConflict: () => Effect.void,
+      abortMerge: Effect.succeed("aborted"),
+      continueMerge: Effect.succeed("continued"),
       renameBranch: () => Effect.void,
       deleteBranch: () => Effect.void,
     }

@@ -93,4 +93,64 @@ describe("RepoService", () => {
       expect(sha).toBe("newsha1")
     }).pipe(Effect.provide(RepoMemory()))
   )
+
+  it.effect("mergeState defaults to no operation in progress", () =>
+    Effect.gen(function* () {
+      const repo = yield* RepoService
+      const state = yield* repo.mergeState
+      expect(state.operation).toBe("none")
+      expect(state.conflicted).toEqual([])
+    }).pipe(Effect.provide(RepoMemory()))
+  )
+
+  it.effect("mergeState surfaces the seeded operation and conflicts", () =>
+    Effect.gen(function* () {
+      const repo = yield* RepoService
+      const state = yield* repo.mergeState
+      expect(state.operation).toBe("rebase")
+      expect(state.incoming).toBe("feature")
+      expect(state.conflicted.map((c) => c.path)).toEqual(["src/app.ts"])
+      expect(state.conflicted[0]?.kind).toBe("both-modified")
+    }).pipe(
+      Effect.provide(
+        RepoMemory({
+          mergeState: {
+            operation: "rebase",
+            incoming: "feature",
+            onto: "main",
+            conflicted: [{ path: "src/app.ts", kind: "both-modified" }],
+          },
+        })
+      )
+    )
+  )
+
+  it.effect("conflictBlobs returns the seeded index stages", () =>
+    Effect.gen(function* () {
+      const repo = yield* RepoService
+      const blobs = yield* repo.conflictBlobs("src/app.ts")
+      expect(blobs.ours).toBe("ours")
+      expect(blobs.theirs).toBe("theirs")
+    }).pipe(
+      Effect.provide(
+        RepoMemory({
+          conflictBlobs: {
+            path: "src/app.ts",
+            base: "base",
+            ours: "ours",
+            theirs: "theirs",
+          },
+        })
+      )
+    )
+  )
+
+  it.effect("abort and continue return command output", () =>
+    Effect.gen(function* () {
+      const repo = yield* RepoService
+      expect(yield* repo.abortMerge).toBe("aborted")
+      expect(yield* repo.continueMerge).toBe("continued")
+      yield* repo.resolveConflict("src/app.ts", "ours")
+    }).pipe(Effect.provide(RepoMemory()))
+  )
 })

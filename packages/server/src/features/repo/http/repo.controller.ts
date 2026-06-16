@@ -78,6 +78,25 @@ export const RepoController = HttpApiBuilder.group(Api, "repo", (handlers) =>
         Effect.map((output) => ({ output }))
       )
     )
+    .handle("mergeState", () => Effect.flatMap(RepoService, (s) => s.mergeState))
+    .handle("conflict", ({ query }) =>
+      Effect.flatMap(RepoService, (s) => s.conflictBlobs(query.path))
+    )
+    .handle("resolveConflict", ({ payload }) =>
+      Effect.flatMap(RepoService, (s) =>
+        s.resolveConflict(payload.path, payload.resolution)
+      ).pipe(Effect.as(ok))
+    )
+    .handle("abortMerge", () =>
+      Effect.flatMap(RepoService, (s) => s.abortMerge).pipe(
+        Effect.map((output) => ({ output }))
+      )
+    )
+    .handle("continueMerge", () =>
+      Effect.flatMap(RepoService, (s) => s.continueMerge).pipe(
+        Effect.map((output) => ({ output }))
+      )
+    )
     .handle("createBranch", ({ payload }) =>
       Effect.flatMap(RepoService, (s) =>
         s.createBranch(payload.name, payload.startPoint ?? null)

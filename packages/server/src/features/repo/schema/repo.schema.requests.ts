@@ -33,6 +33,18 @@ export const CommitBody = Schema.Struct({
 export const Merge = Schema.Struct({ branch: Schema.String })
 export const Rebase = Schema.Struct({ onto: Schema.String })
 
+/** Selects a conflicted file (query param for fetching its index stages). */
+export const ConflictParam = Schema.Struct({ path: Schema.String })
+
+/**
+ * Resolve a conflicted file. `ours`/`theirs` check out that side; `content`
+ * stages whatever the client has already written to disk (see PUT /api/file).
+ */
+export const ResolveConflict = Schema.Struct({
+  path: Schema.String,
+  resolution: Schema.Literals(["ours", "theirs", "content"]),
+})
+
 export const CreateBranch = Schema.Struct({
   name: Schema.String,
   startPoint: Schema.optionalKey(Schema.String),

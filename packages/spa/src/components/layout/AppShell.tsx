@@ -32,6 +32,8 @@ import { RepoList } from "@/components/RepoList"
 import { DiffPane, type DraftLocation } from "@/components/diff/DiffPane"
 import { CodeEditor } from "@/components/editor/CodeEditor"
 import { CodeView } from "@/components/editor/CodeView"
+import { ConflictBanner } from "@/components/git/ConflictBanner"
+import { ConflictView } from "@/components/git/ConflictView"
 import { BottomPanel } from "@/components/layout/BottomPanel"
 import { ModeRail } from "@/components/layout/ModeRail"
 import { ResizeHandle } from "@/components/layout/ResizeHandle"
@@ -55,6 +57,7 @@ import {
   useDiffText,
   useFiles,
   useLog,
+  useMergeState,
   usePullComments,
   usePulls,
   useRemoteBranches,
@@ -113,6 +116,12 @@ export function AppShell() {
   )
   const hasGitHub = repo.data?.github != null
   const pulls = usePulls(hasGitHub)
+  // The in-progress merge/rebase, if any — drives the conflict banner + resolver.
+  const mergeState = useMergeState()
+  const conflictedPaths = useMemo(
+    () => (mergeState.data?.conflicted ?? []).map((c) => c.path),
+    [mergeState.data]
+  )
   const [logFilters, setLogFilters] = useState<LogQuery>(emptyLogQuery)
   // The branch whose history the bottom panel shows; falls back to HEAD.
   const [logRef, setLogRef] = useState<string | null>(null)
@@ -227,6 +236,18 @@ export function AppShell() {
   const openFile = (path: string, edit: boolean) =>
     setSearch({ file: path, edit: edit || undefined })
   const closeFile = () => setSearch({ file: undefined, edit: undefined })
+
+  // --- conflict resolution ---------------------------------------------------
+  const openConflict = (path: string) =>
+    setSearch({ path, file: undefined, edit: undefined })
+  const resolveConflictSide = async (path: string, side: "ours" | "theirs") => {
+    await git.resolveConflict(path, side)
+    if (search.path === path) setSearch({ path: undefined })
+  }
+  const resolveConflictContent = async (path: string, merged: string) => {
+    await git.resolveConflictWithContent(path, merged)
+    if (search.path === path) setSearch({ path: undefined })
+  }
 
   const onFileSelect = (path: string | null) => {
     if (path === null) return
@@ -480,6 +501,24 @@ export function AppShell() {
         />
       )
     }
+    if (
+      mode === "commit" &&
+      search.path != null &&
+      conflictedPaths.includes(search.path)
+    ) {
+      return (
+        <ConflictView
+          path={search.path}
+          theme={prefs.resolvedTheme}
+          onUseSide={(side) => void resolveConflictSide(search.path!, side)}
+          onResolve={(merged) =>
+            void resolveConflictContent(search.path!, merged)
+          }
+          onEdit={(p) => openFile(p, true)}
+          onClose={() => setSearch({ path: undefined })}
+        />
+      )
+    }
     if (target === null) {
       return (
         <div className="flex h-full flex-col items-center justify-center gap-1 text-sm">
@@ -622,8 +661,21 @@ export function AppShell() {
               onResizeEnd={(w) => setUiPrefs({ sidebarWidth: w })}
               label="Resize sidebar"
             />
-            <main className="min-w-0 flex-1 overflow-hidden">
-              {renderCenter()}
+            <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+              {mode === "commit" &&
+                mergeState.data != null &&
+                mergeState.data.operation !== "none" && (
+                  <ConflictBanner
+                    state={mergeState.data}
+                    selectedPath={search.path ?? null}
+                    onSelectFile={openConflict}
+                    onAbort={() => void git.abortMerge()}
+                    onContinue={() => void git.continueMerge()}
+                  />
+                )}
+              <div className="min-h-0 flex-1 overflow-hidden">
+                {renderCenter()}
+              </div>
             </main>
           </div>
           {prefs.bottomVisible && (

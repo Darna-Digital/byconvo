@@ -8,8 +8,10 @@ import {
   CommitDetail,
   CommitInfo,
   CommitResult,
+  ConflictBlobs,
   DiffText,
   FilesPayload,
+  MergeState,
   Ok,
   RemoteBranchInfo,
   RepoInfo,
@@ -19,6 +21,7 @@ import {
   Checkout,
   CommitBody,
   CommitParam,
+  ConflictParam,
   CreateBranch,
   DeleteBranch,
   DiffQuery,
@@ -26,6 +29,7 @@ import {
   Merge,
   Rebase,
   RenameBranch,
+  ResolveConflict,
 } from "../schema/repo.schema.requests.ts"
 
 const gitError = [GitError, NoRepoSelected] as const
@@ -121,6 +125,38 @@ export class RepoApi extends HttpApiGroup.make("repo")
   .add(
     HttpApiEndpoint.post("rebase", "/rebase", {
       payload: Rebase,
+      success: CommandOutput,
+      error: gitError,
+    })
+  )
+  .add(
+    HttpApiEndpoint.get("mergeState", "/merge-state", {
+      success: MergeState,
+      error: gitError,
+    })
+  )
+  .add(
+    HttpApiEndpoint.get("conflict", "/conflict", {
+      query: ConflictParam,
+      success: ConflictBlobs,
+      error: gitError,
+    })
+  )
+  .add(
+    HttpApiEndpoint.post("resolveConflict", "/conflicts/resolve", {
+      payload: ResolveConflict,
+      success: Ok,
+      error: gitError,
+    })
+  )
+  .add(
+    HttpApiEndpoint.post("abortMerge", "/merge/abort", {
+      success: CommandOutput,
+      error: gitError,
+    })
+  )
+  .add(
+    HttpApiEndpoint.post("continueMerge", "/merge/continue", {
       success: CommandOutput,
       error: gitError,
     })
