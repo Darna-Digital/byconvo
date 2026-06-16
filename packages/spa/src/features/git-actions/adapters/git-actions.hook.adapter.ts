@@ -60,6 +60,27 @@ export function useGitActions() {
   return {
     commitChanges: fns.commitChanges,
 
+    /**
+     * Ask the local Claude Code CLI (Haiku) to draft a commit message for the
+     * selected paths. Returns the message, or null when generation failed (the
+     * error is surfaced as a toast so callers can simply ignore the null).
+     */
+    generateCommitMessage: async (
+      paths: ReadonlyArray<string>
+    ): Promise<string | null> => {
+      try {
+        const { message } = await unwrap(
+          fetchClient.POST("/api/git-message/generate", {
+            body: { paths: [...paths] },
+          })
+        )
+        return message
+      } catch (cause) {
+        notify("err", errorText(cause))
+        return null
+      }
+    },
+
     checkout: (branch: string) =>
       fns.runOp(`Checked out ${branch}`, () =>
         unwrap(fetchClient.POST("/api/checkout", { body: { branch } }))

@@ -14,6 +14,8 @@ export const useBranches = () => api.useQuery("get", "/api/branches")
 export const useRemoteBranches = () =>
   api.useQuery("get", "/api/remote-branches")
 export const useComments = () => api.useQuery("get", "/api/comments")
+export const useCommitPrefixes = () =>
+  api.useQuery("get", "/api/git-message/prefixes")
 
 /** The in-progress merge/rebase operation and its remaining conflicts. */
 export const useMergeState = () => api.useQuery("get", "/api/merge-state")

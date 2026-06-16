@@ -1,12 +1,12 @@
-import { useMemo, useState } from "react"
-import { IconLoader } from "@tabler/icons-react"
+import { IconLoader2, IconSparkles } from "@tabler/icons-react"
+import { useMemo, useState, type ReactNode } from "react"
 import { ResizeHandle } from "@/components/layout/ResizeHandle"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
-import { cn } from "@/lib/utils"
 import type { GitFileStatus, GitStatusEntry } from "@/lib/api/types"
 import { setUiPrefs, useUiPrefs } from "@/lib/ui-prefs"
+import { cn } from "@/lib/utils"
 
 interface CommitPanelProps {
   changes: ReadonlyArray<GitStatusEntry>
@@ -16,6 +16,10 @@ interface CommitPanelProps {
     paths: ReadonlyArray<string>,
     andPush: boolean
   ) => Promise<unknown>
+  /** Draft a commit message for the chosen paths (local Claude Code, Haiku). */
+  onGenerate?: (paths: ReadonlyArray<string>) => Promise<string | null>
+  /** Optional control rendered beside Generate (e.g. the prefix manager). */
+  prefixSlot?: ReactNode
 }
 
 const STATUS_COLOR: Record<GitFileStatus, string> = {
@@ -36,12 +40,19 @@ const STATUS_LETTER: Record<GitFileStatus, string> = {
   ignored: "I",
 }
 
-export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
+export function CommitPanel({
+  changes,
+  busy,
+  onCommit,
+  onGenerate,
+  prefixSlot,
+}: CommitPanelProps) {
   const { commitFilesHeight, commitMessageHeight } = useUiPrefs()
   // Live heights for smooth dragging; committed back to prefs on release.
   const [filesHeight, setFilesHeight] = useState(commitFilesHeight)
   const [messageHeight, setMessageHeight] = useState(commitMessageHeight)
   const [message, setMessage] = useState("")
+  const [generating, setGenerating] = useState(false)
   // Which action is in flight, so its button can show a spinner.
   const [pending, setPending] = useState<"commit" | "push" | null>(null)
   const [selected, setSelected] = useState<Set<string>>(
@@ -73,7 +84,18 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
     })
 
   const chosen = changes.filter((c) => selected.has(c.path)).map((c) => c.path)
-  const canCommit = message.trim().length > 0 && chosen.length > 0 && !busy
+  const canCommit =
+    message.trim().length > 0 &&
+    chosen.length > 0 &&
+    !busy &&
+    !generating &&
+    pending === null
+  const canGenerate =
+    onGenerate !== undefined &&
+    chosen.length > 0 &&
+    !generating &&
+    !busy &&
+    pending === null
 
   const commit = async (andPush: boolean) => {
     if (!canCommit) return
@@ -83,6 +105,17 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
       if (ok !== false) setMessage("")
     } finally {
       setPending(null)
+    }
+  }
+
+  const generate = async () => {
+    if (!canGenerate || onGenerate === undefined) return
+    setGenerating(true)
+    try {
+      const generated = await onGenerate(chosen)
+      if (generated !== null && generated.length > 0) setMessage(generated)
+    } finally {
+      setGenerating(false)
     }
   }
 
@@ -141,19 +174,44 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
       {/* pb-2.5 vertically centres the commit button box on the rail's bottom
           icon (its hover box, not the glyph): the rail icon button is 8px off
           the viewport bottom and taller than our sm button, so matching its
-          centre — not its bottom edge — is what visually lines them up. */}
+          centre -- not its bottom edge -- is what visually lines them up. */}
       <div className="flex flex-col gap-2 border-t px-3 pt-3 pb-2.5">
-        <Textarea
-          value={message}
-          placeholder="Commit message…"
-          className="resize-none text-sm"
-          style={{ height: messageHeight }}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={(e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === "Enter")
-              void commit(false)
-          }}
-        />
+        <div className="relative">
+          <Textarea
+            value={message}
+            placeholder="Commit message..."
+            className="resize-none pr-40 text-sm"
+            style={{ height: messageHeight }}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === "Enter")
+                void commit(false)
+            }}
+          />
+          {(onGenerate !== undefined || prefixSlot !== undefined) && (
+            <div className="absolute right-1.5 bottom-1.5 flex items-center gap-1">
+              {prefixSlot}
+              {onGenerate !== undefined && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 gap-1 px-2 text-xs text-muted-foreground"
+                  disabled={!canGenerate}
+                  title="Generate a commit message with Claude (Haiku)"
+                  onClick={() => void generate()}
+                >
+                  {generating ? (
+                    <IconLoader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <IconSparkles className="size-3.5" />
+                  )}
+                  {generating ? "Generating..." : "Generate"}
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
         <div className="flex gap-2">
           <Button
             size="sm"
@@ -161,7 +219,7 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
             onClick={() => void commit(false)}
           >
             {pending === "commit" && (
-              <IconLoader className="size-4 animate-spin" />
+              <IconLoader2 className="size-4 animate-spin" />
             )}
             Commit
           </Button>
@@ -172,7 +230,7 @@ export function CommitPanel({ changes, busy, onCommit }: CommitPanelProps) {
             onClick={() => void commit(true)}
           >
             {pending === "push" && (
-              <IconLoader className="size-4 animate-spin" />
+              <IconLoader2 className="size-4 animate-spin" />
             )}
             Commit & push
           </Button>
