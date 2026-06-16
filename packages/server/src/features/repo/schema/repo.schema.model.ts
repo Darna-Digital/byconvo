@@ -115,10 +115,6 @@ export const CommandOutput = Schema.Struct({ output: Schema.String })
 /** Result of a commit — the new short sha. */
 export const CommitResult = Schema.Struct({ sha: Schema.String })
 
-/** An AI-generated commit message (from the local `claude` CLI). */
-export const GeneratedMessage = Schema.Struct({ message: Schema.String })
-export type GeneratedMessage = typeof GeneratedMessage.Type
-
 /** Raw unified diff text. */
 export const DiffText = Schema.String
 

@@ -93,14 +93,4 @@ describe("RepoService", () => {
       expect(sha).toBe("newsha1")
     }).pipe(Effect.provide(RepoMemory()))
   )
-
-  it.effect("generateCommitMessage returns the generated message", () =>
-    Effect.gen(function* () {
-      const repo = yield* RepoService
-      const message = yield* repo.generateCommitMessage([])
-      expect(message).toBe("feat: add the thing")
-    }).pipe(
-      Effect.provide(RepoMemory({ generatedMessage: "feat: add the thing" }))
-    )
-  )
 })

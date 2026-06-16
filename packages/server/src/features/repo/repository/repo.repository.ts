@@ -1,7 +1,6 @@
 /** Git repository contract — every git operation the UI needs. */
 import * as Context from "effect/Context"
 import type * as Effect from "effect/Effect"
-import type { ClaudeError } from "../../../layers/errors.ts"
 import type { GitFailure } from "../../../layers/git/git-exec.ts"
 import type {
   BranchInfo,
@@ -44,9 +43,6 @@ export interface RepoRepo {
     message: string,
     paths: ReadonlyArray<string>
   ) => Effect.Effect<string, GitFailure>
-  readonly generateCommitMessage: (
-    paths: ReadonlyArray<string>
-  ) => Effect.Effect<string, GitFailure | ClaudeError>
   readonly push: Effect.Effect<string, GitFailure>
   readonly pull: Effect.Effect<string, GitFailure>
   readonly fetch: Effect.Effect<string, GitFailure>

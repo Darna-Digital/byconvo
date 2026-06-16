@@ -19,6 +19,8 @@ import { createServer } from "node:http"
 import { Api } from "./api.ts"
 import { CommentsController } from "./features/comments/http/comments.controller.ts"
 import { CommentsLive } from "./features/comments/layer/comments.layer.live.ts"
+import { GitMessageController } from "./features/git-message/http/git-message.controller.ts"
+import { GitMessageLive } from "./features/git-message/layer/git-message.layer.live.ts"
 import { GitHubController } from "./features/github/http/github.controller.ts"
 import { GitHubLive } from "./features/github/layer/github.layer.live.ts"
 import { RepoController } from "./features/repo/http/repo.controller.ts"
@@ -52,7 +54,8 @@ const ApiLive = Layer.mergeAll(
   Layer.provide(WorkspaceController),
   Layer.provide(RepoController),
   Layer.provide(CommentsController),
-  Layer.provide(GitHubController)
+  Layer.provide(GitHubController),
+  Layer.provide(GitMessageController)
 )
 
 /** Stateless feature services, resolved per request. */
@@ -60,7 +63,8 @@ const RequestServices = Layer.mergeAll(
   WorkspaceLive,
   RepoLive,
   CommentsLive,
-  GitHubLive
+  GitHubLive,
+  GitMessageLive
 )
 
 /**

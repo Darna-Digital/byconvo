@@ -30,6 +30,8 @@ export type CommitFileChange = CommitDetail["files"][number]
 export type ReviewComment = Ok<paths["/api/comments"]["get"]>[number]
 export type CommentSide = ReviewComment["side"]
 
+export type CommitPrefix = Ok<paths["/api/git-message/prefixes"]["get"]>[number]
+
 export type PullRequestInfo = Ok<paths["/api/github/pulls"]["get"]>[number]
 
 /** Log-filter state shared by the toolbar and the route search params. */

@@ -28,6 +28,7 @@ import {
 import { useEffect, useMemo, useState } from "react"
 import { CommandMenu, type Command } from "@/components/CommandMenu"
 import { CommitPanel } from "@/components/CommitPanel"
+import { CommitPrefixDialog } from "@/components/CommitPrefixDialog"
 import { RepoList } from "@/components/RepoList"
 import { DiffPane, type DraftLocation } from "@/components/diff/DiffPane"
 import { CodeEditor } from "@/components/editor/CodeEditor"
@@ -609,6 +610,7 @@ export function AppShell() {
                       busy={false}
                       onCommit={(m, p, push) => git.commitChanges(m, p, push)}
                       onGenerate={(p) => git.generateCommitMessage(p)}
+                      prefixSlot={<CommitPrefixDialog />}
                     />
                   ) : undefined
                 }

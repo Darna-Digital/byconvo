@@ -70,7 +70,7 @@ export function useGitActions() {
     ): Promise<string | null> => {
       try {
         const { message } = await unwrap(
-          fetchClient.POST("/api/commit/generate-message", {
+          fetchClient.POST("/api/git-message/generate", {
             body: { paths: [...paths] },
           })
         )

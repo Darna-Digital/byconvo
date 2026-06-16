@@ -53,11 +53,6 @@ export const RepoController = HttpApiBuilder.group(Api, "repo", (handlers) =>
         s.commit(payload.message, payload.paths ?? [])
       ).pipe(Effect.map((sha) => ({ sha })))
     )
-    .handle("generateCommitMessage", ({ payload }) =>
-      Effect.flatMap(RepoService, (s) =>
-        s.generateCommitMessage(payload.paths ?? [])
-      ).pipe(Effect.map((message) => ({ message })))
-    )
     .handle("push", () =>
       Effect.flatMap(RepoService, (s) => s.push).pipe(
         Effect.map((output) => ({ output }))

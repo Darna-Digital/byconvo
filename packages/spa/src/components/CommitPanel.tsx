@@ -1,5 +1,5 @@
 import { IconLoader2, IconSparkles } from "@tabler/icons-react"
-import { useMemo, useState } from "react"
+import { useMemo, useState, type ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
@@ -16,6 +16,8 @@ interface CommitPanelProps {
   ) => Promise<unknown>
   /** Draft a commit message for the chosen paths (local Claude Code, Haiku). */
   onGenerate?: (paths: ReadonlyArray<string>) => Promise<string | null>
+  /** Optional control rendered beside Generate (e.g. the prefix manager). */
+  prefixSlot?: ReactNode
 }
 
 const STATUS_COLOR: Record<GitFileStatus, string> = {
@@ -41,6 +43,7 @@ export function CommitPanel({
   busy,
   onCommit,
   onGenerate,
+  prefixSlot,
 }: CommitPanelProps) {
   const [message, setMessage] = useState("")
   const [generating, setGenerating] = useState(false)
@@ -73,7 +76,8 @@ export function CommitPanel({
     })
 
   const chosen = changes.filter((c) => selected.has(c.path)).map((c) => c.path)
-  const canCommit = message.trim().length > 0 && chosen.length > 0 && !busy
+  const canCommit =
+    message.trim().length > 0 && chosen.length > 0 && !busy && !generating
   const canGenerate =
     onGenerate !== undefined && chosen.length > 0 && !generating && !busy
 
@@ -130,23 +134,28 @@ export function CommitPanel({
               void commit(false)
           }}
         />
-        {onGenerate !== undefined && (
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="absolute right-1.5 bottom-1.5 h-6 gap-1 px-2 text-xs text-muted-foreground"
-            disabled={!canGenerate}
-            title="Generate a commit message with Claude (Haiku)"
-            onClick={() => void generate()}
-          >
-            {generating ? (
-              <IconLoader2 className="size-3.5 animate-spin" />
-            ) : (
-              <IconSparkles className="size-3.5" />
+        {(onGenerate !== undefined || prefixSlot !== undefined) && (
+          <div className="absolute right-1.5 bottom-1.5 flex items-center gap-1">
+            {prefixSlot}
+            {onGenerate !== undefined && (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-6 gap-1 px-2 text-xs text-muted-foreground"
+                disabled={!canGenerate}
+                title="Generate a commit message with Claude (Haiku)"
+                onClick={() => void generate()}
+              >
+                {generating ? (
+                  <IconLoader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <IconSparkles className="size-3.5" />
+                )}
+                {generating ? "Generating…" : "Generate"}
+              </Button>
             )}
-            {generating ? "Generating…" : "Generate"}
-          </Button>
+          </div>
         )}
       </div>
       <div className="flex gap-2">
