@@ -104,7 +104,6 @@ export function TopBar(props: TopBarProps) {
     repo,
     branches,
     remoteBranches,
-    contextLabel,
     diffStyle,
     showDiffStyleToggle,
     busy,
