@@ -157,10 +157,6 @@ export function TopBar(props: TopBarProps) {
         </div>
       )}
 
-      <span className="ml-1 truncate text-sm text-muted-foreground">
-        {contextLabel}
-      </span>
-
       <div className="ml-auto flex items-center gap-1 [-webkit-app-region:no-drag]">
         {showDiffStyleToggle && (
           <div className="flex items-center rounded-md border p-0.5">
