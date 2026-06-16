@@ -134,7 +134,6 @@ export function CodeView({
             themeType: theme,
             overflow: "wrap",
             stickyHeader: false,
-            enableLineSelection: commentsEnabled,
             enableGutterUtility: commentsEnabled,
             onGutterUtilityClick: commentsEnabled
               ? (range) =>
@@ -153,6 +152,13 @@ export function CodeView({
                   })
               : undefined,
           }}
+          selectedLines={
+            commentsEnabled
+              ? draft !== null && draft.filePath === path
+                ? { start: draft.lineNumber, end: draft.lineNumber }
+                : null
+              : undefined
+          }
           lineAnnotations={commentsEnabled ? annotations : undefined}
           renderAnnotation={
             commentsEnabled

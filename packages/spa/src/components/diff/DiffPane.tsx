@@ -1,4 +1,8 @@
-import type { DiffLineAnnotation, FileDiffMetadata } from "@pierre/diffs"
+import type {
+  DiffLineAnnotation,
+  FileDiffMetadata,
+  SelectedLineRange,
+} from "@pierre/diffs"
 import { FileDiff } from "@pierre/diffs/react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -63,6 +67,7 @@ interface FileDiffSectionProps {
   diffStyle: DiffStyle
   connectorsEnabled: boolean
   annotations: ReadonlyArray<DiffLineAnnotation<AnnotationMeta>>
+  selectedLines: SelectedLineRange | null
   onDraftOpen: (draft: DraftLocation) => void
   onDraftCancel: () => void
   onEditFile: (path: string) => void
@@ -77,6 +82,7 @@ function FileDiffSection({
   diffStyle,
   connectorsEnabled,
   annotations,
+  selectedLines,
   onDraftOpen,
   onDraftCancel,
   onEditFile,
@@ -100,6 +106,7 @@ function FileDiffSection({
       <FileDiff<AnnotationMeta>
         fileDiff={file}
         disableWorkerPool
+        selectedLines={selectedLines}
         options={{
           theme: THEMES,
           themeType: theme,
@@ -107,7 +114,6 @@ function FileDiffSection({
           lineDiffType: "word",
           overflow: diffStyle === "split" ? "scroll" : "wrap",
           stickyHeader: false,
-          enableLineSelection: true,
           enableGutterUtility: true,
           unsafeCSS: connectorsEnabled ? connectorGutterCSS : undefined,
           onPostRender: connectorsEnabled ? onPostRender : undefined,
@@ -275,6 +281,16 @@ export function DiffPane({
           diffStyle={diffStyle}
           connectorsEnabled={connectorsEnabled}
           annotations={annotationsByFile.get(file.name) ?? []}
+          selectedLines={
+            draft !== null && draft.filePath === file.name
+              ? {
+                  start: draft.lineNumber,
+                  end: draft.lineNumber,
+                  side: draft.side,
+                  endSide: draft.side,
+                }
+              : null
+          }
           onDraftOpen={onDraftOpen}
           onDraftCancel={onDraftCancel}
           onEditFile={onEditFile}
