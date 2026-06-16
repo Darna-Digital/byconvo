@@ -40,8 +40,9 @@ const repoRoot = resolve(__dirname, "..", "..", "..");
 // app no longer shows Electron's default icon. This is the dock-grid variant:
 // the artwork sits inside ~80% of the tile with transparent margin, so macOS
 // renders it at the same size as other dock icons rather than full-bleed.
+// Resolved relative to `dist/` (../assets) so it works in packaged builds too.
 const brandIcon = nativeImage.createFromPath(
-  resolve(repoRoot, "brand", "reviewer-dock-icon.png"),
+  resolve(__dirname, "..", "assets", "reviewer-dock-icon.png"),
 );
 
 let serverProcess: ChildProcess | null = null;
