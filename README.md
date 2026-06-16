@@ -1,8 +1,6 @@
 # reviewer.sh
 
-A local git review tool that works like an IDE. A JetBrains-style vertical
-tool rail on the far left switches between three modes; the center is always a
-git diff (or file), the bottom is a git panel with branches and history.
+An IDE focused on code review.
 
 ![layout](#) <!-- rail · file tree · center diff/file · bottom branches & log -->
 
