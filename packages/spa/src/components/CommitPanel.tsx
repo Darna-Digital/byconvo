@@ -180,6 +180,7 @@ export function CommitPanel({
           <Textarea
             value={message}
             placeholder="Commit message..."
+            wrap="off"
             className="resize-none pr-40 text-sm"
             style={{ height: messageHeight }}
             onChange={(e) => setMessage(e.target.value)}
