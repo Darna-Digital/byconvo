@@ -1,5 +1,5 @@
 ---
-name: implement-review-comments
+name: reviewer
 description: Fetch the local code-review comments left in the reviewer tool and implement each suggestion in the codebase, then mark it done. Use when the user asks to "apply review comments", "implement the review", "address the comments I left", or similar.
 ---
 

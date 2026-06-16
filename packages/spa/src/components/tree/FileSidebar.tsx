@@ -209,7 +209,7 @@ export function FileSidebar({
           </span>
         )}
       </div>
-      <div className="-mx-4 min-h-0 flex-1 overflow-auto">
+      <div className="-mx-2 mt-2 min-h-0 flex-1 overflow-auto">
         <FileTree
           model={model}
           renderContextMenu={renderContextMenu}
