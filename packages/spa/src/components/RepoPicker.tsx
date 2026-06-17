@@ -4,6 +4,7 @@ import {
   IconArrowUp,
   IconChevronDown,
   IconFolder,
+  IconFolderOpen,
   IconGitBranch,
 } from "@tabler/icons-react"
 import { useState } from "react"
@@ -15,6 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { isDesktop, openDesktopDirectory } from "@/lib/desktop"
 import { repoAvatar } from "@/lib/repo-avatar"
 import type { RepoInfo, WorkspaceInfo } from "@/lib/api/types"
 
@@ -62,21 +64,34 @@ export function RepoPicker({
   )
 
   const choose = async (target: string) => {
-    const { error } = await fetchClient.POST("/api/workspace", {
+    const { data, error } = await fetchClient.POST("/api/workspace", {
       body: { path: target },
     })
     if (error) {
       toast.error(
-        (error as { reason?: string }).reason ?? "could not open repository"
+        (error as { message?: string; reason?: string }).message ??
+          (error as { reason?: string }).reason ??
+          "could not open repository"
       )
       return
     }
+    if (data !== undefined) {
+      queryClient.setQueryData(["get", "/api/workspace"], data)
+    }
     await queryClient.invalidateQueries()
     onOpenChange(false)
-    void navigate({ to: "/commit" })
+    void navigate({ to: "/commit", search: {} })
+  }
+
+  const chooseDirectory = async () => {
+    const selected = await openDesktopDirectory()
+    if (selected !== null) {
+      await choose(selected)
+    }
   }
 
   const data = browse.data
+  const entries = data?.entries ?? []
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
@@ -113,10 +128,31 @@ export function RepoPicker({
         )}
 
         <div className="p-1">
+          {isDesktop && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="mb-1 w-full justify-start gap-2"
+              onClick={() => void chooseDirectory()}
+            >
+              <IconFolderOpen className="size-4" />
+              Choose folder…
+            </Button>
+          )}
           <div className="truncate px-2 py-1 text-xs font-medium text-muted-foreground">
             {data?.path ?? "Browse…"}
           </div>
           <div className="max-h-72 overflow-auto">
+            {browse.isPending && (
+              <div className="px-2 py-2 text-sm text-muted-foreground">
+                Loading folders…
+              </div>
+            )}
+            {browse.error && (
+              <div className="px-2 py-2 text-sm text-destructive">
+                Could not read this folder.
+              </div>
+            )}
             {data?.parent != null && (
               <button
                 className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
@@ -126,7 +162,16 @@ export function RepoPicker({
                 ..
               </button>
             )}
-            {(data?.entries ?? []).map((entry) => (
+            {!browse.isPending &&
+              !browse.error &&
+              data !== undefined &&
+              data.parent == null &&
+              entries.length === 0 && (
+                <div className="px-2 py-2 text-sm text-muted-foreground">
+                  No folders found.
+                </div>
+              )}
+            {entries.map((entry) => (
               <div
                 key={entry.path}
                 className="flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted"

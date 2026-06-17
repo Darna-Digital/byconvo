@@ -9,4 +9,17 @@
  *
  * SPA-only (no SSR), so reading `window` at module load is safe.
  */
-export const isDesktop = typeof window !== "undefined" && "reviewer" in window
+type ReviewerWindow = Window & {
+  reviewer?: {
+    apiBaseUrl?: string
+    openDirectory: () => Promise<string | null>
+  }
+}
+
+export const isDesktop =
+  typeof window !== "undefined" && "reviewer" in (window as ReviewerWindow)
+
+export async function openDesktopDirectory(): Promise<string | null> {
+  if (!isDesktop) return null
+  return (window as ReviewerWindow).reviewer?.openDirectory() ?? null
+}

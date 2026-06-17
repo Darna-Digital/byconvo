@@ -78,8 +78,16 @@ const InfraLive = gitHubClientLayer.pipe(
   Layer.provide(FetchHttpClient.layer)
 )
 
+/**
+ * The packaged desktop app loads the SPA from the `reviewer://app` protocol and
+ * calls the API at `http://localhost:<port>`, so every request is cross-origin.
+ * Allow all origins — this server is local-only and never credentialed.
+ */
 const HttpLive = HttpRouter.serve(
-  ApiLive.pipe(HttpRouter.provideRequest(RequestServices))
+  Layer.mergeAll(
+    ApiLive.pipe(HttpRouter.provideRequest(RequestServices)),
+    HttpRouter.cors()
+  )
 ).pipe(
   Layer.provide(InfraLive),
   Layer.provide(NodeHttpServer.layer(createServer, { port }))

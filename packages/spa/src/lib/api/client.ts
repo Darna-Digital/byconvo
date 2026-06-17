@@ -9,7 +9,23 @@ import createFetchClient from "openapi-fetch"
 import createQueryClient from "openapi-react-query"
 import type { paths } from "./schema"
 
-/** Same-origin: the Vite dev server proxies `/api` to the reviewer server. */
-export const fetchClient = createFetchClient<paths>({ baseUrl: "" })
+type ReviewerWindow = Window & {
+  reviewer?: {
+    apiBaseUrl?: string
+  }
+}
+
+const desktopApiBaseUrl =
+  typeof window === "undefined"
+    ? undefined
+    : (window as ReviewerWindow).reviewer?.apiBaseUrl
+
+/**
+ * Browser/dev stays same-origin through Vite's proxy. Packaged Electron loads
+ * from file://, so the preload bridge supplies the local API server origin.
+ */
+export const fetchClient = createFetchClient<paths>({
+  baseUrl: desktopApiBaseUrl ?? "",
+})
 
 export const api = createQueryClient(fetchClient)

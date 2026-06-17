@@ -1,0 +1,35 @@
+appId: sh.reviewer.desktop
+productName: Reviewer
+artifactName: ${productName}-${version}-${os}-${arch}.${ext}
+asar: true
+
+directories:
+  output: dist-packaged
+
+files:
+  - from: dist
+    to: dist
+    filter:
+      - "**/*"
+  - from: assets
+    to: assets
+    filter:
+      - "**/*"
+  - from: ../spa/dist/client
+    to: renderer
+    filter:
+      - "**/*"
+  - from: ../server/dist
+    to: server
+    filter:
+      - "**/*"
+  - package.json
+
+mac:
+  category: public.app-category.developer-tools
+  identity: null
+  icon: assets/reviewer.icns
+  target:
+    - dmg
+
+publish: null

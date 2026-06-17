@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "pnpm --parallel --filter @reviewer/server --filter spa dev",
     "dev:desktop": "pnpm --parallel --filter spa --filter @reviewer/desktop dev",
-    "desktop": "pnpm --filter spa build && pnpm --filter @reviewer/desktop start",
+    "desktop": "pnpm build:desktop && pnpm --filter @reviewer/desktop start",
+    "build:desktop": "pnpm --filter @reviewer/server build:bundle && pnpm --filter spa build:desktop && pnpm --filter @reviewer/desktop build",
+    "pack:desktop": "pnpm build:desktop && pnpm --filter @reviewer/desktop run pack",
+    "dist:desktop": "pnpm build:desktop && pnpm --filter @reviewer/desktop run dist",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r --if-present lint",

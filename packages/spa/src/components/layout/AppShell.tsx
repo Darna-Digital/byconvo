@@ -19,6 +19,7 @@ import {
   IconRefresh,
   IconRepeat,
 } from "@tabler/icons-react"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   useNavigate,
   useParams,
@@ -26,6 +27,7 @@ import {
   useSearch,
 } from "@tanstack/react-router"
 import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 import { CommandMenu, type Command } from "@/components/CommandMenu"
 import { CommitPanel } from "@/components/CommitPanel"
 import { CommitPrefixDialog } from "@/components/CommitPrefixDialog"
@@ -85,6 +87,7 @@ export function AppShell() {
   const diffFns = useDiffFunctions()
   const git = useGitActions()
   const comments = useCommentsActions()
+  const queryClient = useQueryClient()
 
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const params = useParams({ strict: false })
@@ -592,13 +595,22 @@ export function AppShell() {
   }
 
   const choose = async (path: string) => {
-    const { error } = await fetchClient.POST("/api/workspace", {
+    const { data, error } = await fetchClient.POST("/api/workspace", {
       body: { path },
     })
-    if (!error) {
-      git.refresh()
-      void navigate({ to: "/commit" })
+    if (error) {
+      toast.error(
+        (error as { message?: string; reason?: string }).message ??
+          (error as { reason?: string }).reason ??
+          "could not open repository"
+      )
+      return
     }
+    if (data !== undefined) {
+      queryClient.setQueryData(["get", "/api/workspace"], data)
+    }
+    await queryClient.invalidateQueries()
+    void navigate({ to: "/commit", search: {} })
   }
 
   return (

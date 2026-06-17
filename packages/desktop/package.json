@@ -7,6 +7,8 @@
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "dev": "tsc -p tsconfig.json && REVIEWER_DESKTOP_DEV=1 electron .",
     "start": "tsc -p tsconfig.json && electron ."
@@ -14,6 +16,7 @@
   "devDependencies": {
     "@types/node": "^22.15.0",
     "electron": "^42.4.0",
+    "electron-builder": "^26.15.3",
     "typescript": "^5.8.0"
   }
 }

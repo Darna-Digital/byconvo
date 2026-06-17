@@ -7,7 +7,6 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools"
-import { Agentation } from "agentation"
 
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -67,11 +66,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         <TooltipProvider delay={300}>{children ?? <Outlet />}</TooltipProvider>
         <Toaster />
-        {/* Agentation visual-feedback toolbar (dev only). Syncs annotations to
-            the agentation-mcp HTTP server on :4747 so Claude Code can read them. */}
-        {import.meta.env.DEV && !isDesktop && (
-          <Agentation endpoint="http://localhost:4747" />
-        )}
         {/* Devtools only in the browser, not inside the Electron shell. */}
         {!isDesktop && (
           <TanStackDevtools

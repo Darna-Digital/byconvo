@@ -5,14 +5,14 @@ import { tmpdir } from "node:os"
 import { afterAll, describe, expect } from "vitest"
 import { memoryLayer } from "../../../layers/workspace/workspace-context.ts"
 import { CommentsRepository } from "./comments.repository.ts"
-import { makeSqliteCommentsRepository } from "./comments.repository.sqlite.ts"
+import { makeFileCommentsRepository } from "./comments.repository.file.ts"
 
-// A real temp repo root: the sqlite store writes `.reviewer/comments.db` here.
+// A real temp repo root: the file store writes `.reviewer/comments.json` here.
 const repoDir = mkdtempSync(`${tmpdir()}/reviewer-comments-`)
 afterAll(() => rmSync(repoDir, { recursive: true, force: true }))
 
-const SqliteRepo = Layer.effect(CommentsRepository)(
-  makeSqliteCommentsRepository
+const FileRepo = Layer.effect(CommentsRepository)(
+  makeFileCommentsRepository
 ).pipe(Layer.provide(memoryLayer(repoDir)))
 
 const input = {
@@ -24,7 +24,7 @@ const input = {
   target: "worktree",
 }
 
-describe("SqliteCommentsRepository", () => {
+describe("FileCommentsRepository", () => {
   it.effect("add stamps id + source=local and lists it back", () =>
     Effect.gen(function* () {
       const repo = yield* CommentsRepository
@@ -33,7 +33,7 @@ describe("SqliteCommentsRepository", () => {
       expect(created.id).not.toBe("")
       const all = yield* repo.list
       expect(all.map((c) => c.body)).toContain("looks good")
-    }).pipe(Effect.provide(SqliteRepo))
+    }).pipe(Effect.provide(FileRepo))
   )
 
   it.effect("remove deletes by id", () =>
@@ -43,7 +43,7 @@ describe("SqliteCommentsRepository", () => {
       yield* repo.remove(created.id)
       const remaining = yield* repo.list
       expect(remaining.map((c) => c.id)).not.toContain(created.id)
-    }).pipe(Effect.provide(SqliteRepo))
+    }).pipe(Effect.provide(FileRepo))
   )
 
   it.effect(
@@ -54,13 +54,13 @@ describe("SqliteCommentsRepository", () => {
         const created = yield* Effect.gen(function* () {
           const repo = yield* CommentsRepository
           return yield* repo.add({ ...input, body: "durable" })
-        }).pipe(Effect.provide(SqliteRepo))
+        }).pipe(Effect.provide(FileRepo))
 
         // ...and read it back through a freshly-built one (new request).
         const all = yield* Effect.gen(function* () {
           const repo = yield* CommentsRepository
           return yield* repo.list
-        }).pipe(Effect.provide(SqliteRepo))
+        }).pipe(Effect.provide(FileRepo))
 
         expect(all.map((c) => c.id)).toContain(created.id)
       })

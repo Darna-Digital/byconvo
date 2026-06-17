@@ -6,6 +6,8 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 const bridge = {
+  /** API origin used by packaged builds that load the renderer from file://. */
+  apiBaseUrl: `http://localhost:${process.env["REVIEWER_PORT"] ?? "41811"}`,
   /** Show the native folder picker; resolves to the chosen path or null. */
   openDirectory: (): Promise<string | null> =>
     ipcRenderer.invoke("dialog:open-directory"),

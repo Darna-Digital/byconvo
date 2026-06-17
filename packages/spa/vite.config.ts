@@ -5,12 +5,14 @@ import viteReact from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
 
 const SERVER_URL = process.env.REVIEWER_SERVER_URL ?? "http://localhost:41811"
+const isProduction = process.env.NODE_ENV === "production"
 
 const config = defineConfig({
+  base: isProduction ? "./" : "/",
   resolve: { tsconfigPaths: true },
   // No SSR — reviewer is a local single-page app served behind the API server.
   plugins: [
-    devtools(),
+    ...(!isProduction ? [devtools()] : []),
     tailwindcss(),
     tanstackStart({ spa: { enabled: true } }),
     viteReact(),

@@ -1,7 +1,7 @@
 /**
  * File-backed commit-prefix store — persists the user's prefixes globally to
  * `~/.reviewer/prefixes.json` (the same dir as the workspace state, so they
- * follow the user across repositories). Mirrors the comments sqlite store:
+ * follow the user across repositories). Mirrors the comments file store:
  * synchronous node:fs calls wrapped in `Effect.try` → `StorageError`.
  */
 import * as Effect from "effect/Effect"

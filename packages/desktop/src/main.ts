@@ -4,23 +4,37 @@
  * Wraps the SPA in a native window. The app is self-contained: it makes sure
  * the API server is running (spawning it if necessary) and then loads the SPA.
  *
- * - Dev   (`REVIEWER_DESKTOP_DEV=1`): loads the Vite dev server (which proxies
- *   `/api` to the server) and spawns the server via
- *   `pnpm --filter @reviewer/server start` if nothing answers on the API port
- *   yet.
- * - Prod: spawns the server and loads the SPA's `vite preview` server, which
- *   serves the built SPA and proxies `/api` to the server.
+ * - Dev (`REVIEWER_DESKTOP_DEV=1`): loads the Vite dev server and spawns the
+ *   server through pnpm if nothing answers on the API port yet.
+ * - Prod/local package test: runs the bundled server and loads the built SPA
+ *   from disk. No pnpm, tsx, or Vite server is required at runtime.
  */
 import { type ChildProcess, spawn } from "node:child_process";
-import { resolve } from "node:path";
+import { existsSync, statSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import {
   app,
   BrowserWindow,
   dialog,
   ipcMain,
+  net,
   nativeImage,
+  protocol,
   shell,
 } from "electron";
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "reviewer",
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+    },
+  },
+]);
 
 // Branding: the product name shown in the macOS menu bar, dock, and window
 // title. Set before the app is ready so it replaces Electron's default name.
@@ -29,12 +43,19 @@ app.setName("Reviewer");
 const isDev = process.env["REVIEWER_DESKTOP_DEV"] === "1";
 const serverPort = Number(process.env["REVIEWER_PORT"] ?? 41811);
 const serverUrl = `http://localhost:${serverPort}`;
-// The Vite dev server (dev) and `vite preview` server (prod) both default to
-// 41812 and proxy `/api` to the server, so the SPA is loaded same-origin.
 const spaUrl = process.env["REVIEWER_DEV_URL"] ?? "http://localhost:41812";
 
 // packages/desktop/dist/main.js → repository root.
 const repoRoot = resolve(__dirname, "..", "..", "..");
+const packagedAppRoot = resolve(__dirname, "..");
+const rendererRoot = app.isPackaged
+  ? join(packagedAppRoot, "renderer")
+  : resolve(repoRoot, "packages", "spa", "dist", "client");
+const rendererIndex = join(rendererRoot, "_shell.html");
+const bundledServerEntry = app.isPackaged
+  ? join(packagedAppRoot, "server", "main.cjs")
+  : resolve(repoRoot, "packages", "server", "dist", "main.cjs");
+const pnpmBin = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 
 // The Reviewer brand logo, used for the window and the macOS dock icon so the
 // app no longer shows Electron's default icon. This is the dock-grid variant:
@@ -46,7 +67,6 @@ const brandIcon = nativeImage.createFromPath(
 );
 
 let serverProcess: ChildProcess | null = null;
-let spaProcess: ChildProcess | null = null;
 
 const sleep = (ms: number) => new Promise((done) => setTimeout(done, ms));
 
@@ -85,12 +105,23 @@ async function isReachable(url: string): Promise<boolean> {
 async function ensureServer(): Promise<void> {
   if (await isReachable(`${serverUrl}/api/workspace`)) return;
 
-  serverProcess = spawn("pnpm", ["--filter", "@reviewer/server", "start"], {
-    cwd: repoRoot,
-    env: { ...process.env, REVIEWER_PORT: String(serverPort) },
-    stdio: "inherit",
-    shell: true,
-  });
+  const serverCwd = app.isPackaged ? app.getPath("home") : repoRoot;
+
+  serverProcess = isDev
+    ? spawn(pnpmBin, ["--filter", "@reviewer/server", "start"], {
+        cwd: serverCwd,
+        env: { ...process.env, REVIEWER_PORT: String(serverPort) },
+        stdio: "inherit",
+      })
+    : spawn(process.execPath, [bundledServerEntry], {
+        cwd: serverCwd,
+        env: {
+          ...process.env,
+          ELECTRON_RUN_AS_NODE: "1",
+          REVIEWER_PORT: String(serverPort),
+        },
+        stdio: "inherit",
+      });
 
   serverProcess.on("exit", (code) => {
     if (code !== 0 && code !== null) {
@@ -101,30 +132,21 @@ async function ensureServer(): Promise<void> {
   await waitForUrl(`${serverUrl}/api/workspace`, 20_000);
 }
 
-/**
- * Ensure the SPA is being served. In dev the Vite dev server is started
- * externally (by `dev:desktop`); in prod we spawn `vite preview` to serve the
- * built SPA. Either way the SPA proxies `/api` to the server.
- */
-async function ensureSpa(): Promise<void> {
-  if (await isReachable(spaUrl)) return;
+function registerRendererProtocol(): void {
+  protocol.handle("reviewer", (request) => {
+    const url = new URL(request.url);
+    const pathname = decodeURIComponent(url.pathname);
+    const candidate =
+      pathname === "/" ? rendererIndex : resolve(rendererRoot, `.${pathname}`);
+    const filePath =
+      candidate.startsWith(rendererRoot) &&
+      existsSync(candidate) &&
+      statSync(candidate).isFile()
+        ? candidate
+        : rendererIndex;
 
-  if (!isDev) {
-    spaProcess = spawn("pnpm", ["--filter", "spa", "preview"], {
-      cwd: repoRoot,
-      env: { ...process.env, REVIEWER_SERVER_URL: serverUrl },
-      stdio: "inherit",
-      shell: true,
-    });
-
-    spaProcess.on("exit", (code) => {
-      if (code !== 0 && code !== null) {
-        console.error(`spa exited with code ${code}`);
-      }
-    });
-  }
-
-  await waitForUrl(spaUrl, 30_000);
+    return net.fetch(pathToFileURL(filePath).toString());
+  });
 }
 
 async function createWindow(): Promise<void> {
@@ -153,7 +175,12 @@ async function createWindow(): Promise<void> {
     return { action: "deny" };
   });
 
-  await window.loadURL(spaUrl);
+  if (isDev) {
+    await waitForUrl(spaUrl, 30_000);
+    await window.loadURL(spaUrl);
+  } else {
+    await window.loadURL("reviewer://app/");
+  }
 }
 
 // Native folder picker, invoked from the renderer through the preload bridge.
@@ -173,6 +200,8 @@ ipcMain.handle("dialog:open-directory", async (event) => {
 });
 
 app.whenReady().then(async () => {
+  if (!isDev) registerRendererProtocol();
+
   // On macOS the dock icon is set at runtime; window `icon` covers the rest.
   if (process.platform === "darwin" && !brandIcon.isEmpty()) {
     app.dock?.setIcon(brandIcon);
@@ -180,7 +209,6 @@ app.whenReady().then(async () => {
 
   try {
     await ensureServer();
-    await ensureSpa();
     await createWindow();
   } catch (cause) {
     console.error("failed to start reviewer desktop:", cause);
@@ -199,5 +227,4 @@ app.on("window-all-closed", () => {
 // Only tear down child processes this app started.
 app.on("quit", () => {
   if (serverProcess !== null) serverProcess.kill();
-  if (spaProcess !== null) spaProcess.kill();
 });

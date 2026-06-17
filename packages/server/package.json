@@ -8,6 +8,7 @@
     "dev": "tsx watch src/main.ts",
     "start": "tsx src/main.ts",
     "build": "tsc -p tsconfig.json --noEmit",
+    "build:bundle": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=cjs --outfile=dist/main.cjs --sourcemap",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -17,14 +18,13 @@
   },
   "dependencies": {
     "@effect/platform-node": "4.0.0-beta.74",
-    "better-sqlite3": "^12.10.0",
     "effect": "4.0.0-beta.74"
   },
   "devDependencies": {
     "@effect/vitest": "4.0.0-beta.74",
     "@reviewer/lint": "workspace:*",
-    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.15.0",
+    "esbuild": "^0.28.1",
     "eslint": "^9",
     "prettier": "^3.8.3",
     "tsx": "^4.19.0",
