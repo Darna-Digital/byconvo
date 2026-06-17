@@ -202,8 +202,11 @@ ipcMain.handle("dialog:open-directory", async (event) => {
 app.whenReady().then(async () => {
   if (!isDev) registerRendererProtocol();
 
-  // On macOS the dock icon is set at runtime; window `icon` covers the rest.
-  if (process.platform === "darwin" && !brandIcon.isEmpty()) {
+  // Packaged builds get their dock icon from the bundle `.icns` (CFBundleIconFile),
+  // which macOS renders identically whether the app is running or not. A runtime
+  // `dock.setIcon` override is drawn full-bleed instead — losing the grid margin —
+  // so we only set it in dev, where there is no bundle icon to fall back on.
+  if (isDev && process.platform === "darwin" && !brandIcon.isEmpty()) {
     app.dock?.setIcon(brandIcon);
   }
 
