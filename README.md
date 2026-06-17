@@ -1,6 +1,6 @@
 # reviewer.sh
 
-A GUI for git operartions.
+A minimal GUI for git operartions.
 
 As more code is written by agents, we spend more time reviewing code than writing it.
 
