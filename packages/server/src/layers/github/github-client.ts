@@ -55,7 +55,20 @@ export const make = Effect.gen(function* () {
     .pipe(
       Effect.map((out) => out.trim()),
       Effect.map((out) => (out.length > 0 ? out : null)),
-      Effect.catch(() => Effect.succeed(null))
+      // `gh` not on PATH (common in a packaged app launched from Finder) or not
+      // logged in. Log it — otherwise the request silently goes out
+      // unauthenticated and private-repo data comes back empty with no clue why.
+      Effect.catch((error) =>
+        Effect.as(
+          Effect.logWarning(
+            "GitHub auth: could not get a token from `gh auth token`; " +
+              "continuing unauthenticated (private repos will return no data). " +
+              "Set GITHUB_TOKEN/GH_TOKEN or ensure the `gh` CLI is installed and on PATH.",
+            error
+          ),
+          null
+        )
+      )
     )
 
   const resolveToken = Effect.gen(function* () {

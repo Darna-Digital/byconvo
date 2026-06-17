@@ -68,6 +68,24 @@ const brandIcon = nativeImage.createFromPath(
 
 let serverProcess: ChildProcess | null = null;
 
+/**
+ * A packaged `.app` launched from Finder inherits launchd's minimal PATH
+ * (`/usr/bin:/bin:/usr/sbin:/sbin`), which omits Homebrew. `git` lives in
+ * `/usr/bin` so it still resolves, but `gh` (used for GitHub auth) lives in
+ * `/opt/homebrew/bin` (Apple Silicon) or `/usr/local/bin` (Intel) and silently
+ * fails to spawn — so PRs load in dev but vanish in the built app. Prepend the
+ * common locations so the spawned server can find `gh` and friends.
+ */
+function ensureBinPath(): void {
+  if (process.platform === "win32") return;
+  const extra = ["/opt/homebrew/bin", "/usr/local/bin"];
+  const current = (process.env["PATH"] ?? "").split(":").filter(Boolean);
+  const missing = extra.filter((dir) => !current.includes(dir));
+  if (missing.length > 0) {
+    process.env["PATH"] = [...missing, ...current].join(":");
+  }
+}
+
 const sleep = (ms: number) => new Promise((done) => setTimeout(done, ms));
 
 /** Resolves once `url` answers an HTTP request, or rejects after `timeoutMs`. */
@@ -200,6 +218,8 @@ ipcMain.handle("dialog:open-directory", async (event) => {
 });
 
 app.whenReady().then(async () => {
+  ensureBinPath();
+
   if (!isDev) registerRendererProtocol();
 
   // Packaged builds get their dock icon from the bundle `.icns` (CFBundleIconFile),
