@@ -1,13 +1,13 @@
 ---
-name: reviewer
-description: Fetch the local code-review comments left in the reviewer tool and implement each suggestion in the codebase, then mark it done. Use when the user asks to "apply review comments", "implement the review", "address the comments I left", or similar.
+name: byconvo
+description: Fetch the local code-review comments left in the byconvo tool and implement each suggestion in the codebase, then mark it done. Use when the user asks to "apply review comments", "implement the review", "address the comments I left", or similar.
 ---
 
 ## What this does
 
-The reviewer tool lets a human leave inline review comments on files (like GitHub
-code review), saved locally in the selected repository's `.reviewer/comments.db`
-(SQLite). The reviewer server exposes them over HTTP. This skill walks you through
+The byconvo tool lets a human leave inline review comments on files (like GitHub
+code review), saved locally in the selected repository's `.byconvo/comments.db`
+(SQLite). The byconvo server exposes them over HTTP. This skill walks you through
 fetching those comments, implementing each one in the code, and deleting it once
 done so it isn't applied twice.
 
@@ -17,8 +17,8 @@ Only **local** comments (`"source": "local"`) are yours to implement. Comments w
 ## The API
 
 The server listens on `http://localhost:41811` by default (override with
-`$REVIEWER_PORT`). It serves the currently *selected* repository — make sure that's
-the repo you're working in (it's seeded from `REVIEWER_REPO` / the cwd the server
+`$BYCONVO_PORT`). It serves the currently *selected* repository — make sure that's
+the repo you're working in (it's seeded from `BYCONVO_REPO` / the cwd the server
 was started in). Interactive docs: `http://localhost:41811/api/docs`.
 
 - `GET /api/comments` → array of comments
@@ -56,8 +56,8 @@ Field meaning:
    ```bash
    curl -s http://localhost:41811/api/comments | jq '[.[] | select(.source == "local")]'
    ```
-   If the call fails, the reviewer server probably isn't running — tell the user to
-   start it (`pnpm dev:reviewer`) rather than guessing.
+   If the call fails, the byconvo server probably isn't running — tell the user to
+   start it (`pnpm dev`) rather than guessing.
 
 2. **Group by `filePath`** and read each file. For every comment, open `filePath`
    at `lineNumber` to understand the context the reviewer was pointing at.
@@ -74,7 +74,7 @@ Field meaning:
    reflects real progress.
 
 5. **Verify** once all comments are handled: run the project's typecheck/tests
-   (`pnpm typecheck`, `pnpm --filter @reviewer/server test`, etc.) and report what
+   (`pnpm typecheck`, `pnpm --filter @byconvo/server test`, etc.) and report what
    you changed, file by file, with each comment's `body` you addressed.
 
 ## Notes

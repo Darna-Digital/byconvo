@@ -19,7 +19,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --filter "!@reviewer/desktop..."
+        run: pnpm install --frozen-lockfile --filter "!@byconvo/desktop..."
 
       - name: Lint
         run: pnpm lint

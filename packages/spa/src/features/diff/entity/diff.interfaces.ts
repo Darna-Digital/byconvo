@@ -43,7 +43,7 @@ export interface TreeInputs {
 
 export interface DiffDependencies {
   data: {
-    /** Path prefix hidden from review surfaces (reviewer's own comment store). */
+    /** Path prefix hidden from review surfaces (byconvo's own comment store). */
     readonly internalDir: string
   }
   sideEffects: {
@@ -59,7 +59,7 @@ export interface DiffFunctions {
   readonly parseFiles: (
     diffText: string | null
   ) => ReadonlyArray<FileDiffMetadata>
-  /** Is this path reviewer-internal (and thus hidden)? */
+  /** Is this path byconvo-internal (and thus hidden)? */
   readonly isInternalPath: (path: string) => boolean
   /** Paths the sidebar tree should list for the current mode. */
   readonly treePaths: (inputs: TreeInputs) => ReadonlyArray<string>

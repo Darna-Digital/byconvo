@@ -1,6 +1,6 @@
 // @ts-check
 
-import baseConfig from "@reviewer/lint/eslint"
+import baseConfig from "@byconvo/lint/eslint"
 
 export default [
   ...baseConfig,

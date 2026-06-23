@@ -74,13 +74,13 @@ describe("parseFiles", () => {
 describe("tree derivations", () => {
   const status: GitStatusEntry[] = [
     { path: "src/a.ts", status: "modified" },
-    { path: ".reviewer/comments.json", status: "modified" },
+    { path: ".byconvo/comments.json", status: "modified" },
   ]
 
   it("commit mode lists only changed, non-internal paths", () => {
     const paths = fns().treePaths({
       mode: "commit",
-      allPaths: ["src/a.ts", "src/b.ts", ".reviewer/comments.json"],
+      allPaths: ["src/a.ts", "src/b.ts", ".byconvo/comments.json"],
       gitStatus: status,
       parsedFiles: [],
     })
@@ -101,7 +101,7 @@ describe("tree derivations", () => {
   it("browse mode lists every non-internal path", () => {
     const paths = fns().treePaths({
       mode: "browse",
-      allPaths: ["src/a.ts", ".reviewer/x"],
+      allPaths: ["src/a.ts", ".byconvo/x"],
       gitStatus: [],
       parsedFiles: [],
     })

@@ -1,6 +1,6 @@
 /**
  * File-backed comment store — persists local review comments to
- * `.reviewer/comments.json` inside the selected repository.
+ * `.byconvo/comments.json` inside the selected repository.
  */
 import * as Effect from "effect/Effect"
 import * as Schema from "effect/Schema"
@@ -12,7 +12,7 @@ import type { CommentsRepo } from "./comments.repository.ts"
 
 const CommentsFile = Schema.Array(ReviewComment)
 
-const commentsPath = (repoPath: string) => `${repoPath}/.reviewer/comments.json`
+const commentsPath = (repoPath: string) => `${repoPath}/.byconvo/comments.json`
 
 const readComments = (repoPath: string): ReadonlyArray<ReviewComment> => {
   try {
@@ -30,7 +30,7 @@ const writeComments = (
   repoPath: string,
   comments: ReadonlyArray<ReviewComment>
 ) => {
-  mkdirSync(`${repoPath}/.reviewer`, { recursive: true })
+  mkdirSync(`${repoPath}/.byconvo`, { recursive: true })
   writeFileSync(
     commentsPath(repoPath),
     `${JSON.stringify(comments, null, 2)}\n`

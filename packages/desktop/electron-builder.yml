@@ -1,5 +1,5 @@
-appId: sh.reviewer.desktop
-productName: Reviewer
+appId: com.bemybond.desktop
+productName: Byconvo
 artifactName: ${productName}-${version}-${os}-${arch}.${ext}
 asar: true
 
@@ -28,7 +28,7 @@ files:
 mac:
   category: public.app-category.developer-tools
   identity: null
-  icon: assets/reviewer.icns
+  icon: assets/byconvo.icns
   target:
     - dmg
 

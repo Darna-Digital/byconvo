@@ -1,10 +1,10 @@
 /**
- * reviewer desktop — Electron main process.
+ * byconvo desktop — Electron main process.
  *
  * Wraps the SPA in a native window. The app is self-contained: it makes sure
  * the API server is running (spawning it if necessary) and then loads the SPA.
  *
- * - Dev (`REVIEWER_DESKTOP_DEV=1`): loads the Vite dev server and spawns the
+ * - Dev (`BYCONVO_DESKTOP_DEV=1`): loads the Vite dev server and spawns the
  *   server through pnpm if nothing answers on the API port yet.
  * - Prod/local package test: runs the bundled server and loads the built SPA
  *   from disk. No pnpm, tsx, or Vite server is required at runtime.
@@ -26,7 +26,7 @@ import {
 
 protocol.registerSchemesAsPrivileged([
   {
-    scheme: "reviewer",
+    scheme: "byconvo",
     privileges: {
       standard: true,
       secure: true,
@@ -38,12 +38,12 @@ protocol.registerSchemesAsPrivileged([
 
 // Branding: the product name shown in the macOS menu bar, dock, and window
 // title. Set before the app is ready so it replaces Electron's default name.
-app.setName("Reviewer");
+app.setName("Byconvo");
 
-const isDev = process.env["REVIEWER_DESKTOP_DEV"] === "1";
-const serverPort = Number(process.env["REVIEWER_PORT"] ?? 41811);
+const isDev = process.env["BYCONVO_DESKTOP_DEV"] === "1";
+const serverPort = Number(process.env["BYCONVO_PORT"] ?? 41811);
 const serverUrl = `http://localhost:${serverPort}`;
-const spaUrl = process.env["REVIEWER_DEV_URL"] ?? "http://localhost:41812";
+const spaUrl = process.env["BYCONVO_DEV_URL"] ?? "http://localhost:41812";
 
 // packages/desktop/dist/main.js → repository root.
 const repoRoot = resolve(__dirname, "..", "..", "..");
@@ -57,13 +57,13 @@ const bundledServerEntry = app.isPackaged
   : resolve(repoRoot, "packages", "server", "dist", "main.cjs");
 const pnpmBin = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 
-// The Reviewer brand logo, used for the window and the macOS dock icon so the
+// The Byconvo brand logo, used for the window and the macOS dock icon so the
 // app no longer shows Electron's default icon. This is the dock-grid variant:
 // the artwork sits inside ~80% of the tile with transparent margin, so macOS
 // renders it at the same size as other dock icons rather than full-bleed.
 // Resolved relative to `dist/` (../assets) so it works in packaged builds too.
 const brandIcon = nativeImage.createFromPath(
-  resolve(__dirname, "..", "assets", "reviewer-dock-icon.png"),
+  resolve(__dirname, "..", "assets", "byconvo-dock-icon.png"),
 );
 
 let serverProcess: ChildProcess | null = null;
@@ -126,9 +126,9 @@ async function ensureServer(): Promise<void> {
   const serverCwd = app.isPackaged ? app.getPath("home") : repoRoot;
 
   serverProcess = isDev
-    ? spawn(pnpmBin, ["--filter", "@reviewer/server", "start"], {
+    ? spawn(pnpmBin, ["--filter", "@byconvo/server", "start"], {
         cwd: serverCwd,
-        env: { ...process.env, REVIEWER_PORT: String(serverPort) },
+        env: { ...process.env, BYCONVO_PORT: String(serverPort) },
         stdio: "inherit",
       })
     : spawn(process.execPath, [bundledServerEntry], {
@@ -136,7 +136,7 @@ async function ensureServer(): Promise<void> {
         env: {
           ...process.env,
           ELECTRON_RUN_AS_NODE: "1",
-          REVIEWER_PORT: String(serverPort),
+          BYCONVO_PORT: String(serverPort),
         },
         stdio: "inherit",
       });
@@ -151,7 +151,7 @@ async function ensureServer(): Promise<void> {
 }
 
 function registerRendererProtocol(): void {
-  protocol.handle("reviewer", (request) => {
+  protocol.handle("byconvo", (request) => {
     const url = new URL(request.url);
     const pathname = decodeURIComponent(url.pathname);
     const candidate =
@@ -174,7 +174,7 @@ async function createWindow(): Promise<void> {
     minWidth: 900,
     minHeight: 600,
     backgroundColor: "#131316",
-    title: "Reviewer",
+    title: "Byconvo",
     icon: brandIcon,
     titleBarStyle: "hiddenInset",
     // Center the traffic lights in the 40px (h-10) TopBar. The hiddenInset
@@ -197,7 +197,7 @@ async function createWindow(): Promise<void> {
     await waitForUrl(spaUrl, 30_000);
     await window.loadURL(spaUrl);
   } else {
-    await window.loadURL("reviewer://app/");
+    await window.loadURL("byconvo://app/");
   }
 }
 
@@ -234,7 +234,7 @@ app.whenReady().then(async () => {
     await ensureServer();
     await createWindow();
   } catch (cause) {
-    console.error("failed to start reviewer desktop:", cause);
+    console.error("failed to start byconvo desktop:", cause);
     app.quit();
   }
 

@@ -1,9 +1,9 @@
 /**
- * reviewer server entry point — a Node HTTP server exposing the HttpApi under
+ * byconvo server entry point — a Node HTTP server exposing the HttpApi under
  * /api. Replaces the darna-stack Cloudflare worker: same HttpApi, served with
  * `@effect/platform-node` instead of a Worker runtime. No Postgres, no
  * Cloudflare — the repository is selected at runtime and persisted to
- * ~/.reviewer/state.json (REVIEWER_REPO / cwd seed the initial selection).
+ * ~/.byconvo/state.json (BYCONVO_REPO / cwd seed the initial selection).
  *
  * Composition mirrors darna's worker: feature controllers are provided to the
  * API layer, and the (stateless) feature services are provided per-request with
@@ -35,12 +35,12 @@ import {
   type InitialSelection,
 } from "./layers/workspace/workspace-context.ts"
 
-const envRepo = process.env["REVIEWER_REPO"]
+const envRepo = process.env["BYCONVO_REPO"]
 const initial: InitialSelection =
   envRepo !== undefined && envRepo.length > 0
     ? { path: envRepo, explicit: true }
     : { path: process.cwd(), explicit: false }
-const port = Number(process.env["REVIEWER_PORT"] ?? 41811)
+const port = Number(process.env["BYCONVO_PORT"] ?? 41811)
 
 /**
  * The API router with every feature controller attached. The OpenAPI document
@@ -79,7 +79,7 @@ const InfraLive = gitHubClientLayer.pipe(
 )
 
 /**
- * The packaged desktop app loads the SPA from the `reviewer://app` protocol and
+ * The packaged desktop app loads the SPA from the `byconvo://app` protocol and
  * calls the API at `http://localhost:<port>`, so every request is cross-origin.
  * Allow all origins — this server is local-only and never credentialed.
  */

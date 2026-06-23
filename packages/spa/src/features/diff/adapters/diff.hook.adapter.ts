@@ -7,7 +7,7 @@ export function useDiffFunctions() {
   return useMemo(
     () =>
       createDiffFunctions({
-        data: { internalDir: ".reviewer" },
+        data: { internalDir: ".byconvo" },
         sideEffects: {
           parsePatch: (text) =>
             parsePatchFiles(text).flatMap((patch) => patch.files),

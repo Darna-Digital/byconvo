@@ -19,7 +19,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Reviewer" },
+      { title: "Byconvo" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -59,7 +59,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         {/* Apply the persisted theme before paint to avoid a flash. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(()=>{try{const t=localStorage.getItem("reviewer-theme")||"system";const d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.dataset.theme=d?"dark":"light";}catch(e){}})()`,
+            __html: `(()=>{try{const t=localStorage.getItem("byconvo-theme")||"system";const d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.dataset.theme=d?"dark":"light";}catch(e){}})()`,
           }}
         />
       </head>

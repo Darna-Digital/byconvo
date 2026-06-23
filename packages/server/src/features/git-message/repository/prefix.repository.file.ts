@@ -1,6 +1,6 @@
 /**
  * File-backed commit-prefix store — persists the user's prefixes globally to
- * `~/.reviewer/prefixes.json` (the same dir as the workspace state, so they
+ * `~/.byconvo/prefixes.json` (the same dir as the workspace state, so they
  * follow the user across repositories). Mirrors the comments file store:
  * synchronous node:fs calls wrapped in `Effect.try` → `StorageError`.
  */
@@ -11,7 +11,7 @@ import { NotFound, StorageError } from "../../../layers/errors.ts"
 import type { CommitPrefix } from "../schema/git-message.schema.model.ts"
 import type { PrefixRepo } from "./prefix.repository.ts"
 
-const STATE_DIR = `${homedir()}/.reviewer`
+const STATE_DIR = `${homedir()}/.byconvo`
 const STATE_FILE = `${STATE_DIR}/prefixes.json`
 
 const readAll = (): Array<CommitPrefix> => {

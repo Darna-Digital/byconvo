@@ -128,7 +128,7 @@
     @apply font-sans;
     }
 }
-/* --- reviewer: review-comment markdown bodies ------------------------------ */
+/* --- byconvo: review-comment markdown bodies ------------------------------ */
 /* Comment bodies live in a narrow gutter, so wrap aggressively: long words,
    URLs and inline code must break rather than force the card to overflow. */
 .markdown {
@@ -251,7 +251,7 @@ diffs-container {
   --diffs-bg: var(--background);
 }
 
-/* --- reviewer: file tree theming (pierre/trees web component) --------------- */
+/* --- byconvo: file tree theming (pierre/trees web component) --------------- */
 /* These custom properties pierce the shadow DOM and resolve against whichever
    theme (.dark or light) is active, so the tree follows the app theme. */
 file-tree-container {
@@ -270,7 +270,7 @@ file-tree-container {
   --trees-search-fg-override: var(--foreground);
 }
 
-/* --- reviewer: JetBrains-style split-diff connector ribbons ----------------- */
+/* --- byconvo: JetBrains-style split-diff connector ribbons ----------------- */
 .diff-connectors {
   position: absolute;
   inset: 0;

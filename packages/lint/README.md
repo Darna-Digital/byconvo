@@ -1,6 +1,6 @@
-# @reviewer/lint
+# @byconvo/lint
 
-Shared ESLint and Prettier rules for the reviewer.sh monorepo. Packages extend
+Shared ESLint and Prettier rules for the bemybond.com monorepo. Packages extend
 these so linting and formatting stay consistent across the workspace.
 
 ## Usage
@@ -10,7 +10,7 @@ Add the package as a dev dependency:
 ```jsonc
 // package.json
 "devDependencies": {
-  "@reviewer/lint": "workspace:*"
+  "@byconvo/lint": "workspace:*"
 }
 ```
 
@@ -18,7 +18,7 @@ Add the package as a dev dependency:
 
 ```js
 // eslint.config.js
-import baseConfig from "@reviewer/lint/eslint"
+import baseConfig from "@byconvo/lint/eslint"
 
 export default [...baseConfig, { ignores: ["dist"] }]
 ```
@@ -27,7 +27,7 @@ export default [...baseConfig, { ignores: ["dist"] }]
 
 ```js
 // prettier.config.js
-import baseConfig from "@reviewer/lint/prettier"
+import baseConfig from "@byconvo/lint/prettier"
 
 export default { ...baseConfig }
 ```

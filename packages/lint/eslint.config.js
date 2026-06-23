@@ -3,12 +3,12 @@
 import { tanstackConfig } from "@tanstack/eslint-config"
 
 /**
- * Shared ESLint flat config for reviewer.sh packages.
+ * Shared ESLint flat config for bemybond.com packages.
  *
  * Spread this into a package's `eslint.config.js` and append any
  * package-specific overrides or `ignores` after it:
  *
- *   import baseConfig from "@reviewer/lint/eslint"
+ *   import baseConfig from "@byconvo/lint/eslint"
  *   export default [...baseConfig, { ignores: ["dist"] }]
  */
 export default [

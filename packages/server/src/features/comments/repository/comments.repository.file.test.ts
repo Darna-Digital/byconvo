@@ -7,8 +7,8 @@ import { memoryLayer } from "../../../layers/workspace/workspace-context.ts"
 import { CommentsRepository } from "./comments.repository.ts"
 import { makeFileCommentsRepository } from "./comments.repository.file.ts"
 
-// A real temp repo root: the file store writes `.reviewer/comments.json` here.
-const repoDir = mkdtempSync(`${tmpdir()}/reviewer-comments-`)
+// A real temp repo root: the file store writes `.byconvo/comments.json` here.
+const repoDir = mkdtempSync(`${tmpdir()}/byconvo-comments-`)
 afterAll(() => rmSync(repoDir, { recursive: true, force: true }))
 
 const FileRepo = Layer.effect(CommentsRepository)(

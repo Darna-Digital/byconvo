@@ -1,6 +1,6 @@
 //  @ts-check
 
-import baseConfig from "@reviewer/lint/eslint"
+import baseConfig from "@byconvo/lint/eslint"
 import reactHooks from "eslint-plugin-react-hooks"
 
 export default [

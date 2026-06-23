@@ -4,8 +4,8 @@
  * repo from here). It is the server's analogue of a database connection in the
  * darna-stack: a single infra service the feature repositories build on.
  *
- * The selection is validated against git, persisted to ~/.reviewer/state.json
- * together with a recents list, and seeded at boot from REVIEWER_REPO / cwd.
+ * The selection is validated against git, persisted to ~/.byconvo/state.json
+ * together with a recents list, and seeded at boot from BYCONVO_REPO / cwd.
  * Only primitives (paths) cross this boundary — domain shapes live in the
  * workspace feature's schema.
  */
@@ -38,7 +38,7 @@ export class WorkspaceContext extends Context.Service<
   WorkspaceContextShape
 >()("WorkspaceContext") {}
 
-const STATE_DIR = `${homedir()}/.reviewer`
+const STATE_DIR = `${homedir()}/.byconvo`
 const STATE_FILE = `${STATE_DIR}/state.json`
 const MAX_RECENTS = 10
 
@@ -49,7 +49,7 @@ interface PersistedState {
 
 export interface InitialSelection {
   readonly path: string
-  /** Explicit (REVIEWER_REPO) beats persisted state; a cwd guess does not. */
+  /** Explicit (BYCONVO_REPO) beats persisted state; a cwd guess does not. */
   readonly explicit: boolean
 }
 
@@ -133,7 +133,7 @@ export const make = (initial: InitialSelection | null) =>
     const validOrNull = (path: string | null) =>
       path === null ? Effect.succeed(null) : resolveWorkspace(fs, spawner, path)
 
-    // Boot order: explicit REVIEWER_REPO > last workspace used > cwd guess.
+    // Boot order: explicit BYCONVO_REPO > last workspace used > cwd guess.
     const persisted = yield* readState
     const explicitValid =
       initial !== null && initial.explicit

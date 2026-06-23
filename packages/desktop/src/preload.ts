@@ -7,7 +7,7 @@ import { contextBridge, ipcRenderer } from "electron";
 
 const bridge = {
   /** API origin used by packaged builds that load the renderer from file://. */
-  apiBaseUrl: `http://localhost:${process.env["REVIEWER_PORT"] ?? "41811"}`,
+  apiBaseUrl: `http://localhost:${process.env["BYCONVO_PORT"] ?? "41811"}`,
   /** Show the native folder picker; resolves to the chosen path or null. */
   openDirectory: (): Promise<string | null> =>
     ipcRenderer.invoke("dialog:open-directory"),
@@ -15,4 +15,4 @@ const bridge = {
 
 export type DesktopBridge = typeof bridge;
 
-contextBridge.exposeInMainWorld("reviewer", bridge);
+contextBridge.exposeInMainWorld("byconvo", bridge);

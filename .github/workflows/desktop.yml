@@ -33,5 +33,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: reviewer-desktop-macos
+          name: byconvo-desktop-macos
           path: packages/desktop/dist-packaged/**

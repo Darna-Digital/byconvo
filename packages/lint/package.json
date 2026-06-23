@@ -1,9 +1,9 @@
 {
-  "name": "@reviewer/lint",
+  "name": "@byconvo/lint",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Shared ESLint and Prettier rules for reviewer.sh",
+  "description": "Shared ESLint and Prettier rules for bemybond.com",
   "exports": {
     "./eslint": "./eslint.config.js",
     "./prettier": "./prettier.config.js"

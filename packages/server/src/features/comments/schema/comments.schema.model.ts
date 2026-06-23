@@ -1,4 +1,4 @@
-/** Inline review-comment schemas (stored locally in .reviewer/comments.json). */
+/** Inline review-comment schemas (stored locally in .byconvo/comments.json). */
 import * as Schema from "effect/Schema"
 
 export const CommentSide = Schema.Literals(["deletions", "additions"])

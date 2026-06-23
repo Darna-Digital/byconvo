@@ -1,5 +1,5 @@
 /**
- * Shared, schema-backed tagged errors for the reviewer server.
+ * Shared, schema-backed tagged errors for the byconvo server.
  *
  * Each carries an `httpApiStatus` annotation so the HttpApi maps it to the
  * right HTTP status automatically — replacing the hand-written `Effect.catch →

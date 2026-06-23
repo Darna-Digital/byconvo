@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react"
 import { createBranchTreeFunctions } from "../functions/branch-tree.functions"
 
-const FAV_KEY = "reviewer-fav-branches"
+const FAV_KEY = "byconvo-fav-branches"
 
 const loadFavorites = (): Set<string> => {
   try {

@@ -1,9 +1,9 @@
 {
-  "name": "@reviewer/server",
+  "name": "@byconvo/server",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "reviewer server — Effect backend (darna-stack pattern), git/filesystem-backed",
+  "description": "byconvo server — Effect backend (darna-stack pattern), git/filesystem-backed",
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "start": "tsx src/main.ts",
@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@effect/vitest": "4.0.0-beta.74",
-    "@reviewer/lint": "workspace:*",
+    "@byconvo/lint": "workspace:*",
     "@types/node": "^22.15.0",
     "esbuild": "^0.28.1",
     "eslint": "^9",

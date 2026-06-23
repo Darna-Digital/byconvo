@@ -3,6 +3,7 @@ dist/
 dist-packaged/
 *.local
 .DS_Store
+.byconvo
 .reviewer
 .idea
 /_shell.html

@@ -1,6 +1,6 @@
 /**
  * ClaudeExec — runs the user's locally installed `claude` CLI (Claude Code) in
- * non-interactive print mode. The reviewer never ships an API key: it borrows
+ * non-interactive print mode. The byconvo never ships an API key: it borrows
  * the developer's own Claude Code install, exactly the way GitExec borrows the
  * `git` CLI. Today it powers commit-message generation; the prompt seam keeps
  * it reusable for any future "ask Claude about this repo" feature.

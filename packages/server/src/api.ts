@@ -1,5 +1,5 @@
 /**
- * The reviewer HTTP API — every feature group mounted under `/api`. This is the
+ * The byconvo HTTP API — every feature group mounted under `/api`. This is the
  * single registry the controllers attach their handlers to, mirroring the
  * darna-stack `api.ts`.
  */
@@ -10,7 +10,7 @@ import { GitHubApi } from "./features/github/http/github.api.ts"
 import { RepoApi } from "./features/repo/http/repo.api.ts"
 import { WorkspaceApi } from "./features/workspace/http/workspace.api.ts"
 
-export class Api extends HttpApi.make("reviewer")
+export class Api extends HttpApi.make("byconvo")
   .add(WorkspaceApi)
   .add(RepoApi)
   .add(CommentsApi)

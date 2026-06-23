@@ -27,8 +27,8 @@ export interface UiPrefs {
   commitMessageHeight: number
 }
 
-const STORE_KEY = "reviewer-ui"
-const THEME_KEY = "reviewer-theme"
+const STORE_KEY = "byconvo-ui"
+const THEME_KEY = "byconvo-theme"
 
 const systemTheme = (): Theme =>
   typeof window !== "undefined" &&

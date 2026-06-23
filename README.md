@@ -1,10 +1,10 @@
-# reviewer.sh
+# byconvo
 
 A minimal GUI for git operartions.
 
 As more code is written by agents, we spend more time reviewing code than writing it.
 
-Reviewer was built with code review in mind first.
+Byconvo was built with code review in mind first.
 
 It's not a meta harness. It's not an agent.
 

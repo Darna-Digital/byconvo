@@ -1,6 +1,6 @@
 /**
  * git-message domain schemas — the AI-drafted commit message and the user's
- * saved commit prefixes (stored globally in ~/.reviewer/prefixes.json).
+ * saved commit prefixes (stored globally in ~/.byconvo/prefixes.json).
  */
 import * as Schema from "effect/Schema"
 
