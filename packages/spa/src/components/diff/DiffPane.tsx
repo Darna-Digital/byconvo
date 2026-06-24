@@ -202,13 +202,82 @@ export function DiffPane({
   const connectorsEnabled = connectors && diffStyle === "split"
   const containerRef = useRef<HTMLDivElement>(null)
 
+  // Animate the selected file's diff to the top of the pane. Hard-won details:
+  //  - Native smooth scrolling (`scrollIntoView`/`scrollTo({behavior:"smooth"})`,
+  //    CSS `scroll-behavior`) is a silent no-op in this pane — the nested
+  //    overflow-hidden ancestors break it in Chromium. Only instant `scrollTop`
+  //    writes take effect, so we roll the animation ourselves with rAF.
+  //  - Each frame eases ~20% of the remaining distance and *recomputes* the
+  //    target, so the animation stays accurate while the diffs lay out
+  //    progressively (the anchor keeps moving for a moment after selection).
+  //  - We bail the instant the user takes over via real input (wheel/touch/
+  //    pointer/key) — never on scroll events, which also fire from our own
+  //    animation and from layout reflow.
+  //  - rAF is throttled in background tabs, so a timed fallback jumps straight to
+  //    the target if no frame has run.
   useEffect(() => {
     if (selectedFile === null) return
-    const anchor = containerRef.current?.querySelector(
-      `[data-file-anchor="${CSS.escape(selectedFile)}"]`
-    )
-    anchor?.scrollIntoView({ behavior: "smooth", block: "start" })
-  }, [selectedFile])
+    const container = containerRef.current
+    if (container == null) return
+
+    let active = true
+    let raf = 0
+    let lastFrame = 0
+    const startedAt = performance.now()
+    const cleanups: Array<() => void> = []
+
+    const targetTop = (): number | null => {
+      const anchor = container.querySelector(
+        `[data-file-anchor="${CSS.escape(selectedFile)}"]`
+      )
+      if (!(anchor instanceof HTMLElement)) return null
+      const max = container.scrollHeight - container.clientHeight
+      return Math.min(
+        anchor.getBoundingClientRect().top -
+          container.getBoundingClientRect().top +
+          container.scrollTop,
+        max
+      )
+    }
+
+    const stop = () => {
+      if (!active) return
+      active = false
+      cancelAnimationFrame(raf)
+      for (const cleanup of cleanups) cleanup()
+    }
+
+    const frame = (now: number) => {
+      if (!active) return
+      lastFrame = now
+      const top = targetTop()
+      if (top !== null) {
+        const delta = top - container.scrollTop
+        container.scrollTop =
+          Math.abs(delta) <= 1 ? top : container.scrollTop + delta * 0.2
+      }
+      // Keep following while the content settles; then stop.
+      if (now - startedAt < 1200) raf = requestAnimationFrame(frame)
+      else stop()
+    }
+
+    for (const type of ["wheel", "touchstart", "pointerdown", "keydown"]) {
+      container.addEventListener(type, stop, { passive: true })
+      cleanups.push(() => container.removeEventListener(type, stop))
+    }
+
+    // Background-tab fallback: if rAF hasn't run (throttled), jump to target.
+    const fallback = setTimeout(() => {
+      if (!active || performance.now() - lastFrame < 100) return
+      const top = targetTop()
+      if (top !== null) container.scrollTop = top
+    }, 250)
+    cleanups.push(() => clearTimeout(fallback))
+
+    raf = requestAnimationFrame(frame)
+
+    return stop
+  }, [selectedFile, files])
 
   const annotationsByFile = useMemo(() => {
     const result = new Map<string, Array<DiffLineAnnotation<AnnotationMeta>>>()

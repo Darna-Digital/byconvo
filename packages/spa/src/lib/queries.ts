@@ -136,5 +136,8 @@ export const useFile = (path: string | null) =>
     "get",
     "/api/file",
     { params: { query: { path: path ?? "" } } },
-    { enabled: path !== null }
+    // A file read either succeeds or it doesn't — retrying a missing/unreadable
+    // path (e.g. a staged-then-deleted "AD" ghost that has no worktree content)
+    // just hangs the viewer on "Loading", so fail fast and surface the error.
+    { enabled: path !== null, retry: false }
   )

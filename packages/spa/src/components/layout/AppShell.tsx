@@ -296,10 +296,11 @@ export function AppShell() {
       openFile(path, false)
       return
     }
-    // Commit mode: a file with only local comments (no git change) isn't in the
-    // worktree diff, so open it in the file viewer to show those comments;
-    // changed files scroll the diff as before.
-    if (mode === "commit" && !gitStatus.some((entry) => entry.path === path)) {
+    // Commit mode: a file with no diff hunks isn't in the diff pane — either it
+    // was newly added/untracked (git diff omits new files) or it only carries
+    // local comments. Open it in the file viewer so its contents and comments
+    // are still reachable; files that are in the diff open in the diff pane.
+    if (mode === "commit" && !parsedFiles.some((f) => f.name === path)) {
       setSearch({ file: path, edit: undefined, path })
       return
     }
