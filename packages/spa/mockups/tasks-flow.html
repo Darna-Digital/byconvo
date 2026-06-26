@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>byconvo — Tasks ▸ Agents flow (mockup)</title>
+<style>
+  :root{
+    --rad:12px; --rad-sm:8px; --rad-lg:16px;
+    --font:"Inter","SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --t:cubic-bezier(.22,.61,.36,1);
+  }
+  [data-theme="light"]{
+    --stage:#e9e9ee; --stage2:#dededf;
+    --bg:#f6f6f8; --surface:#ffffff; --col:#f1f1f4; --col-head:#f6f6f8;
+    --border:rgba(17,17,24,.08); --border-2:rgba(17,17,24,.13); --hair:rgba(17,17,24,.06);
+    --text:#16161c; --muted:#6b6b78; --faint:#9a9aa6;
+    --accent:#5b5bd6; --accent-soft:rgba(91,91,214,.12); --accent-bd:rgba(91,91,214,.35);
+    --green:#2f9e6f; --green-soft:rgba(47,158,111,.13);
+    --red:#cf5a5a; --red-soft:rgba(207,90,90,.12);
+    --amber:#c98a1e; --amber-soft:rgba(201,138,30,.13); --amber-bd:rgba(201,138,30,.4);
+    --shadow:0 1px 2px rgba(17,17,24,.05),0 6px 18px rgba(17,17,24,.07);
+    --shadow-lg:0 12px 40px rgba(17,17,24,.16),0 2px 8px rgba(17,17,24,.08);
+    --win-shadow:0 30px 90px rgba(20,20,40,.28),0 8px 24px rgba(20,20,40,.16);
+  }
+  [data-theme="dark"]{
+    --stage:#0a0a0c; --stage2:#050506;
+    --bg:#101012; --surface:#1a1a1e; --col:#151518; --col-head:#19191d;
+    --border:rgba(255,255,255,.09); --border-2:rgba(255,255,255,.15); --hair:rgba(255,255,255,.06);
+    --text:#ececf0; --muted:#9b9ba8; --faint:#67677a;
+    --accent:#8b8bf2; --accent-soft:rgba(139,139,242,.16); --accent-bd:rgba(139,139,242,.45);
+    --green:#46b888; --green-soft:rgba(70,184,136,.16);
+    --red:#e06d6d; --red-soft:rgba(224,109,109,.15);
+    --amber:#e0a93f; --amber-soft:rgba(224,169,63,.15); --amber-bd:rgba(224,169,63,.45);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.4);
+    --shadow-lg:0 16px 50px rgba(0,0,0,.55),0 3px 10px rgba(0,0,0,.4);
+    --win-shadow:0 40px 100px rgba(0,0,0,.7),0 10px 30px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:var(--font); color:var(--text);
+    background:
+      radial-gradient(1200px 700px at 50% -10%, var(--stage) 0%, var(--stage2) 70%);
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    display:flex; align-items:center; justify-content:center; padding:34px 22px 96px;
+    transition:background .4s var(--t),color .25s var(--t);
+  }
+
+  /* ---------- window chrome ---------- */
+  .window{
+    width:min(1180px,100%); height:min(760px,82vh); min-height:620px;
+    background:var(--bg); border:1px solid var(--border);
+    border-radius:var(--rad-lg); box-shadow:var(--win-shadow);
+    overflow:hidden; display:flex; flex-direction:column;
+    transition:background .35s var(--t),border-color .35s var(--t);
+  }
+  .titlebar{
+    height:38px; flex:0 0 38px; display:flex; align-items:center; gap:10px;
+    padding:0 14px; background:var(--col-head); border-bottom:1px solid var(--hair);
+  }
+  .lights{display:flex; gap:7px}
+  .lights span{width:11px;height:11px;border-radius:50%}
+  .lights span:nth-child(1){background:#ec6a5e}
+  .lights span:nth-child(2){background:#f4bf4f}
+  .lights span:nth-child(3){background:#61c554}
+  .winttl{font-size:12.5px; color:var(--muted); font-weight:550; letter-spacing:.01em; flex:1; text-align:center; margin-right:54px}
+  .iconbtn{
+    border:0; background:transparent; color:var(--muted); cursor:pointer;
+    width:26px;height:26px;border-radius:7px; display:grid;place-items:center; font-size:14px;
+    transition:background .15s,color .15s;
+  }
+  .iconbtn:hover{background:var(--hair); color:var(--text)}
+
+  .appbody{flex:1; display:flex; min-height:0}
+
+  /* ---------- left rail ---------- */
+  .rail{
+    flex:0 0 56px; background:var(--col); border-right:1px solid var(--hair);
+    display:flex; flex-direction:column; align-items:center; padding:10px 0; gap:4px;
+  }
+  .logo{
+    width:30px;height:30px;border-radius:9px;margin-bottom:10px;
+    background:linear-gradient(150deg,var(--accent),#8e7bff);
+    display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;
+    box-shadow:0 4px 12px var(--accent-soft);
+  }
+  .railbtn{
+    width:38px;height:38px;border-radius:10px;border:0;background:transparent;color:var(--faint);
+    cursor:pointer; display:grid;place-items:center; position:relative; transition:.15s;
+  }
+  .railbtn svg{width:19px;height:19px}
+  .railbtn:hover{background:var(--hair);color:var(--muted)}
+  .railbtn.active{background:var(--accent-soft);color:var(--accent)}
+  .railbtn.active::before{content:"";position:absolute;left:-10px;top:9px;width:3px;height:20px;border-radius:3px;background:var(--accent)}
+  .railnum{position:absolute;right:3px;bottom:2px;font-size:8px;color:var(--faint);font-weight:700}
+  .railspace{flex:1}
+
+  /* ---------- top bar ---------- */
+  .appmain{flex:1; display:flex; flex-direction:column; min-width:0}
+  .topbar{
+    height:46px;flex:0 0 46px; display:flex; align-items:center; gap:8px; padding:0 16px;
+    border-bottom:1px solid var(--hair); background:var(--bg);
+  }
+  .crumb{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600}
+  .crumb .repo{color:var(--text)}
+  .crumb .sep{color:var(--faint)}
+  .crumb .branch{color:var(--muted);font-weight:550;display:flex;align-items:center;gap:5px}
+  .branch svg{width:13px;height:13px;opacity:.7}
+  .chev{font-size:9px;color:var(--faint);margin-left:1px}
+  .topspace{flex:1}
+  .kbd{
+    font-size:11px;color:var(--muted);background:var(--col);border:1px solid var(--border);
+    padding:3px 8px;border-radius:7px;display:flex;align-items:center;gap:6px
+  }
+  .kbd b{font-weight:700;color:var(--faint)}
+  .avatar{width:25px;height:25px;border-radius:50%;background:linear-gradient(140deg,#f0a17a,#d97757);display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700}
+
+  .content{flex:1; position:relative; min-height:0; overflow:hidden}
+
+  /* ---------- board ---------- */
+  .board{position:absolute; inset:0; display:flex; gap:14px; padding:16px; overflow-x:auto; overflow-y:hidden}
+  .col{
+    flex:0 0 252px; display:flex; flex-direction:column; min-height:0;
+    background:var(--col); border:1px solid var(--hair); border-radius:var(--rad);
+  }
+  .colhead{display:flex;align-items:center;gap:8px;padding:11px 12px 9px}
+  .coldot{width:7px;height:7px;border-radius:50%}
+  .colname{font-size:12.5px;font-weight:650;letter-spacing:.01em}
+  .colcount{font-size:11px;color:var(--faint);font-weight:600;background:var(--surface);border:1px solid var(--hair);border-radius:20px;padding:1px 7px}
+  .coladd{margin-left:auto;color:var(--faint);font-size:15px;cursor:pointer;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;transition:.15s}
+  .coladd:hover{background:var(--surface);color:var(--text)}
+  .cards{flex:1;overflow-y:auto;padding:2px 9px 10px;display:flex;flex-direction:column;gap:9px}
+  .cards::-webkit-scrollbar{width:8px} .cards::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;border:2px solid transparent;background-clip:padding-box}
+
+  .card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);
+    padding:11px 12px;cursor:pointer;box-shadow:var(--shadow); position:relative;
+    transition:transform .18s var(--t),box-shadow .18s var(--t),border-color .18s;
+  }
+  .card:hover{transform:translateY(-1px);box-shadow:var(--shadow-lg);border-color:var(--border-2)}
+  .card.enter{animation:pop .42s var(--t)}
+  @keyframes pop{0%{opacity:0;transform:scale(.94) translateY(6px)}100%{opacity:1;transform:none}}
+  .card.focused{border-color:var(--accent-bd);box-shadow:0 0 0 3px var(--accent-soft),var(--shadow)}
+  .cmeta{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+  .cid{font-family:var(--mono);font-size:10.5px;color:var(--faint);font-weight:600;letter-spacing:.02em}
+  .cspec{font-size:10.5px;color:var(--faint);display:flex;align-items:center;gap:3px}
+  .cspec svg{width:11px;height:11px}
+  .ctitle{font-size:13.5px;font-weight:550;line-height:1.35;letter-spacing:.005em}
+  .cfoot{display:flex;align-items:center;gap:7px;margin-top:10px}
+  .unassigned{font-size:11.5px;color:var(--faint);display:flex;align-items:center;gap:6px}
+  .unassigned .ring{width:15px;height:15px;border-radius:50%;border:1.5px dashed var(--border-2)}
+
+  /* agent chip */
+  .agent{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);font-weight:550}
+  .mono{width:17px;height:17px;border-radius:5px;display:grid;place-items:center;color:#fff;font-size:9px;font-weight:800;letter-spacing:-.02em;flex:0 0 auto}
+  .agent .model{color:var(--faint);font-weight:500}
+  .pulse{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 var(--green);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,158,111,.5)}70%{box-shadow:0 0 0 6px rgba(47,158,111,0)}100%{box-shadow:0 0 0 0 rgba(47,158,111,0)}}
+
+  .cfoot .right{margin-left:auto;display:flex;align-items:center;gap:9px}
+  .stat{font-size:11px;font-weight:650;font-family:var(--mono)}
+  .stat.add{color:var(--green)} .stat.del{color:var(--red)}
+  .chip{font-size:10.5px;color:var(--muted);display:flex;align-items:center;gap:4px}
+  .chip svg{width:12px;height:12px;opacity:.8}
+
+  /* running area */
+  .run{margin-top:9px;border-top:1px solid var(--hair);padding-top:9px}
+  .think{font-size:11.5px;color:var(--muted);font-style:italic;line-height:1.4;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;min-height:16px}
+  .toolrow{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:11px;color:var(--faint);font-family:var(--mono)}
+  .toolrow .tk{width:12px;height:12px;opacity:.7;flex:0 0 auto}
+  .shim{height:3px;border-radius:3px;background:var(--hair);margin-top:8px;overflow:hidden;position:relative}
+  .shim::after{content:"";position:absolute;inset:0;width:42%;border-radius:3px;
+    background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.8;animation:slide 1.7s var(--t) infinite}
+  @keyframes slide{0%{transform:translateX(-110%)}100%{transform:translateX(330%)}}
+
+  /* needs-input card */
+  .card.needs{border-color:var(--amber-bd);box-shadow:0 0 0 1px var(--amber-bd),var(--shadow)}
+  .needbox{margin-top:9px;border-top:1px solid var(--amber-bd);padding-top:9px}
+  .needttl{font-size:11.5px;color:var(--amber);font-weight:650;display:flex;align-items:center;gap:6px;margin-bottom:7px}
+  .cmd{font-family:var(--mono);font-size:11px;background:var(--amber-soft);color:var(--text);border:1px solid var(--amber-bd);border-radius:6px;padding:4px 8px;display:inline-block;margin-bottom:9px}
+  .needbtns{display:flex;gap:7px}
+  .btn{font-size:11.5px;font-weight:600;border-radius:7px;padding:5px 11px;cursor:pointer;border:1px solid var(--border-2);background:var(--surface);color:var(--text);transition:.15s}
+  .btn:hover{background:var(--col)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{filter:brightness(1.06)}
+  .btn.ghost{border-color:transparent;color:var(--muted)}
+  .btn.amber{background:var(--amber);border-color:var(--amber);color:#fff}
+
+  .newcard{ /* composer */
+    background:var(--surface);border:1px dashed var(--accent-bd);border-radius:var(--rad);padding:11px 12px;box-shadow:var(--shadow)
+  }
+  .newcard input{border:0;background:transparent;color:var(--text);font-family:var(--font);font-size:13.5px;font-weight:550;width:100%;outline:none}
+  .newcard input::placeholder{color:var(--faint)}
+  .newcard .hint{font-size:10.5px;color:var(--faint);margin-top:8px;display:flex;gap:10px}
+  .newcard .hint b{font-weight:700;color:var(--muted)}
+  .caret{display:inline-block;width:1.5px;height:15px;background:var(--accent);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .colghost{margin:2px 9px 10px;font-size:11.5px;color:var(--faint);padding:7px 9px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.15s}
+  .colghost:hover{background:var(--surface);color:var(--muted)}
+
+  /* ---------- delegate picker ---------- */
+  .dim{position:absolute;inset:0;background:rgba(8,8,16,.34);opacity:0;pointer-events:none;transition:opacity .25s var(--t);z-index:30}
+  .dim.on{opacity:1}
+  [data-theme="dark"] .dim{background:rgba(0,0,0,.5)}
+  .picker{
+    position:absolute;z-index:40;width:296px;background:var(--surface);border:1px solid var(--border-2);
+    border-radius:var(--rad);box-shadow:var(--shadow-lg);padding:12px;opacity:0;transform:scale(.96) translateY(-4px);
+    transform-origin:top left;pointer-events:none;transition:opacity .2s var(--t),transform .2s var(--t)
+  }
+  .picker.on{opacity:1;transform:none;pointer-events:auto}
+  .pktitle{font-size:11px;color:var(--faint);font-weight:600;margin:2px 2px 9px;letter-spacing:.02em}
+  .pktitle b{color:var(--text);font-weight:650}
+  .pklabel{font-size:10.5px;color:var(--faint);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:8px 4px 6px}
+  .pkrow{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:.12s}
+  .pkrow:hover{background:var(--col)}
+  .pkrow.sel{background:var(--accent-soft)}
+  .pkrow.disabled{opacity:.45;cursor:not-allowed}
+  .pkrow .mono{width:21px;height:21px;border-radius:6px;font-size:10px}
+  .pkrow .nm{font-size:12.5px;font-weight:550}
+  .pkrow .st{margin-left:auto;font-size:10.5px;color:var(--green);font-weight:600;display:flex;align-items:center;gap:4px}
+  .pkrow.disabled .st{color:var(--faint)}
+  .pkrow.sel .check{color:var(--accent)}
+  .pkdiv{height:1px;background:var(--hair);margin:9px 2px}
+  .pkopt{display:flex;align-items:center;gap:8px;padding:5px 6px;font-size:12px;color:var(--muted)}
+  .pkopt .lab{font-weight:550;color:var(--text)}
+  .select{margin-left:auto;font-size:11.5px;border:1px solid var(--border-2);border-radius:7px;padding:3px 9px;background:var(--col);color:var(--text);display:flex;align-items:center;gap:6px;cursor:pointer}
+  .toggle{margin-left:auto;width:32px;height:19px;border-radius:20px;background:var(--accent);position:relative;cursor:pointer}
+  .toggle::after{content:"";position:absolute;top:2px;left:15px;width:15px;height:15px;border-radius:50%;background:#fff;transition:.18s}
+  .pkfoot{margin-top:11px}
+  .pkfoot .btn.primary{width:100%;justify-content:center;display:flex;align-items:center;gap:8px;padding:8px;font-size:12.5px}
+  .pkfoot .btn .ent{opacity:.8;font-size:11px}
+
+  /* ---------- cockpit ---------- */
+  .cockpit{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);animation:fade .3s var(--t)}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .ckhead{flex:0 0 auto;border-bottom:1px solid var(--hair);padding:11px 16px 12px}
+  .ckrow1{display:flex;align-items:center;gap:11px}
+  .back{color:var(--muted);font-size:12.5px;display:flex;align-items:center;gap:5px;cursor:pointer;font-weight:550}
+  .back:hover{color:var(--text)}
+  .cktitle{font-size:15px;font-weight:650;letter-spacing:.005em}
+  .ckactions{margin-left:auto;display:flex;gap:7px}
+  .lifecycle{display:flex;align-items:center;gap:5px;margin-top:11px}
+  .lc{font-size:11px;color:var(--faint);font-weight:550;padding:3px 9px;border-radius:20px}
+  .lc.done{color:var(--green)}
+  .lc.cur{background:var(--accent-soft);color:var(--accent);font-weight:650}
+  .lcsep{color:var(--faint);font-size:10px}
+  .ckbody{flex:1;display:flex;min-height:0}
+  .ckleft{flex:0 0 41%;border-right:1px solid var(--hair);overflow-y:auto;padding:16px 17px}
+  .ckright{flex:1;overflow-y:auto;padding:16px 17px;min-width:0}
+  .ckleft::-webkit-scrollbar,.ckright::-webkit-scrollbar{width:8px}
+  .ckleft::-webkit-scrollbar-thumb,.ckright::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;border:2px solid transparent;background-clip:padding-box}
+  .seclabel{font-size:10.5px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .seclabel .live{margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--green);text-transform:none;letter-spacing:0;font-size:11px;font-weight:600}
+  .spec{font-size:13px;line-height:1.6;color:var(--text)}
+  .spec p{margin:0 0 9px;color:var(--muted)}
+  .spec .ac{display:flex;align-items:flex-start;gap:8px;margin:5px 0}
+  .spec .ac .box{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--border-2);flex:0 0 auto;margin-top:1px;display:grid;place-items:center;font-size:10px;color:#fff}
+  .spec .ac.on .box{background:var(--green);border-color:var(--green)}
+  .specdiv{height:1px;background:var(--hair);margin:18px 0}
+
+  .feed{display:flex;flex-direction:column;gap:0}
+  .fitem{display:flex;gap:11px;padding:7px 0;position:relative;animation:fin .35s var(--t)}
+  @keyframes fin{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+  .frail{flex:0 0 14px;display:flex;flex-direction:column;align-items:center}
+  .fmark{width:9px;height:9px;border-radius:50%;margin-top:3px;flex:0 0 auto;z-index:1}
+  .fmark.thought{background:var(--faint)}
+  .fmark.tool{background:var(--accent)}
+  .fmark.plan{background:var(--amber)}
+  .fmark.edit{background:var(--green)}
+  .fline{width:2px;flex:1;background:var(--hair);margin-top:3px}
+  .fitem:last-child .fline{display:none}
+  .fbody{flex:1;padding-bottom:4px;min-width:0}
+  .fkind{font-size:10px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  .ftext{font-size:12.5px;color:var(--text);line-height:1.45;margin-top:2px}
+  .ftext.dim{color:var(--muted)}
+  .fcode{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+  .planlist{margin-top:5px;display:flex;flex-direction:column;gap:4px}
+  .pli{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+  .pli .pb{width:13px;height:13px;border-radius:4px;border:1.5px solid var(--border-2);display:grid;place-items:center;font-size:9px;color:#fff;flex:0 0 auto}
+  .pli.on{color:var(--text)} .pli.on .pb{background:var(--green);border-color:var(--green)}
+  .editchip{display:inline-flex;align-items:center;gap:8px;margin-top:5px;border:1px solid var(--border);background:var(--col);border-radius:7px;padding:4px 9px;font-family:var(--mono);font-size:11px}
+
+  /* diff */
+  .diffwrap{border:1px solid var(--border);border-radius:var(--rad);overflow:hidden;background:var(--surface)}
+  .diffhead{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--hair);background:var(--col-head)}
+  .diffhead .fn{font-family:var(--mono);font-size:12px;font-weight:600}
+  .diffhead .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .diffbody{font-family:var(--mono);font-size:12px;line-height:1.7}
+  .dl{display:flex;padding:0 12px;white-space:pre;color:var(--text)}
+  .dl .gut{width:30px;flex:0 0 30px;color:var(--faint);user-select:none;text-align:right;padding-right:12px}
+  .dl.add{background:var(--green-soft)} .dl.add .gut{color:var(--green)}
+  .dl.del{background:var(--red-soft)} .dl.del .gut{color:var(--red)}
+  .dl.add .code::before{content:"+ ";color:var(--green)}
+  .dl.del .code::before{content:"- ";color:var(--red)}
+  .dl.ctx .code::before{content:"  "}
+  .inline{margin:6px 12px 10px 42px;border:1px solid var(--border);border-radius:9px;background:var(--col);padding:10px 11px}
+  .ic-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .ic-top .avatar{width:20px;height:20px;font-size:9px;background:linear-gradient(140deg,#7b8cf0,#5b5bd6)}
+  .ic-who{font-size:11.5px;font-weight:650} .ic-when{font-size:10.5px;color:var(--faint)}
+  .ic-text{font-size:12.5px;color:var(--text);line-height:1.5}
+  .ic-actions{display:flex;gap:8px;margin-top:9px}
+  .applybar{display:flex;align-items:center;gap:10px;padding:11px 12px;border-top:1px solid var(--hair);background:var(--col-head)}
+  .applybar .ipt{flex:1;font-size:12px;color:var(--faint)}
+
+  /* ---------- demo controller ---------- */
+  .demobar{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:100;
+    display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:40px;
+    background:rgba(28,28,34,.86);backdrop-filter:blur(14px);box-shadow:0 12px 40px rgba(0,0,0,.4);
+    border:1px solid rgba(255,255,255,.1);
+  }
+  .demobar button{border:0;background:transparent;color:#d8d8e0;cursor:pointer;width:30px;height:30px;border-radius:50%;font-size:15px;display:grid;place-items:center;transition:.15s}
+  .demobar button:hover{background:rgba(255,255,255,.12);color:#fff}
+  .demobar .lbl{color:#fff;font-size:12px;font-weight:600;padding:0 10px;min-width:138px;text-align:center;font-variant-numeric:tabular-nums}
+  .demobar .lbl .n{color:#9a9ab0;font-weight:600;margin-right:7px}
+  .dots{display:flex;gap:5px;padding:0 6px}
+  .dots span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.25);cursor:pointer;transition:.2s}
+  .dots span.on{background:#fff;width:18px;border-radius:6px}
+  .demodiv{width:1px;height:18px;background:rgba(255,255,255,.14);margin:0 3px}
+  .hidden{display:none !important}
+</style>
+</head>
+<body data-theme="light">
+
+  <div class="window">
+    <div class="titlebar">
+      <div class="lights"><span></span><span></span><span></span></div>
+      <div class="winttl">byconvo — Tasks</div>
+      <button class="iconbtn" id="themeBtn" title="Toggle theme">◐</button>
+    </div>
+
+    <div class="appbody">
+      <nav class="rail">
+        <div class="logo">b</div>
+        <button class="railbtn" title="Commit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v5.8M12 15.2V21"/></svg><span class="railnum">1</span></button>
+        <button class="railbtn" title="Review"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M6 8.4v7.2M18 15.6V12a3 3 0 0 0-3-3h-3l2.2-2.2M12 9l2.2 2.2"/></svg><span class="railnum">2</span></button>
+        <button class="railbtn" title="Browse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="railnum">3</span></button>
+        <button class="railbtn active" title="Tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="4" width="5" height="16" rx="1.3"/><rect x="10.5" y="4" width="5" height="11" rx="1.3"/><rect x="17.5" y="4" width="3" height="16" rx="1.3" opacity=".5"/></svg><span class="railnum">4</span></button>
+        <div class="railspace"></div>
+        <button class="railbtn" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
+      </nav>
+
+      <div class="appmain">
+        <div class="topbar">
+          <div class="crumb">
+            <span class="repo">byconvo</span><span class="chev">▾</span>
+            <span class="sep">/</span>
+            <span class="branch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><path d="M6 8.4v7.2"/></svg>main</span><span class="chev">▾</span>
+          </div>
+          <div class="topspace"></div>
+          <div class="kbd"><b>⌘</b>K</div>
+          <div class="avatar">R</div>
+        </div>
+
+        <div class="content" id="content"><!-- rendered --></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demobar">
+    <button id="prev" title="Previous (←)">‹</button>
+    <div class="lbl"><span class="n" id="stepN">1/7</span><span id="stepName">Board</span></div>
+    <div class="dots" id="dots"></div>
+    <div class="demodiv"></div>
+    <button id="replay" title="Replay">↻</button>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  const AGENTS = {
+    claude:   {name:"Claude Code", mono:"C",  color:"#d97757", installed:true},
+    codex:    {name:"Codex",       mono:"Cx", color:"#10a37f", installed:true},
+    opencode: {name:"opencode",    mono:"oc", color:"#3b82f6", installed:true},
+    cursor:   {name:"Cursor",      mono:"Cu", color:"#5b6170", installed:false},
+  };
+  const COLS = [
+    {key:"backlog",   name:"Backlog",     dot:"#9a9aa6"},
+    {key:"todo",      name:"Todo",        dot:"#5b8def"},
+    {key:"inprogress",name:"In Progress", dot:"#d99a2b"},
+    {key:"review",    name:"In Review",   dot:"#9b6bff"},
+    {key:"done",      name:"Done",        dot:"#2f9e6f"},
+  ];
+
+  // base task state (mutated per step)
+  function baseTasks(){
+    return [
+      {id:"DAR-21", title:"Add OAuth login (Google + GitHub)", col:"backlog", spec:true},
+      {id:"DAR-24", title:"Rate-limit the public API", col:"backlog"},
+      {id:"DAR-30", title:"Dark-mode polish for diff gutter", col:"backlog"},
+      {id:"DAR-19", title:"Fix flaky upload integration test", col:"todo"},
+      {id:"DAR-14", title:"Refactor auth module to async", col:"todo", spec:true},
+      {id:"DAR-17", title:"Update dependencies (minor)", col:"inprogress", agent:"opencode", status:"running", elapsed:39, t:1, k:1},
+      {id:"DAR-09", title:"Cache layer (LRU) for sessions", col:"review", agent:"codex", add:84, del:12, comments:3},
+      {id:"DAR-02", title:"Sentry error tracking", col:"done", agent:"claude"},
+      {id:"DAR-05", title:"Settings page skeleton", col:"done", agent:"opencode"},
+      {id:"DAR-07", title:"Keyboard shortcuts (1/2/3)", col:"done", agent:"codex"},
+    ];
+  }
+
+  // streaming scripts for running agents
+  const STREAM = {
+    claude: {
+      think:["reading callers of verify()","tracing the null-token path","three call sites assume sync — refactoring","updating callers to await verify()","running the auth test suite"],
+      tool:[["search","Grep \"verify(\""],["file","Read auth.ts"],["edit","Edit auth.ts"],["edit","Edit session.ts"],["term","Bash pnpm test"]],
+    },
+    opencode: {
+      think:["resolving the dependency graph","checking changelogs for breaking changes","bumping 6 minor versions","regenerating the lockfile","verifying the build"],
+      tool:[["file","Read package.json"],["term","Bash pnpm outdated"],["edit","Edit package.json"],["term","Bash pnpm install"],["term","Bash pnpm build"]],
+    },
+  };
+
+  let step = 0, tasks = baseTasks();
+  const content = document.getElementById("content");
+
+  const TOOL_ICONS = {
+    search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/></svg>',
+    file:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h7l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M13 3v5h5"/></svg>',
+    edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L18.5 9.5a2 2 0 0 0-3-3L5 17v3z"/></svg>',
+    term:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg>',
+  };
+  const specIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h7l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M13 3v5h5M8.5 13h7M8.5 16.5h5"/></svg>';
+  const commentIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H9l-4 4z"/></svg>';
+
+  function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+  function fmtTime(s){const m=Math.floor(s/60),ss=s%60;return m+":"+String(ss).padStart(2,"0");}
+
+  function agentChip(key, model, live){
+    const a=AGENTS[key]; if(!a) return "";
+    return `<span class="agent"><span class="mono" style="background:${a.color}">${a.mono}</span>${a.name}`+
+      (model?` <span class="model">· ${model}</span>`:"")+
+      (live?` <span class="pulse"></span>`:"")+`</span>`;
+  }
+
+  function cardHTML(t){
+    const a=t.agent?AGENTS[t.agent]:null;
+    let foot="";
+    if(t.status==="running"){
+      foot=`<div class="cfoot">${agentChip(t.agent, t.model||"", true)}<span class="right"><span class="chip">${fmtTime(t.elapsed)}</span></span></div>`;
+    } else if(t.status==="needs"){
+      foot=`<div class="cfoot">${agentChip(t.agent, t.model||"", false)}</div>`;
+    } else if(t.col==="review"){
+      foot=`<div class="cfoot">${agentChip(t.agent,"",false)}<span class="right"><span class="stat add">+${t.add}</span><span class="stat del">−${t.del}</span><span class="chip">${commentIcon}${t.comments}</span></span></div>`;
+    } else if(t.col==="done"){
+      foot=`<div class="cfoot">${agentChip(t.agent,"",false)}<span class="right"><span class="chip" style="color:var(--green)">✓ merged</span></span></div>`;
+    } else if(a){
+      foot=`<div class="cfoot">${agentChip(t.agent,"",false)}</div>`;
+    } else {
+      foot=`<div class="cfoot"><span class="unassigned"><span class="ring"></span>Unassigned</span></div>`;
+    }
+
+    let runblock="";
+    if(t.status==="running"){
+      const s=STREAM[t.agent]||STREAM.claude;
+      const ti=(t.t||0)%s.think.length, ki=(t.k||0)%s.tool.length;
+      const tool=s.tool[ki];
+      runblock=`<div class="run">
+        <div class="think" data-think="${t.id}">${s.think[ti]}…</div>
+        <div class="toolrow"><span class="tk">${TOOL_ICONS[tool[0]]}</span><span data-tool="${t.id}">${tool[1]}</span></div>
+        <div class="shim"></div></div>`;
+    }
+    if(t.status==="needs"){
+      runblock=`<div class="needbox">
+        <div class="needttl">⚠ Needs your approval</div>
+        <div class="cmd">$ pnpm install</div>
+        <div class="needbtns"><button class="btn amber">Approve</button><button class="btn ghost">Deny</button></div></div>`;
+    }
+
+    const cls="card"+(t.enter?" enter":"")+(t.focused?" focused":"")+(t.status==="needs"?" needs":"");
+    return `<div class="${cls}" data-id="${t.id}">
+      <div class="cmeta"><span class="cid">${t.id}</span>${t.spec?`<span class="cspec">${specIcon}spec</span>`:""}</div>
+      <div class="ctitle">${esc(t.title)}</div>
+      ${runblock}
+      ${foot}
+    </div>`;
+  }
+
+  function renderBoard(opts){
+    opts=opts||{};
+    const colsHTML=COLS.map(c=>{
+      const list=tasks.filter(t=>t.col===c.key);
+      let inner=list.map(cardHTML).join("");
+      if(opts.composer===c.key){
+        inner = `<div class="newcard"><input value="${opts.composerText||""}" placeholder="Task title…" readonly>${opts.composerText?'<span class="caret"></span>':''}
+          <div class="hint"><span><b>⏎</b> create</span><span><b>⌘⏎</b> create & open</span></div></div>` + inner;
+      }
+      const ghost = c.key!=="done" ? `<div class="colghost">+ New task</div>` : "";
+      return `<div class="col">
+        <div class="colhead"><span class="coldot" style="background:${c.dot}"></span><span class="colname">${c.name}</span><span class="colcount">${list.length}</span><span class="coladd">+</span></div>
+        <div class="cards">${inner}</div>${ghost}
+      </div>`;
+    }).join("");
+
+    content.innerHTML = `<div class="board">${colsHTML}</div>
+      <div class="dim ${opts.picker?'on':''}"></div>
+      ${opts.picker?pickerHTML():""}`;
+
+    if(opts.picker) positionPicker(opts.pickerFor, opts.pickerAgent);
+  }
+
+  function pickerHTML(){
+    return `<div class="picker" id="picker">
+      <div class="pktitle">Delegate · <b>"Refactor auth module to async"</b></div>
+      <div class="pklabel">Agent</div>
+      <div id="pkrows"></div>
+      <div class="pkdiv"></div>
+      <div class="pkopt"><span class="lab">Model</span><span class="select">opus <span style="color:var(--faint);font-size:9px">▾</span></span></div>
+      <div class="pkopt"><span class="lab">Run in</span><span style="color:var(--muted);font-size:11.5px">new git worktree</span><span class="toggle"></span></div>
+      <div class="pkfoot"><button class="btn primary">Delegate <span class="ent">⏎</span></button></div>
+    </div>`;
+  }
+
+  function positionPicker(forId, selAgent){
+    const rows=Object.keys(AGENTS).map(k=>{
+      const a=AGENTS[k]; const sel=k===selAgent;
+      return `<div class="pkrow ${sel?'sel':''} ${a.installed?'':'disabled'}">
+        <span class="mono" style="background:${a.color}">${a.mono}</span>
+        <span class="nm">${a.name}</span>
+        <span class="st">${a.installed?(sel?'<span class="check">✓ selected</span>':'✓ installed'):'– not found'}</span>
+      </div>`;
+    }).join("");
+    document.getElementById("pkrows").innerHTML=rows;
+    const card=content.querySelector(`.card[data-id="${forId}"]`);
+    const pk=document.getElementById("picker");
+    if(card&&pk){
+      const cr=content.getBoundingClientRect(), br=card.getBoundingClientRect();
+      let left=br.left-cr.left+18, top=br.top-cr.top+24;
+      left=Math.min(left, cr.width-pk.offsetWidth-16);
+      top=Math.min(top, cr.height-pk.offsetHeight-16);
+      pk.style.left=left+"px"; pk.style.top=Math.max(12,top)+"px";
+      requestAnimationFrame(()=>pk.classList.add("on"));
+    }
+  }
+
+  /* ---------------- cockpit ---------------- */
+  const FEED=[
+    {k:"thought",kind:"thought",text:"Reading callers of <span class='fcode'>verify()</span> across the repo"},
+    {k:"tool",kind:"tool",text:'<span class="fcode">Grep "verify("</span> — 7 matches in 4 files'},
+    {k:"thought",kind:"thought",text:"Three call sites assume a sync return. Refactoring to async and guarding null tokens."},
+    {k:"plan",kind:"plan",plan:[["parse the current sessions map",true],["add a null-token guard",true],["make verify() async",true],["update the 7 callers to await",false],["run the auth test suite",false]]},
+    {k:"tool",kind:"tool",text:'<span class="fcode">Edit auth.ts</span>',edit:"+84 −12"},
+    {k:"thought",kind:"thought",text:"Updating callers in <span class='fcode'>session.ts</span> and <span class='fcode'>routes/login.ts</span> to await."},
+  ];
+
+  function cockpitHTML(revealed){
+    const feed=FEED.slice(0,revealed).map((f,i)=>{
+      let body=`<div class="fkind">${f.kind}</div>`;
+      if(f.k==="plan"){
+        body+=`<div class="planlist">`+f.plan.map(p=>`<div class="pli ${p[1]?'on':''}"><span class="pb">${p[1]?'✓':''}</span>${p[0]}</div>`).join("")+`</div>`;
+      } else {
+        body+=`<div class="ftext">${f.text}</div>`;
+        if(f.edit) body+=`<div class="editchip"><span class="stat add">+84</span><span class="stat del">−12</span> auth.ts</div>`;
+      }
+      return `<div class="fitem"><div class="frail"><span class="fmark ${f.k}"></span><span class="fline"></span></div><div class="fbody">${body}</div></div>`;
+    }).join("");
+
+    return `<div class="cockpit">
+      <div class="ckhead">
+        <div class="ckrow1">
+          <span class="back">‹ Tasks</span>
+          <span class="cktitle">Refactor auth module to async</span>
+          <span class="ckactions">
+            <button class="btn"><span style="color:var(--red)">◼</span> Stop</button>
+            <button class="btn">Open PR</button>
+            <button class="btn primary">Apply review →</button>
+          </span>
+        </div>
+        <div class="lifecycle">
+          <span class="lc done">Backlog</span><span class="lcsep">▸</span>
+          <span class="lc done">Todo</span><span class="lcsep">▸</span>
+          <span class="lc cur">In Progress</span><span class="lcsep">▸</span>
+          <span class="lc">In Review</span><span class="lcsep">▸</span>
+          <span class="lc">Done</span>
+        </div>
+      </div>
+      <div class="ckbody">
+        <div class="ckleft">
+          <div class="seclabel">Spec / context</div>
+          <div class="spec">
+            <p>Make <span class="fcode" style="font-family:var(--mono)">verify()</span> asynchronous and resilient. It currently reads an in-memory map and assumes the token is always present.</p>
+            <div class="ac on"><span class="box">✓</span><div>Reject null / unknown tokens with <span class="fcode" style="font-family:var(--mono)">null</span>, never throw</div></div>
+            <div class="ac on"><span class="box">✓</span><div>Read from the async session store</div></div>
+            <div class="ac"><span class="box"></span><div>All call sites updated &amp; awaited</div></div>
+            <div class="ac"><span class="box"></span><div>Tests green</div></div>
+          </div>
+          <div class="specdiv"></div>
+          <div class="seclabel">Agent session <span class="live"><span class="pulse"></span>claude · opus · <span id="ckElapsed">1:34</span></span></div>
+          <div class="feed" id="feed">${feed}</div>
+        </div>
+        <div class="ckright">
+          <div class="seclabel">Diff <span style="margin-left:auto;color:var(--faint);font-weight:600;text-transform:none;letter-spacing:0">split ▾</span></div>
+          <div class="diffwrap">
+            <div class="diffhead"><span class="fn">src/auth.ts</span><span class="right"><span class="stat add">+84</span><span class="stat del">−12</span></span></div>
+            <div class="diffbody">
+              <div class="dl del"><span class="gut">12</span><span class="code">function verify(token) {</span></div>
+              <div class="dl del"><span class="gut">13</span><span class="code">  const user = sessions[token]</span></div>
+              <div class="dl del"><span class="gut">14</span><span class="code">  return user</span></div>
+              <div class="dl add"><span class="gut">12</span><span class="code">async function verify(token) {</span></div>
+              <div class="dl add"><span class="gut">13</span><span class="code">  if (!token) return null</span></div>
+              <div class="inline">
+                <div class="ic-top"><span class="avatar">R</span><span class="ic-who">rutenis</span><span class="ic-when">just now</span></div>
+                <div class="ic-text">Nice. Can we also log the rejected token id for the audit trail before returning?</div>
+                <div class="ic-actions"><button class="btn primary" style="font-size:11px;padding:4px 10px">Apply review → agent</button><button class="btn ghost" style="font-size:11px;padding:4px 8px">Reply</button></div>
+              </div>
+              <div class="dl add"><span class="gut">14</span><span class="code">  const user = await store.get(token)</span></div>
+              <div class="dl add"><span class="gut">15</span><span class="code">  if (!user) return null</span></div>
+              <div class="dl ctx"><span class="gut">16</span><span class="code">  return user</span></div>
+              <div class="dl ctx"><span class="gut">17</span><span class="code">}</span></div>
+            </div>
+            <div class="applybar"><span class="ipt">Leave a review comment…</span><button class="btn">Comment</button></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  /* ---------------- steps ---------------- */
+  const STEPS=[
+    {name:"Board",          run:()=>{ tasks=baseTasks(); renderBoard(); }},
+    {name:"Quick-create",   run:()=>{ tasks=baseTasks();
+        tasks.splice(4,0,{id:"DAR-31",title:"Empty-state illustrations",col:"todo",enter:true});
+        renderBoard({composer:"todo",composerText:"Empty-state illustrations"}); }},
+    {name:"Delegate",       run:()=>{ tasks=baseTasks();
+        tasks.forEach(t=>{if(t.id==="DAR-14")t.focused=true;});
+        renderBoard({picker:true,pickerFor:"DAR-14",pickerAgent:"claude"}); }},
+    {name:"Agents running", run:()=>{ tasks=baseTasks();
+        const h=tasks.find(t=>t.id==="DAR-14");
+        h.col="inprogress"; h.agent="claude"; h.model="opus"; h.status="running"; h.elapsed=8; h.t=0; h.k=0; h.enter=true;
+        renderBoard(); }},
+    {name:"Needs input",    run:()=>{ tasks=baseTasks();
+        const h=tasks.find(t=>t.id==="DAR-14");
+        h.col="inprogress"; h.agent="claude"; h.model="opus"; h.status="running"; h.elapsed=46; h.t=3; h.k=3;
+        const o=tasks.find(t=>t.id==="DAR-17"); o.status="needs"; o.enter=true;
+        renderBoard(); }},
+    {name:"Review cockpit", run:()=>{ content.innerHTML=cockpitHTML(FEED.length); }},
+    {name:"Done",           run:()=>{ tasks=baseTasks();
+        const h=tasks.find(t=>t.id==="DAR-14");
+        h.col="done"; h.agent="claude"; h.status=null; h.enter=true;
+        const o=tasks.find(t=>t.id==="DAR-17"); o.status="running"; o.t=4; o.k=4; o.elapsed=72;
+        renderBoard(); }},
+  ];
+
+  function go(n){
+    step=(n+STEPS.length)%STEPS.length;
+    STEPS[step].run();
+    document.getElementById("stepN").textContent=(step+1)+"/"+STEPS.length;
+    document.getElementById("stepName").textContent=STEPS[step].name;
+    [...document.querySelectorAll(".dots span")].forEach((d,i)=>d.classList.toggle("on",i===step));
+  }
+  window.goStep=go;
+
+  // dots
+  document.getElementById("dots").innerHTML=STEPS.map((s,i)=>`<span title="${s.name}"></span>`).join("");
+  [...document.querySelectorAll(".dots span")].forEach((d,i)=>d.addEventListener("click",()=>go(i)));
+  document.getElementById("prev").onclick=()=>go(step-1);
+  document.getElementById("replay").onclick=()=>go(step+1);
+  document.getElementById("themeBtn").onclick=toggleTheme;
+  function toggleTheme(){const b=document.body;b.dataset.theme=b.dataset.theme==="dark"?"light":"dark";}
+  document.addEventListener("keydown",e=>{
+    if(e.key==="ArrowRight")go(step+1);
+    else if(e.key==="ArrowLeft")go(step-1);
+    else if(e.key.toLowerCase()==="t")toggleTheme();
+  });
+
+  // live ticker for running cards + cockpit feed
+  let tick=0;
+  setInterval(()=>{
+    tick++;
+    tasks.forEach(t=>{
+      if(t.status==="running"){
+        t.elapsed=(t.elapsed||0)+1;
+        if(tick%2===0){ t.t=(t.t||0)+1; t.k=(t.k||0)+1; }
+        const s=STREAM[t.agent]||STREAM.claude;
+        const th=document.querySelector(`[data-think="${t.id}"]`);
+        const to=document.querySelector(`[data-tool="${t.id}"]`);
+        if(th) th.textContent=s.think[(t.t||0)%s.think.length]+"…";
+        if(to) to.textContent=s.tool[(t.k||0)%s.tool.length][1];
+        const card=content.querySelector(`.card[data-id="${t.id}"] .chip`);
+        if(card && t.col==="inprogress") card.textContent=fmtTime(t.elapsed);
+      }
+    });
+    const el=document.getElementById("ckElapsed");
+    if(el){const p=el.textContent.split(":");let s=(+p[0])*60+(+p[1])+1;el.textContent=fmtTime(s);}
+  },1000);
+
+  // initial step (supports ?step=N for screenshots)
+  const q=new URLSearchParams(location.search);
+  go(q.has("step")?Math.max(0,Math.min(STEPS.length-1,parseInt(q.get("step"),10)||0)):0);
+  if(q.get("theme")==="dark") document.body.dataset.theme="dark";
+})();
+</script>
+</body>
+</html>
