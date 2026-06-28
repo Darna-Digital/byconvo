@@ -9,6 +9,10 @@ importers:
   .: {}
 
   packages/desktop:
+    dependencies:
+      node-pty:
+        specifier: ^1.1.0
+        version: 1.1.0
     devDependencies:
       '@types/node':
         specifier: ^22.15.0
@@ -27,10 +31,10 @@ importers:
     dependencies:
       '@tanstack/eslint-config':
         specifier: ^0.4.0
-        version: 0.4.0(@typescript-eslint/utils@8.61.0(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3))(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3)
+        version: 0.4.0(@typescript-eslint/utils@8.61.0(eslint@9.39.4(jiti@2.7.0)(supports-color@10.2.2))(typescript@6.0.3))(eslint@9.39.4(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
       eslint:
         specifier: ^9
-        version: 9.39.4(jiti@2.7.0)
+        version: 9.39.4(jiti@2.7.0)(supports-color@10.2.2)
       prettier:
         specifier: ^3.8.3
         version: 3.8.4
@@ -203,7 +207,7 @@ importers:
         version: 0.8.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
       '@tanstack/eslint-config':
         specifier: latest
-        version: 0.4.0(@typescript-eslint/utils@8.61.0(eslint@9.39.4(jiti@2.7.0)(supports-color@10.2.2))(typescript@6.0.3))(eslint@9.39.4(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
+        version: 0.4.0(@typescript-eslint/utils@8.61.0(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3))(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3)
       '@testing-library/dom':
         specifier: ^10.4.1
         version: 10.4.1
@@ -224,13 +228,13 @@ importers:
         version: 6.0.2(vite@8.0.16(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
       eslint:
         specifier: ^9
-        version: 9.39.4(jiti@2.7.0)(supports-color@10.2.2)
+        version: 9.39.4(jiti@2.7.0)
       eslint-plugin-react-hooks:
         specifier: ^7.1.1
-        version: 7.1.1(eslint@9.39.4(jiti@2.7.0)(supports-color@10.2.2))
+        version: 7.1.1(eslint@9.39.4(jiti@2.7.0))
       jsdom:
         specifier: ^28
-        version: 28.1.0(@noble/hashes@2.2.0)(supports-color@10.2.2)
+        version: 28.1.0(@noble/hashes@2.2.0)
       openapi-typescript:
         specifier: ^7.13.0
         version: 7.13.0(typescript@6.0.3)
@@ -7708,7 +7712,7 @@ snapshots:
       cross-spawn: 7.0.6
       debug: 4.4.3(supports-color@10.2.2)
       fs-extra: 10.1.0
-      http-proxy-agent: 7.0.2(supports-color@10.2.2)
+      http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6(supports-color@10.2.2)
       js-yaml: 4.2.0
       sanitize-filename: 1.6.4
@@ -8304,11 +8308,11 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  eslint-plugin-react-hooks@7.1.1(eslint@9.39.4(jiti@2.7.0)(supports-color@10.2.2)):
+  eslint-plugin-react-hooks@7.1.1(eslint@9.39.4(jiti@2.7.0)):
     dependencies:
       '@babel/core': 7.29.7
       '@babel/parser': 7.29.7
-      eslint: 9.39.4(jiti@2.7.0)(supports-color@10.2.2)
+      eslint: 9.39.4(jiti@2.7.0)
       hermes-parser: 0.25.1
       zod: 4.4.3
       zod-validation-error: 4.0.2(zod@4.4.3)
@@ -8869,7 +8873,7 @@ snapshots:
       statuses: 2.0.2
       toidentifier: 1.0.1
 
-  http-proxy-agent@7.0.2(supports-color@10.2.2):
+  http-proxy-agent@7.0.2:
     dependencies:
       agent-base: 7.1.4
       debug: 4.4.3(supports-color@10.2.2)
@@ -9027,7 +9031,7 @@ snapshots:
     dependencies:
       argparse: 2.0.1
 
-  jsdom@28.1.0(@noble/hashes@2.2.0)(supports-color@10.2.2):
+  jsdom@28.1.0(@noble/hashes@2.2.0):
     dependencies:
       '@acemir/cssom': 0.9.31
       '@asamuzakjp/dom-selector': 6.8.1
@@ -9037,7 +9041,7 @@ snapshots:
       data-urls: 7.0.0(@noble/hashes@2.2.0)
       decimal.js: 10.6.0
       html-encoding-sniffer: 6.0.0(@noble/hashes@2.2.0)
-      http-proxy-agent: 7.0.2(supports-color@10.2.2)
+      http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6(supports-color@10.2.2)
       is-potential-custom-element-name: 1.0.1
       parse5: 8.0.1
@@ -10812,7 +10816,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 22.19.21
-      jsdom: 28.1.0(@noble/hashes@2.2.0)(supports-color@10.2.2)
+      jsdom: 28.1.0(@noble/hashes@2.2.0)
     transitivePeerDependencies:
       - msw
 

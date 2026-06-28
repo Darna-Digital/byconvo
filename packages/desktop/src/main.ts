@@ -125,6 +125,21 @@ async function ensureServer(): Promise<void> {
 
   const serverCwd = app.isPackaged ? app.getPath("home") : repoRoot;
 
+  // In the packaged app the bundled server runs under Electron's Node
+  // (ELECTRON_RUN_AS_NODE) — the same runtime as this process — so the native
+  // node-pty module electron-builder rebuilt for Electron is loadable, and we
+  // can hand the server its exact resolved location. In dev the server runs on
+  // system Node via tsx, where it resolves its own (system-ABI) node-pty, so we
+  // must NOT pass an Electron-ABI path across the runtime boundary.
+  let resolvedNodePty: string | undefined;
+  if (!isDev) {
+    try {
+      resolvedNodePty = require.resolve("node-pty");
+    } catch {
+      resolvedNodePty = undefined;
+    }
+  }
+
   serverProcess = isDev
     ? spawn(pnpmBin, ["--filter", "@byconvo/server", "start"], {
         cwd: serverCwd,
@@ -137,6 +152,9 @@ async function ensureServer(): Promise<void> {
           ...process.env,
           ELECTRON_RUN_AS_NODE: "1",
           BYCONVO_PORT: String(serverPort),
+          ...(resolvedNodePty
+            ? { BYCONVO_NODE_PTY: resolvedNodePty }
+            : {}),
         },
         stdio: "inherit",
       });

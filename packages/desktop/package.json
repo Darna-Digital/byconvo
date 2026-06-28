@@ -5,6 +5,9 @@
   "version": "0.1.0",
   "description": "byconvo desktop — Electron shell around the client",
   "main": "dist/main.js",
+  "dependencies": {
+    "node-pty": "^1.1.0"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "pack": "electron-builder --dir",

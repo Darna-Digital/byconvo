@@ -47,11 +47,22 @@ const requireFn: NodeRequire =
 let ptyModule: NodePty | null | undefined
 const loadNodePty = (): NodePty | null => {
   if (ptyModule !== undefined) return ptyModule
-  try {
-    ptyModule = requireFn("node-pty") as NodePty
-  } catch {
-    ptyModule = null
+  // The desktop main process passes the exact node-pty location it resolved
+  // (only in the packaged path, where the server shares Electron's Node ABI), so
+  // resolution doesn't depend on walking up through the asar. Fall back to a
+  // bare specifier for dev / standalone, where node-pty is in node_modules.
+  const candidates = [process.env["BYCONVO_NODE_PTY"], "node-pty"].filter(
+    (c): c is string => typeof c === "string" && c.length > 0
+  )
+  for (const candidate of candidates) {
+    try {
+      ptyModule = requireFn(candidate) as NodePty
+      return ptyModule
+    } catch {
+      // try the next candidate
+    }
   }
+  ptyModule = null
   return ptyModule
 }
 
