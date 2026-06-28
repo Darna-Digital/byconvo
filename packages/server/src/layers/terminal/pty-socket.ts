@@ -17,9 +17,11 @@
  *                     { exit: number }         // process exited (then close)
  *                     { error: string }        // could not start the program
  */
+import { createRequire } from "node:module"
 import type { IncomingMessage, Server } from "node:http"
 import type { Duplex } from "node:stream"
-import { spawn, type IPty } from "node-pty"
+import type { IPty } from "node-pty"
+import type * as NodePtyModule from "node-pty"
 import { WebSocketServer, type WebSocket } from "ws"
 import {
   AGENT_KINDS,
@@ -30,6 +32,28 @@ import type { AgentKind } from "../../features/threads/schema/threads.schema.mod
 import { getCurrentRepo } from "../workspace/current-repo.ts"
 
 const PTY_PATH = "/api/threads/pty"
+
+// node-pty is a native module. Load it lazily and tolerate failure so the
+// server always boots even where the binary is missing or ABI-incompatible
+// (e.g. a packaged Electron build before it has been rebuilt for Electron's
+// Node ABI). Terminals then degrade to a clear error instead of crashing the
+// whole server. createRequire works both under tsx (ESM) and in the esbuild
+// CJS bundle, where node-pty is kept external.
+type NodePty = typeof NodePtyModule
+// In the esbuild CJS bundle a real `require` exists (and `import.meta.url` is
+// undefined); under tsx/ESM it's the reverse. Pick whichever is available.
+const requireFn: NodeRequire =
+  typeof require !== "undefined" ? require : createRequire(import.meta.url)
+let ptyModule: NodePty | null | undefined
+const loadNodePty = (): NodePty | null => {
+  if (ptyModule !== undefined) return ptyModule
+  try {
+    ptyModule = requireFn("node-pty") as NodePty
+  } catch {
+    ptyModule = null
+  }
+  return ptyModule
+}
 
 const parseAgent = (value: string | null): AgentKind =>
   value !== null && (AGENT_KINDS as ReadonlyArray<string>).includes(value)
@@ -48,9 +72,19 @@ const startSession = (ws: WebSocket, request: IncomingMessage) => {
   const cwd = getCurrentRepo() ?? process.cwd()
   const program: PtyProgram = agentPtyProgram(agent)
 
+  const nodePty = loadNodePty()
+  if (nodePty === null) {
+    send(ws, {
+      error:
+        "live terminals are unavailable in this build (the node-pty native module could not be loaded)",
+    })
+    ws.close()
+    return
+  }
+
   let pty: IPty
   try {
-    pty = spawn(program.file, [...program.args], {
+    pty = nodePty.spawn(program.file, [...program.args], {
       name: "xterm-color",
       cols,
       rows,
