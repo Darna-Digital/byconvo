@@ -20,6 +20,48 @@ describe("KanbanService", () => {
     }).pipe(Effect.provide(KanbanMemory()))
   )
 
+  it.effect("setPrefix changes the keys minted for new tasks", () =>
+    Effect.gen(function* () {
+      const kanban = yield* KanbanService
+      const board = yield* kanban.setPrefix("dar")
+      expect(board.prefix).toBe("DAR")
+      const card = yield* kanban.create({
+        title: "Add rate limiting",
+        description: "with a token bucket",
+        column: "todo",
+      })
+      expect(card.key).toBe("DAR-1")
+    }).pipe(Effect.provide(KanbanMemory()))
+  )
+
+  it.effect("resolveTask finds a task by key, phrase, or title", () =>
+    Effect.gen(function* () {
+      const kanban = yield* KanbanService
+      yield* kanban.setPrefix("DAR")
+      yield* kanban.create({
+        title: "Add rate limiting",
+        description: "",
+        column: "todo",
+      })
+      const byKey = yield* kanban.resolveTask("DAR-1")
+      expect(byKey.title).toBe("Add rate limiting")
+      const byPhrase = yield* kanban.resolveTask("implement task DAR-1 please")
+      expect(byPhrase.key).toBe("DAR-1")
+      const byTitle = yield* kanban.resolveTask("rate limiting")
+      expect(byTitle.key).toBe("DAR-1")
+      const tasks = yield* kanban.listTasks
+      expect(tasks).toHaveLength(1)
+    }).pipe(Effect.provide(KanbanMemory()))
+  )
+
+  it.effect("resolveTask fails with NotFound for an unknown reference", () =>
+    Effect.gen(function* () {
+      const kanban = yield* KanbanService
+      const result = yield* Effect.flip(kanban.resolveTask("NOPE-9"))
+      expect(result._tag).toBe("NotFound")
+    }).pipe(Effect.provide(KanbanMemory()))
+  )
+
   it.effect("update moves a card to another column", () =>
     Effect.gen(function* () {
       const kanban = yield* KanbanService

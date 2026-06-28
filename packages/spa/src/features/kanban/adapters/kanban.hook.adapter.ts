@@ -71,5 +71,12 @@ export function useKanbanActions(board: KanbanBoard | null) {
       await fns.remove(id)
       invalidate()
     },
+    setPrefix: async (prefix: string) => {
+      const { error } = await fetchClient.PUT("/api/kanban/prefix", {
+        body: { prefix },
+      })
+      if (error) return fail(error, "failed to set prefix")
+      invalidate()
+    },
   }
 }

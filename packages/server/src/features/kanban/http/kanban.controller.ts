@@ -11,6 +11,15 @@ export const KanbanController = HttpApiBuilder.group(
   (handlers) =>
     handlers
       .handle("board", () => Effect.flatMap(KanbanService, (s) => s.board))
+      .handle("listTasks", () =>
+        Effect.flatMap(KanbanService, (s) => s.listTasks)
+      )
+      .handle("resolveTask", ({ params }) =>
+        Effect.flatMap(KanbanService, (s) => s.resolveTask(params.ref))
+      )
+      .handle("setPrefix", ({ payload }) =>
+        Effect.flatMap(KanbanService, (s) => s.setPrefix(payload.prefix))
+      )
       .handle("create", ({ payload }) =>
         Effect.flatMap(KanbanService, (s) =>
           s.create({

@@ -37,6 +37,8 @@ export interface KanbanRepo {
     input: UpdateCardInput
   ) => Effect.Effect<Card, KanbanFailure>
   readonly remove: (id: string) => Effect.Effect<void, KanbanFailure>
+  /** Set the prefix new card keys are minted with; returns the board. */
+  readonly setPrefix: (prefix: string) => Effect.Effect<Board, KanbanFailure>
 }
 
 export class KanbanRepository extends Context.Service<

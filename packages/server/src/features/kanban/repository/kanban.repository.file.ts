@@ -8,26 +8,45 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { NotFound, StorageError } from "../../../layers/errors.ts"
 import { WorkspaceContext } from "../../../layers/workspace/workspace-context.ts"
 import { Card } from "../schema/kanban.schema.model.ts"
+import { normalizePrefix } from "../tasks.ts"
 import type {
   CreateCardInput,
   KanbanRepo,
   UpdateCardInput,
 } from "./kanban.repository.ts"
 
+const DEFAULT_PREFIX = "T"
+
+// `prefix` is optional on disk so boards written before it existed still decode;
+// it's normalized to a concrete string on read.
 const KanbanState = Schema.Struct({
   cards: Schema.Array(Card),
   counter: Schema.Number,
+  prefix: Schema.optionalKey(Schema.String),
 })
-type KanbanState = typeof KanbanState.Type
 
-const EMPTY: KanbanState = { cards: [], counter: 0 }
+interface State {
+  readonly cards: ReadonlyArray<Card>
+  readonly counter: number
+  readonly prefix: string
+}
+
+const EMPTY: State = { cards: [], counter: 0, prefix: DEFAULT_PREFIX }
 
 const kanbanPath = (repoPath: string) => `${repoPath}/.byconvo/kanban.json`
 
-const readState = (repoPath: string): KanbanState => {
+const readState = (repoPath: string): State => {
   try {
     const raw = readFileSync(kanbanPath(repoPath), "utf8")
-    return Schema.decodeUnknownSync(KanbanState)(JSON.parse(raw))
+    const decoded = Schema.decodeUnknownSync(KanbanState)(JSON.parse(raw))
+    return {
+      cards: decoded.cards,
+      counter: decoded.counter,
+      prefix:
+        decoded.prefix !== undefined && decoded.prefix.length > 0
+          ? decoded.prefix
+          : DEFAULT_PREFIX,
+    }
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") {
       return EMPTY
@@ -36,7 +55,7 @@ const readState = (repoPath: string): KanbanState => {
   }
 }
 
-const writeState = (repoPath: string, state: KanbanState) => {
+const writeState = (repoPath: string, state: State) => {
   mkdirSync(`${repoPath}/.byconvo`, { recursive: true })
   writeFileSync(kanbanPath(repoPath), `${JSON.stringify(state, null, 2)}\n`)
 }
@@ -57,9 +76,13 @@ export const makeFileKanbanRepository = Effect.gen(function* () {
       })
     )
 
-  const board: KanbanRepo["board"] = withFile((repoPath) => ({
-    cards: [...readState(repoPath).cards].sort((a, b) => a.order - b.order),
-  }))
+  const board: KanbanRepo["board"] = withFile((repoPath) => {
+    const state = readState(repoPath)
+    return {
+      cards: [...state.cards].sort((a, b) => a.order - b.order),
+      prefix: state.prefix,
+    }
+  })
 
   const create: KanbanRepo["create"] = (input: CreateCardInput) =>
     withFile((repoPath) => {
@@ -71,7 +94,7 @@ export const makeFileKanbanRepository = Effect.gen(function* () {
         .reduce((max, c) => Math.max(max, c.order), 0)
       const created: Card = {
         id: `card-${Date.now().toString(36)}-${counter}`,
-        key: `T-${counter}`,
+        key: `${state.prefix}-${counter}`,
         title: input.title,
         description: input.description,
         column: input.column,
@@ -80,6 +103,7 @@ export const makeFileKanbanRepository = Effect.gen(function* () {
         updatedAt: now,
       }
       writeState(repoPath, {
+        ...state,
         cards: [...state.cards, created],
         counter,
       })
@@ -102,8 +126,8 @@ export const makeFileKanbanRepository = Effect.gen(function* () {
         updatedAt: new Date().toISOString(),
       }
       writeState(repoPath, {
+        ...state,
         cards: state.cards.map((c) => (c.id === id ? updated : c)),
-        counter: state.counter,
       })
       return updated
     })
@@ -112,10 +136,21 @@ export const makeFileKanbanRepository = Effect.gen(function* () {
     withFile((repoPath) => {
       const state = readState(repoPath)
       writeState(repoPath, {
+        ...state,
         cards: state.cards.filter((c) => c.id !== id),
-        counter: state.counter,
       })
     })
 
-  return { board, create, update, remove } satisfies KanbanRepo
+  const setPrefix: KanbanRepo["setPrefix"] = (prefix) =>
+    withFile((repoPath) => {
+      const state = readState(repoPath)
+      const next = { ...state, prefix: normalizePrefix(prefix) }
+      writeState(repoPath, next)
+      return {
+        cards: [...next.cards].sort((a, b) => a.order - b.order),
+        prefix: next.prefix,
+      }
+    })
+
+  return { board, create, update, remove, setPrefix } satisfies KanbanRepo
 })

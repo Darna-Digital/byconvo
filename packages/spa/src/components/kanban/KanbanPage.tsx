@@ -4,7 +4,7 @@
  * are dragged between the fixed columns; the column drop handler moves them.
  */
 import { IconPlus, IconTrash } from "@tabler/icons-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -21,6 +21,24 @@ export function KanbanPage() {
   const [addingTo, setAddingTo] = useState<KanbanColumn | null>(null)
   const [newTitle, setNewTitle] = useState("")
   const [dragId, setDragId] = useState<string | null>(null)
+  const [prefix, setPrefix] = useState("")
+
+  // Keep the prefix field in sync with the loaded board.
+  useEffect(() => {
+    if (board?.prefix != null) setPrefix(board.prefix)
+  }, [board?.prefix])
+
+  const commitPrefix = async () => {
+    const next = prefix.trim()
+    if (next.length === 0 || next === board?.prefix) return
+    try {
+      await actions.setPrefix(next)
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "could not set prefix"
+      )
+    }
+  }
 
   const groups = actions.columns()
   const byId = new Map((board?.cards ?? []).map((c) => [c.id, c]))
@@ -63,11 +81,31 @@ export function KanbanPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex items-center border-b px-4 py-2">
+      <header className="flex items-center gap-2 border-b px-4 py-2">
         <span className="text-sm font-medium">Kanban board</span>
-        <span className="ml-2 text-xs text-muted-foreground">
-          Drag cards between columns · reference a card by its key in a thread
+        <span className="text-xs text-muted-foreground">
+          Reference a task by its key (e.g. {board?.prefix ?? "T"}-1) in a
+          thread, or have an agent resolve it via{" "}
+          <code className="rounded bg-muted px-1">
+            GET /api/tasks/&#123;ref&#125;
+          </code>
         </span>
+        <label className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+          Key prefix
+          <Input
+            value={prefix}
+            onChange={(e) => setPrefix(e.target.value)}
+            onBlur={() => void commitPrefix()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                e.currentTarget.blur()
+              }
+            }}
+            aria-label="Task key prefix"
+            className="h-7 w-20 font-mono uppercase"
+          />
+        </label>
       </header>
 
       <div className="flex min-h-0 flex-1 gap-3 overflow-auto p-4">

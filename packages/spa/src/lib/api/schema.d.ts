@@ -676,6 +676,54 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/tasks": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["kanban.listTasks"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/tasks/{ref}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["kanban.resolveTask"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/kanban/prefix": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put: operations["kanban.setPrefix"]
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   "/api/kanban/cards": {
     parameters: {
       query?: never
@@ -3429,6 +3477,189 @@ export interface operations {
               createdAt: string
               updatedAt: string
             }[]
+            prefix: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "kanban.listTasks": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            key: string
+            title: string
+            description: string
+            /** @enum {string} */
+            column: "todo" | "in_progress" | "done"
+            order: number
+            createdAt: string
+            updatedAt: string
+          }[]
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "kanban.resolveTask": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        ref: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            key: string
+            title: string
+            description: string
+            /** @enum {string} */
+            column: "todo" | "in_progress" | "done"
+            order: number
+            createdAt: string
+            updatedAt: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "kanban.setPrefix": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          prefix: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            cards: {
+              id: string
+              key: string
+              title: string
+              description: string
+              /** @enum {string} */
+              column: "todo" | "in_progress" | "done"
+              order: number
+              createdAt: string
+              updatedAt: string
+            }[]
+            prefix: string
           }
         }
       }

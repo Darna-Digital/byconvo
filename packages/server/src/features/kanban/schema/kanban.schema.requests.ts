@@ -17,3 +17,9 @@ export const UpdateCard = Schema.Struct({
 export type UpdateCard = typeof UpdateCard.Type
 
 export const CardIdParam = Schema.Struct({ id: Schema.String })
+
+/** A free-form task reference: a key ("DAR-123"), a phrase, or a title. */
+export const TaskRefParam = Schema.Struct({ ref: Schema.String })
+
+export const SetPrefix = Schema.Struct({ prefix: Schema.String })
+export type SetPrefix = typeof SetPrefix.Type

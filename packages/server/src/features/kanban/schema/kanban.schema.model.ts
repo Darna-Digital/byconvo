@@ -1,7 +1,8 @@
 /**
  * Kanban schemas — a Trello-style board stored locally in `.byconvo/kanban.json`
- * inside the selected repository. Each card gets a short, stable `key`
- * (e.g. "T-3") so it can be referenced from a terminal thread.
+ * inside the selected repository. Each card (task) gets a short, stable `key`
+ * with a configurable prefix (e.g. "DAR-3") so it can be referenced from a
+ * terminal thread or resolved by an agent through the tasks API.
  */
 import * as Schema from "effect/Schema"
 
@@ -24,6 +25,8 @@ export type Card = typeof Card.Type
 
 export const Board = Schema.Struct({
   cards: Schema.Array(Card),
+  /** The prefix new card keys are minted with (e.g. "DAR" → "DAR-4"). */
+  prefix: Schema.String,
 })
 export type Board = typeof Board.Type
 

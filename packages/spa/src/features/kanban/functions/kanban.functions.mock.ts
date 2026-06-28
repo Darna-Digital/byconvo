@@ -14,7 +14,7 @@ export const card = (over: Partial<KanbanCard> = {}): KanbanCard => ({
 })
 
 export function mockKanbanDependencies(cards: ReadonlyArray<KanbanCard> = []) {
-  const board: KanbanBoard = { cards: [...cards] }
+  const board: KanbanBoard = { cards: [...cards], prefix: "T" }
   const calls = {
     create: [] as Array<{
       title: string
