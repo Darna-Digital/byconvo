@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query"
 import { useMemo } from "react"
 import { fetchClient } from "@/lib/api/client"
+import type { AgentKind } from "@/lib/api/types"
 import { createThreadsFunctions } from "../functions/threads.functions"
 import type { ThreadsFunctions } from "../entity/threads.interfaces"
 
@@ -19,7 +20,11 @@ export function useThreadsActions() {
         sideEffects: {
           create: async (input) => {
             const { data, error } = await fetchClient.POST("/api/threads", {
-              body: { title: input.title, taskKey: input.taskKey ?? undefined },
+              body: {
+                title: input.title,
+                agent: input.agent,
+                taskKey: input.taskKey ?? undefined,
+              },
             })
             if (error) return fail(error, "failed to create thread")
             return data
@@ -59,8 +64,8 @@ export function useThreadsActions() {
   }
 
   return {
-    create: async (title: string, taskKey: string | null) => {
-      const created = await fns.create(title, taskKey)
+    create: async (agent: AgentKind, title: string, taskKey: string | null) => {
+      const created = await fns.create(agent, title, taskKey)
       invalidate()
       return created
     },

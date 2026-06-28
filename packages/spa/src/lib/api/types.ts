@@ -42,6 +42,8 @@ export type PullRequestInfo = Ok<paths["/api/github/pulls"]["get"]>[number]
 export type ThreadSummary = Ok<paths["/api/threads"]["get"]>[number]
 export type Thread = Ok<paths["/api/threads/{id}"]["get"]>
 export type ThreadEntry = Thread["entries"][number]
+/** Which agent runs a thread: raw shell or an agent CLI. */
+export type AgentKind = Thread["agent"]
 
 export type DocSummary = Ok<paths["/api/docs"]["get"]>[number]
 export type Doc = Ok<paths["/api/docs/{id}"]["get"]>

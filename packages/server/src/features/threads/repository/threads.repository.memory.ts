@@ -3,6 +3,7 @@ import * as Effect from "effect/Effect"
 import * as Ref from "effect/Ref"
 import { NotFound } from "../../../layers/errors.ts"
 import { TerminalExec } from "../../../layers/terminal/terminal-exec.ts"
+import { agentCommand, agentDefaultTitle } from "../agents.ts"
 import type { Thread, ThreadEntry } from "../schema/threads.schema.model.ts"
 import type {
   CreateThreadInput,
@@ -13,6 +14,7 @@ import type {
 const summarize = (thread: Thread) => ({
   id: thread.id,
   title: thread.title,
+  agent: thread.agent,
   taskKey: thread.taskKey,
   createdAt: thread.createdAt,
   updatedAt: thread.updatedAt,
@@ -62,7 +64,8 @@ export const makeMemoryThreadsRepository = (seed: ReadonlyArray<Thread> = []) =>
             title:
               input.title.trim().length > 0
                 ? input.title.trim()
-                : DEFAULT_TITLE,
+                : agentDefaultTitle(input.agent),
+            agent: input.agent,
             taskKey: input.taskKey,
             createdAt: now(),
             updatedAt: now(),
@@ -91,13 +94,15 @@ export const makeMemoryThreadsRepository = (seed: ReadonlyArray<Thread> = []) =>
         }),
       remove: (id) =>
         Ref.update(store, (all) => all.filter((t) => t.id !== id)),
-      run: (id, command) =>
+      run: (id, input) =>
         Effect.gen(function* () {
           const existing = yield* find(yield* Ref.get(store), id)
-          const result = yield* terminal.run(command)
+          const result = yield* terminal.run(
+            agentCommand(existing.agent, input)
+          )
           const entry: ThreadEntry = {
             id: nextId("e"),
-            command,
+            command: input,
             stdout: result.stdout,
             stderr: result.stderr,
             exitCode: result.exitCode,
@@ -110,7 +115,7 @@ export const makeMemoryThreadsRepository = (seed: ReadonlyArray<Thread> = []) =>
                     ...existing,
                     title:
                       existing.title === DEFAULT_TITLE
-                        ? titleFromCommand(command)
+                        ? titleFromCommand(input)
                         : existing.title,
                     updatedAt: now(),
                     entries: [...existing.entries, entry],

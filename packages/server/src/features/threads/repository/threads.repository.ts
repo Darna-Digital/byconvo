@@ -8,6 +8,7 @@ import type {
   TerminalError,
 } from "../../../layers/errors.ts"
 import type {
+  AgentKind,
   Thread,
   ThreadEntry,
   ThreadSummary,
@@ -15,6 +16,7 @@ import type {
 
 export interface CreateThreadInput {
   readonly title: string
+  readonly agent: AgentKind
   readonly taskKey: string | null
 }
 

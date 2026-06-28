@@ -15,6 +15,7 @@ export const ThreadsController = HttpApiBuilder.group(
         Effect.flatMap(ThreadsService, (s) =>
           s.create({
             title: payload.title ?? "",
+            agent: payload.agent ?? "terminal",
             taskKey: payload.taskKey ?? null,
           })
         )

@@ -1,7 +1,9 @@
 import * as Schema from "effect/Schema"
+import { AgentKind } from "./threads.schema.model.ts"
 
 export const NewThread = Schema.Struct({
   title: Schema.optionalKey(Schema.String),
+  agent: Schema.optionalKey(AgentKind),
   taskKey: Schema.optionalKey(Schema.String),
 })
 export type NewThread = typeof NewThread.Type

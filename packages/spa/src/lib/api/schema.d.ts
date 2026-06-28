@@ -2755,6 +2755,8 @@ export interface operations {
           "application/json": {
             id: string
             title: string
+            /** @enum {string} */
+            agent: "terminal" | "claude" | "opencode" | "codex"
             taskKey: string | null
             createdAt: string
             updatedAt: string
@@ -2805,6 +2807,8 @@ export interface operations {
       content: {
         "application/json": {
           title?: string
+          /** @enum {string} */
+          agent?: "terminal" | "claude" | "opencode" | "codex"
           taskKey?: string
         }
       }
@@ -2819,6 +2823,8 @@ export interface operations {
           "application/json": {
             id: string
             title: string
+            /** @enum {string} */
+            agent: "terminal" | "claude" | "opencode" | "codex"
             taskKey: string | null
             createdAt: string
             updatedAt: string
@@ -2884,6 +2890,8 @@ export interface operations {
           "application/json": {
             id: string
             title: string
+            /** @enum {string} */
+            agent: "terminal" | "claude" | "opencode" | "codex"
             taskKey: string | null
             createdAt: string
             updatedAt: string
@@ -3009,6 +3017,8 @@ export interface operations {
           "application/json": {
             id: string
             title: string
+            /** @enum {string} */
+            agent: "terminal" | "claude" | "opencode" | "codex"
             taskKey: string | null
             createdAt: string
             updatedAt: string

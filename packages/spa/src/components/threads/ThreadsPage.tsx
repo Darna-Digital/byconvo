@@ -9,6 +9,12 @@ import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -17,7 +23,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  AGENTS,
+  agentLabel,
+  isAgentThread,
+} from "@/features/threads/entity/agents"
 import { useThreadsActions } from "@/features/threads/adapters/threads.hook.adapter"
+import type { AgentKind } from "@/lib/api/types"
 import { useKanban, useThread, useThreads } from "@/lib/queries"
 import { timeAgo } from "@/lib/relative-time"
 import { cn } from "@/lib/utils"
@@ -45,10 +57,12 @@ export function ThreadsPage() {
   const detail = useThread(selectedId)
   const thread = detail.data ?? null
   const cards = kanban.data?.cards ?? []
+  const isAgent = thread !== null && isAgentThread(thread.agent)
+  const promptLabel = thread === null ? "" : agentLabel(thread.agent)
 
-  const createThread = async () => {
+  const createThread = async (agent: AgentKind) => {
     try {
-      const created = await actions.create("", null)
+      const created = await actions.create(agent, "", null)
       setSelectedId(created.id)
     } catch (error) {
       toast.error(
@@ -89,20 +103,39 @@ export function ThreadsPage() {
       <aside className="flex w-64 shrink-0 flex-col border-r">
         <div className="flex items-center justify-between px-3 py-2">
           <span className="text-sm font-medium">Threads</span>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-7"
-            aria-label="New thread"
-            onClick={createThread}
-          >
-            <IconPlus className="size-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-7"
+                  aria-label="New thread"
+                />
+              }
+            >
+              <IconPlus className="size-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {AGENTS.map((agent) => (
+                <DropdownMenuItem
+                  key={agent.kind}
+                  onClick={() => void createThread(agent.kind)}
+                >
+                  <span className="font-medium">{agent.label}</span>
+                  <span className="ml-auto pl-4 text-xs text-muted-foreground">
+                    {agent.hint}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <div className="min-h-0 flex-1 overflow-auto px-1 pb-2">
           {summaries.length === 0 ? (
             <p className="px-3 py-6 text-center text-xs text-muted-foreground">
-              No threads yet. Start one to run terminal commands in this repo.
+              No threads yet. Start one (terminal, Claude Code, opencode, or
+              Codex) from the + menu.
             </p>
           ) : (
             summaries.map((t) => (
@@ -117,6 +150,11 @@ export function ThreadsPage() {
               >
                 <span className="flex items-center gap-1.5">
                   <span className="truncate font-medium">{t.title}</span>
+                  {isAgentThread(t.agent) && (
+                    <Badge variant="secondary" className="shrink-0">
+                      {agentLabel(t.agent)}
+                    </Badge>
+                  )}
                   {t.taskKey !== null && (
                     <Badge variant="outline" className="shrink-0">
                       {t.taskKey}
@@ -143,6 +181,11 @@ export function ThreadsPage() {
               <span className="truncate text-sm font-medium">
                 {thread.title}
               </span>
+              {isAgentThread(thread.agent) && (
+                <Badge variant="secondary" className="shrink-0">
+                  {agentLabel(thread.agent)}
+                </Badge>
+              )}
               <div className="ml-auto flex items-center gap-2">
                 <Select
                   value={thread.taskKey ?? NO_TASK}
@@ -175,7 +218,9 @@ export function ThreadsPage() {
             <div className="min-h-0 flex-1 overflow-auto p-4 font-mono text-xs">
               {thread.entries.length === 0 ? (
                 <p className="text-muted-foreground">
-                  Run a command below to start this thread.
+                  {isAgent
+                    ? `Send a prompt below to start ${promptLabel}.`
+                    : "Run a command below to start this thread."}
                 </p>
               ) : (
                 <div className="flex flex-col gap-3">
@@ -183,7 +228,8 @@ export function ThreadsPage() {
                     <div key={entry.id}>
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <span className="text-foreground">
-                          $ {entry.command}
+                          {isAgent ? "› " : "$ "}
+                          {entry.command}
                         </span>
                         <span
                           className={cn(
@@ -212,11 +258,19 @@ export function ThreadsPage() {
             </div>
 
             <div className="flex items-center gap-2 border-t p-3">
-              <span className="font-mono text-sm text-muted-foreground">$</span>
+              <span className="font-mono text-sm text-muted-foreground">
+                {isAgent ? "›" : "$"}
+              </span>
               <Input
                 value={command}
                 placeholder={
-                  running ? "Running…" : "Run a command in this repo…"
+                  running
+                    ? isAgent
+                      ? "Working…"
+                      : "Running…"
+                    : isAgent
+                      ? `Message ${promptLabel}…`
+                      : "Run a command in this repo…"
                 }
                 disabled={running}
                 onChange={(e) => setCommand(e.target.value)}
@@ -233,7 +287,8 @@ export function ThreadsPage() {
                 disabled={running || command.trim().length === 0}
                 onClick={() => void run()}
               >
-                <IconCornerDownLeft className="size-4" /> Run
+                <IconCornerDownLeft className="size-4" />{" "}
+                {isAgent ? "Send" : "Run"}
               </Button>
             </div>
           </>

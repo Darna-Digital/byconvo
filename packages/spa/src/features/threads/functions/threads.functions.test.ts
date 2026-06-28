@@ -3,14 +3,14 @@ import { createThreadsFunctions } from "./threads.functions"
 import { mockThreadsDependencies } from "./threads.functions.mock"
 
 describe("threads functions", () => {
-  it("create trims the title and drops it when blank", async () => {
+  it("create passes the agent, trims the title, and drops it when blank", async () => {
     const { deps, calls } = mockThreadsDependencies()
     const fns = createThreadsFunctions(deps)
-    await fns.create("  ", null)
-    await fns.create("  Build  ", "T-1")
+    await fns.create("terminal", "  ", null)
+    await fns.create("claude", "  Build  ", "T-1")
     expect(calls.create).toEqual([
-      { title: undefined, taskKey: null },
-      { title: "Build", taskKey: "T-1" },
+      { title: undefined, agent: "terminal", taskKey: null },
+      { title: "Build", agent: "claude", taskKey: "T-1" },
     ])
   })
 

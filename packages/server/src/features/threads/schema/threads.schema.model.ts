@@ -3,8 +3,21 @@
  * `.byconvo/threads.json` inside the selected repository. A thread is a named,
  * repo-scoped terminal session; each run appends an entry capturing the command
  * and its captured output.
+ *
+ * A thread is bound to an agent: a plain "terminal" (raw shell), or an agent CLI
+ * (Claude Code, opencode, Codex) the developer has installed. Running in an agent
+ * thread sends the input as a prompt to that CLI, the same way Zed hosts agent
+ * CLIs as terminal threads.
  */
 import * as Schema from "effect/Schema"
+
+export const AgentKind = Schema.Literals([
+  "terminal",
+  "claude",
+  "opencode",
+  "codex",
+])
+export type AgentKind = typeof AgentKind.Type
 
 export const ThreadEntry = Schema.Struct({
   id: Schema.String,
@@ -20,6 +33,8 @@ export type ThreadEntry = typeof ThreadEntry.Type
 export const Thread = Schema.Struct({
   id: Schema.String,
   title: Schema.String,
+  /** Which agent runs this thread's input (raw shell or an agent CLI). */
+  agent: AgentKind,
   /** Optional Kanban card key this thread references (cross-feature link). */
   taskKey: Schema.NullOr(Schema.String),
   createdAt: Schema.String,
@@ -32,6 +47,7 @@ export type Thread = typeof Thread.Type
 export const ThreadSummary = Schema.Struct({
   id: Schema.String,
   title: Schema.String,
+  agent: AgentKind,
   taskKey: Schema.NullOr(Schema.String),
   createdAt: Schema.String,
   updatedAt: Schema.String,

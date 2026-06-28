@@ -9,6 +9,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { NotFound, StorageError } from "../../../layers/errors.ts"
 import { TerminalExec } from "../../../layers/terminal/terminal-exec.ts"
 import { WorkspaceContext } from "../../../layers/workspace/workspace-context.ts"
+import { agentCommand, agentDefaultTitle } from "../agents.ts"
 import { Thread, type ThreadEntry } from "../schema/threads.schema.model.ts"
 import type {
   CreateThreadInput,
@@ -40,6 +41,7 @@ const writeThreads = (repoPath: string, threads: ReadonlyArray<Thread>) => {
 const summarize = (thread: Thread) => ({
   id: thread.id,
   title: thread.title,
+  agent: thread.agent,
   taskKey: thread.taskKey,
   createdAt: thread.createdAt,
   updatedAt: thread.updatedAt,
@@ -107,7 +109,10 @@ export const makeFileThreadsRepository = Effect.gen(function* () {
       const created: Thread = {
         id: nextId("t"),
         title:
-          input.title.trim().length > 0 ? input.title.trim() : DEFAULT_TITLE,
+          input.title.trim().length > 0
+            ? input.title.trim()
+            : agentDefaultTitle(input.agent),
+        agent: input.agent,
         taskKey: input.taskKey,
         createdAt: now,
         updatedAt: now,
@@ -142,16 +147,18 @@ export const makeFileThreadsRepository = Effect.gen(function* () {
       )
     })
 
-  const run: ThreadsRepo["run"] = (id, command) =>
+  const run: ThreadsRepo["run"] = (id, input) =>
     Effect.gen(function* () {
-      // Fail early with NotFound if the thread is gone, before spawning.
-      yield* withFile((repoPath) => requireThread(repoPath, id))
-      const result = yield* terminal.run(command)
+      // Fetch first (fails NotFound before spawning) and to read the agent.
+      const thread = yield* withFile((repoPath) => requireThread(repoPath, id))
+      const result = yield* terminal.run(agentCommand(thread.agent, input))
       return yield* withFile((repoPath) => {
         const existing = requireThread(repoPath, id)
         const entry: ThreadEntry = {
           id: nextId("e"),
-          command,
+          // Store what the user typed (the prompt / command), not the wrapped
+          // agent invocation, so the history reads back naturally.
+          command: input,
           stdout: result.stdout,
           stderr: result.stderr,
           exitCode: result.exitCode,
@@ -162,7 +169,7 @@ export const makeFileThreadsRepository = Effect.gen(function* () {
           // Reflect what's running in the title, like Zed terminal threads.
           title:
             existing.title === DEFAULT_TITLE
-              ? titleFromCommand(command)
+              ? titleFromCommand(input)
               : existing.title,
           updatedAt: entry.createdAt,
           entries: [...existing.entries, entry],

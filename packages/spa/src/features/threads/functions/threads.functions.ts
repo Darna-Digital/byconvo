@@ -6,9 +6,10 @@ import type {
 export function createThreadsFunctions(
   d: ThreadsDependencies
 ): ThreadsFunctions {
-  const create: ThreadsFunctions["create"] = (title, taskKey) =>
+  const create: ThreadsFunctions["create"] = (agent, title, taskKey) =>
     d.sideEffects.create({
       title: title.trim().length > 0 ? title.trim() : undefined,
+      agent,
       taskKey,
     })
 
