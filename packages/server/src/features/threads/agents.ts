@@ -6,6 +6,14 @@
  */
 import type { AgentKind } from "./schema/threads.schema.model.ts"
 
+/** Every agent kind, for runtime validation outside the schema layer. */
+export const AGENT_KINDS = [
+  "terminal",
+  "claude",
+  "opencode",
+  "codex",
+] as const satisfies ReadonlyArray<AgentKind>
+
 /** Single-quote a string for safe interpolation into a `sh -c` command. */
 const quote = (value: string) => `'${value.replace(/'/g, "'\\''")}'`
 
@@ -35,5 +43,28 @@ export const agentCommand = (agent: AgentKind, input: string): string => {
       return `opencode run ${quote(input)}`
     case "codex":
       return `codex exec ${quote(input)}`
+  }
+}
+
+export interface PtyProgram {
+  readonly file: string
+  readonly args: ReadonlyArray<string>
+}
+
+/**
+ * The interactive program a live PTY terminal launches for `agent`. Terminal
+ * threads open the user's login shell; agent threads launch the agent CLI in its
+ * normal interactive mode (no `-p`), so it runs as a full TUI in the terminal.
+ */
+export const agentPtyProgram = (agent: AgentKind): PtyProgram => {
+  switch (agent) {
+    case "terminal":
+      return { file: process.env["SHELL"] ?? "bash", args: [] }
+    case "claude":
+      return { file: "claude", args: [] }
+    case "opencode":
+      return { file: "opencode", args: [] }
+    case "codex":
+      return { file: "codex", args: [] }
   }
 }

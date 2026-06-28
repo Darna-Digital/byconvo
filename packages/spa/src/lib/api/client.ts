@@ -29,3 +29,27 @@ export const fetchClient = createFetchClient<paths>({
 })
 
 export const api = createQueryClient(fetchClient)
+
+/**
+ * The PTY WebSocket URL for a live terminal. Shares the API origin/port (the
+ * server hosts the WS on the same port as the HttpApi), so it follows the same
+ * routing: same-origin behind Vite's `/api` ws proxy in the browser, and the
+ * desktop bridge's API origin in the packaged app.
+ */
+export const ptySocketUrl = (params: {
+  agent: string
+  cols: number
+  rows: number
+}): string => {
+  const origin =
+    desktopApiBaseUrl ??
+    (typeof window === "undefined"
+      ? "http://localhost"
+      : window.location.origin)
+  const url = new URL("/api/threads/pty", origin)
+  url.protocol = url.protocol === "https:" ? "wss:" : "ws:"
+  url.searchParams.set("agent", params.agent)
+  url.searchParams.set("cols", String(params.cols))
+  url.searchParams.set("rows", String(params.rows))
+  return url.toString()
+}

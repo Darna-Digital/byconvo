@@ -20,7 +20,9 @@ const config = defineConfig({
   server: {
     port: 41812,
     proxy: {
-      "/api": { target: SERVER_URL, changeOrigin: true },
+      // `ws: true` also proxies the live-terminal PTY WebSocket upgrade
+      // (/api/threads/pty) through to the API server.
+      "/api": { target: SERVER_URL, changeOrigin: true, ws: true },
     },
   },
   // The desktop shell loads the built SPA via `vite preview` in prod; keep the
@@ -28,7 +30,9 @@ const config = defineConfig({
   preview: {
     port: 41812,
     proxy: {
-      "/api": { target: SERVER_URL, changeOrigin: true },
+      // `ws: true` also proxies the live-terminal PTY WebSocket upgrade
+      // (/api/threads/pty) through to the API server.
+      "/api": { target: SERVER_URL, changeOrigin: true, ws: true },
     },
   },
 })

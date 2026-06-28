@@ -36,6 +36,7 @@ import { WorkspaceLive } from "./features/workspace/layer/workspace.layer.live.t
 import { layer as claudeExecLayer } from "./layers/claude/claude-exec.ts"
 import { layer as gitExecLayer } from "./layers/git/git-exec.ts"
 import { layer as gitHubClientLayer } from "./layers/github/github-client.ts"
+import { attachPtyServer } from "./layers/terminal/pty-socket.ts"
 import { layer as terminalExecLayer } from "./layers/terminal/terminal-exec.ts"
 import {
   layer as workspaceContextLayer,
@@ -99,6 +100,16 @@ const InfraLive = gitHubClientLayer.pipe(
  * calls the API at `http://localhost:<port>`, so every request is cross-origin.
  * Allow all origins — this server is local-only and never credentialed.
  */
+// Wrap node's createServer so every server instance also hosts the live-terminal
+// PTY WebSocket (attached to its `upgrade` event) alongside the Effect HttpApi.
+const createServerWithPty: typeof createServer = ((
+  ...args: Parameters<typeof createServer>
+) => {
+  const server = createServer(...args)
+  attachPtyServer(server)
+  return server
+}) as typeof createServer
+
 const HttpLive = HttpRouter.serve(
   Layer.mergeAll(
     ApiLive.pipe(HttpRouter.provideRequest(RequestServices)),
@@ -106,7 +117,7 @@ const HttpLive = HttpRouter.serve(
   )
 ).pipe(
   Layer.provide(InfraLive),
-  Layer.provide(NodeHttpServer.layer(createServer, { port }))
+  Layer.provide(NodeHttpServer.layer(createServerWithPty, { port }))
 )
 
 NodeRuntime.runMain(Layer.launch(HttpLive))
