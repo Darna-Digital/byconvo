@@ -17,8 +17,10 @@
  *                     { exit: number }         // process exited (then close)
  *                     { error: string }        // could not start the program
  */
+import { chmodSync, existsSync, readFileSync, statSync } from "node:fs"
 import { createRequire } from "node:module"
 import type { IncomingMessage, Server } from "node:http"
+import { dirname, join } from "node:path"
 import type { Duplex } from "node:stream"
 import type { IPty } from "node-pty"
 import type * as NodePtyModule from "node-pty"
@@ -30,6 +32,7 @@ import {
 } from "../../features/threads/agents.ts"
 import type { AgentKind } from "../../features/threads/schema/threads.schema.model.ts"
 import { getCurrentRepo } from "../workspace/current-repo.ts"
+import { DEV_PTY_PATH, startDevSession } from "./dev-process-manager.ts"
 
 const PTY_PATH = "/api/threads/pty"
 
@@ -45,6 +48,46 @@ type NodePty = typeof NodePtyModule
 const requireFn: NodeRequire =
   typeof require !== "undefined" ? require : createRequire(import.meta.url)
 let ptyModule: NodePty | null | undefined
+
+/**
+ * On macOS/Linux node-pty `posix_spawn`s a bundled `spawn-helper` binary as the
+ * launcher for *every* PTY. When the package is installed by pnpm the prebuilt
+ * helper can arrive without its executable bit (pnpm's content-addressable store
+ * does not preserve file modes), and then every spawn fails with the opaque
+ * "posix_spawnp failed." — no terminal, no agent, server otherwise healthy.
+ * Restore +x defensively each time we load node-pty so a fresh `pnpm install`
+ * can never silently break live terminals. Best-effort: a read-only/packaged
+ * install just keeps whatever perms shipped (there the helper is already +x).
+ */
+const ensureSpawnHelperExecutable = (moduleEntry: string): void => {
+  if (process.platform === "win32") return
+  // Climb from the resolved entry (…/node-pty/lib/index.js) to the package root.
+  let root = dirname(moduleEntry)
+  for (let i = 0; i < 6 && !existsSync(join(root, "package.json")); i++) {
+    const parent = dirname(root)
+    if (parent === root) break
+    root = parent
+  }
+  const helpers = [
+    join(root, "build", "Release", "spawn-helper"),
+    join(
+      root,
+      "prebuilds",
+      `${process.platform}-${process.arch}`,
+      "spawn-helper"
+    ),
+  ]
+  for (const helper of helpers) {
+    try {
+      if (!existsSync(helper)) continue
+      const mode = statSync(helper).mode
+      if ((mode & 0o111) !== 0o111) chmodSync(helper, mode | 0o111)
+    } catch {
+      // best-effort; ignore (e.g. a read-only filesystem)
+    }
+  }
+}
+
 const loadNodePty = (): NodePty | null => {
   if (ptyModule !== undefined) return ptyModule
   // The desktop main process passes the exact node-pty location it resolved
@@ -57,6 +100,11 @@ const loadNodePty = (): NodePty | null => {
   for (const candidate of candidates) {
     try {
       ptyModule = requireFn(candidate) as NodePty
+      try {
+        ensureSpawnHelperExecutable(requireFn.resolve(candidate))
+      } catch {
+        // resolution is best-effort; the module already loaded
+      }
       return ptyModule
     } catch {
       // try the next candidate
@@ -75,11 +123,164 @@ const send = (ws: WebSocket, message: unknown) => {
   if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(message))
 }
 
+/**
+ * A live PTY kept alive independently of any one WebSocket. The browser tab can
+ * close or reload (window closed and reopened, HMR, etc.) and the process keeps
+ * running on the server; the next connection for the same thread id re-attaches
+ * and gets the recent scrollback replayed so the screen is restored. Sessions
+ * are keyed by thread id and only torn down when the process exits or the thread
+ * is deleted (killSession). Without a thread id (shouldn't happen from the SPA)
+ * we fall back to an ephemeral session that dies with its socket.
+ */
+interface PtySession {
+  readonly pty: IPty
+  /** Recent raw output, capped, replayed verbatim to a re-attaching client. */
+  chunks: string[]
+  size: number
+  /** The currently attached socket, or null while detached (window closed). */
+  client: WebSocket | null
+  exited: boolean
+}
+
+const sessions = new Map<string, PtySession>()
+// Cap the replay buffer per session. A full-screen agent TUI repaints itself, so
+// the last slice is enough to reconstruct the screen on re-attach.
+const BUFFER_CAP = 256_000
+
+const appendChunk = (session: PtySession, data: string) => {
+  session.chunks.push(data)
+  session.size += data.length
+  while (session.size > BUFFER_CAP && session.chunks.length > 1) {
+    const dropped = session.chunks.shift()
+    if (dropped !== undefined) session.size -= dropped.length
+  }
+}
+
+/** Kill and forget a session — called when its thread is deleted. */
+export const killPtySession = (id: string): void => {
+  const session = sessions.get(id)
+  if (session === undefined) return
+  sessions.delete(id)
+  try {
+    session.pty.kill()
+  } catch {
+    // already gone
+  }
+}
+
+/**
+ * Environment a session's program inherits. Exposes the thread id and the local
+ * API origin so an agent CLI can always look up its own thread / linked task
+ * (GET /api/threads/{id}, GET /api/tasks/{ref}); the linked task at spawn time is
+ * also passed directly for convenience.
+ */
+const buildSessionEnv = (
+  repoPath: string,
+  threadId: string
+): Record<string, string> => {
+  const env: Record<string, string> = {
+    BYCONVO_THREAD_ID: threadId,
+    BYCONVO_API: `http://localhost:${process.env["BYCONVO_PORT"] ?? 41811}`,
+  }
+  const readJson = (path: string): unknown => {
+    try {
+      return JSON.parse(readFileSync(path, "utf8"))
+    } catch {
+      return undefined
+    }
+  }
+  const threads = readJson(`${repoPath}/.byconvo/threads.json`)
+  const thread = Array.isArray(threads)
+    ? (threads.find(
+        (t): t is { id: string; taskKey?: unknown } =>
+          typeof t === "object" &&
+          t !== null &&
+          (t as { id?: string }).id === threadId
+      ) ?? undefined)
+    : undefined
+  const taskKey =
+    thread !== undefined && typeof thread.taskKey === "string"
+      ? thread.taskKey
+      : null
+  if (taskKey === null) return env
+
+  env["BYCONVO_TASK_KEY"] = taskKey
+  const board = readJson(`${repoPath}/.byconvo/kanban.json`) as
+    | { cards?: ReadonlyArray<Record<string, unknown>> }
+    | undefined
+  const card = board?.cards?.find((c) => c["key"] === taskKey)
+  if (card !== undefined) {
+    const title = typeof card["title"] === "string" ? card["title"] : ""
+    const desc =
+      typeof card["description"] === "string" ? card["description"] : ""
+    if (title.length > 0) env["BYCONVO_TASK_TITLE"] = title
+    env["BYCONVO_TASK"] =
+      `${taskKey} ${title}${desc.length > 0 ? ` — ${desc}` : ""}`.trim()
+  }
+  return env
+}
+
+/** Wire a client socket to a session: replay scrollback, then stream both ways. */
+const attachClient = (
+  session: PtySession,
+  ws: WebSocket,
+  cols: number,
+  rows: number
+) => {
+  session.client = ws
+  // Replay the buffer so a re-attaching terminal shows the prior screen.
+  const backlog = session.chunks.join("")
+  if (backlog.length > 0) send(ws, { d: backlog })
+  // Size the PTY to the (re)attached client.
+  try {
+    session.pty.resize(Math.max(1, cols), Math.max(1, rows))
+  } catch {
+    // racing exit
+  }
+
+  ws.on("message", (raw) => {
+    let msg: { d?: string; r?: { cols: number; rows: number } }
+    try {
+      msg = JSON.parse(raw.toString())
+    } catch {
+      return
+    }
+    if (typeof msg.d === "string") session.pty.write(msg.d)
+    else if (msg.r) {
+      try {
+        session.pty.resize(
+          Math.max(1, Math.floor(msg.r.cols)),
+          Math.max(1, Math.floor(msg.r.rows))
+        )
+      } catch {
+        // window can race the process exit — ignore a resize on a dead pty
+      }
+    }
+  })
+
+  ws.on("close", () => {
+    // Detach but keep the PTY alive so the session survives a reload/reopen.
+    // (An ephemeral, id-less session is killed instead — see startSession.)
+    if (session.client === ws) session.client = null
+  })
+}
+
 const startSession = (ws: WebSocket, request: IncomingMessage) => {
   const url = new URL(request.url ?? "", "http://localhost")
+  const id = url.searchParams.get("id")
   const agent = parseAgent(url.searchParams.get("agent"))
   const cols = Number(url.searchParams.get("cols")) || 80
   const rows = Number(url.searchParams.get("rows")) || 24
+
+  // Re-attach to a live session for this thread instead of spawning a new one.
+  if (id !== null && id.length > 0) {
+    const existing = sessions.get(id)
+    if (existing !== undefined && !existing.exited) {
+      attachClient(existing, ws, cols, rows)
+      return
+    }
+  }
+
   const cwd = getCurrentRepo() ?? process.cwd()
   const program: PtyProgram = agentPtyProgram(agent)
 
@@ -100,7 +301,11 @@ const startSession = (ws: WebSocket, request: IncomingMessage) => {
       cols,
       rows,
       cwd,
-      env: { ...process.env, TERM: "xterm-256color" },
+      env: {
+        ...process.env,
+        TERM: "xterm-256color",
+        ...(id !== null && id.length > 0 ? buildSessionEnv(cwd, id) : {}),
+      },
     })
   } catch (error) {
     send(ws, {
@@ -112,38 +317,44 @@ const startSession = (ws: WebSocket, request: IncomingMessage) => {
     return
   }
 
-  pty.onData((data) => send(ws, { d: data }))
+  const session: PtySession = {
+    pty,
+    chunks: [],
+    size: 0,
+    client: ws,
+    exited: false,
+  }
+  const persistent = id !== null && id.length > 0
+  if (persistent) sessions.set(id, session)
+
+  // One persistent data subscription per PTY: buffer everything, forward to
+  // whichever client is currently attached (if any).
+  pty.onData((data) => {
+    appendChunk(session, data)
+    if (session.client !== null) send(session.client, { d: data })
+  })
   pty.onExit(({ exitCode }) => {
-    send(ws, { exit: exitCode })
-    ws.close()
+    session.exited = true
+    if (persistent && id !== null) sessions.delete(id)
+    if (session.client !== null) {
+      send(session.client, { exit: exitCode })
+      session.client.close()
+    }
   })
 
-  ws.on("message", (raw) => {
-    let msg: { d?: string; r?: { cols: number; rows: number } }
-    try {
-      msg = JSON.parse(raw.toString())
-    } catch {
-      return
-    }
-    if (typeof msg.d === "string") pty.write(msg.d)
-    else if (msg.r) {
-      const c = Math.max(1, Math.floor(msg.r.cols))
-      const r = Math.max(1, Math.floor(msg.r.rows))
+  attachClient(session, ws, cols, rows)
+
+  // An id-less (ephemeral) session has no persistence value — kill it with its
+  // socket so it doesn't leak.
+  if (!persistent) {
+    ws.on("close", () => {
       try {
-        pty.resize(c, r)
+        pty.kill()
       } catch {
-        // window can race the process exit — ignore a resize on a dead pty
+        // already gone
       }
-    }
-  })
-
-  ws.on("close", () => {
-    try {
-      pty.kill()
-    } catch {
-      // already gone
-    }
-  })
+    })
+  }
 }
 
 type UpgradeListener = (
@@ -174,6 +385,14 @@ export const attachPtyServer = (server: Server): void => {
     if (pathname === PTY_PATH) {
       wss.handleUpgrade(request, socket, head, (ws) =>
         startSession(ws, request)
+      )
+      return
+    }
+    // Local Dev processes share the same upgrade dispatcher; they attach to a
+    // process the DevProcessManager already owns (started via REST), keyed by id.
+    if (pathname === DEV_PTY_PATH) {
+      wss.handleUpgrade(request, socket, head, (ws) =>
+        startDevSession(ws, request)
       )
       return
     }

@@ -9,21 +9,29 @@ import Markdown from "react-markdown"
 import rehypeHighlight from "rehype-highlight"
 import remarkGfm from "remark-gfm"
 import { toast } from "sonner"
+import { ResizeHandle } from "@/components/layout/ResizeHandle"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useDocsActions } from "@/features/docs/adapters/docs.hook.adapter"
 import { useDoc, useDocs } from "@/lib/queries"
 import { timeAgo } from "@/lib/relative-time"
+import { setUiPrefs, useUiPrefs } from "@/lib/ui-prefs"
 import { cn } from "@/lib/utils"
 
 export function DocsPage() {
   const docs = useDocs()
   const actions = useDocsActions()
+  const prefs = useUiPrefs()
+  const [sidebarWidth, setSidebarWidth] = useState(prefs.workspaceSidebarWidth)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [draft, setDraft] = useState("")
   const [loadedId, setLoadedId] = useState<string | null>(null)
   const [mode, setMode] = useState<"edit" | "preview">("edit")
   const [saving, setSaving] = useState(false)
+  const [adding, setAdding] = useState(false)
+  const [newTitle, setNewTitle] = useState("")
+  const [creating, setCreating] = useState(false)
 
   const summaries = useMemo(() => docs.data ?? [], [docs.data])
   useEffect(() => {
@@ -45,19 +53,35 @@ export function DocsPage() {
 
   const dirty = detail.data != null && draft !== detail.data.content
 
-  const createDoc = async () => {
-    const title = window.prompt("Title for the new plan:")
-    if (title === null) return
+  const openNew = () => {
+    setNewTitle("")
+    setAdding(true)
+  }
+
+  const cancelNew = () => {
+    setAdding(false)
+    setNewTitle("")
+  }
+
+  // Create from the inline title field. A native `window.prompt` is unreliable
+  // here — it throws in the Electron desktop renderer, so clicking + did nothing.
+  const submitNew = async () => {
+    const title = newTitle.trim()
+    if (title.length === 0 || creating) return
+    setCreating(true)
     try {
       const created = await actions.create(title)
       if (created !== null) {
         setSelectedId(created.id)
         setMode("edit")
+        cancelNew()
       }
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "could not create doc"
       )
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -81,7 +105,10 @@ export function DocsPage() {
 
   return (
     <div className="flex h-full min-h-0">
-      <aside className="flex w-64 shrink-0 flex-col border-r">
+      <aside
+        className="flex shrink-0 flex-col border-r"
+        style={{ width: sidebarWidth }}
+      >
         <div className="flex items-center justify-between px-3 py-2">
           <span className="text-sm font-medium">Docs &amp; plans</span>
           <Button
@@ -89,11 +116,34 @@ export function DocsPage() {
             variant="ghost"
             className="size-7"
             aria-label="New doc"
-            onClick={createDoc}
+            onClick={openNew}
           >
             <IconPlus className="size-4" />
           </Button>
         </div>
+        {adding && (
+          <div className="px-2 pb-2">
+            <Input
+              autoFocus
+              value={newTitle}
+              placeholder="Plan title…"
+              disabled={creating}
+              onChange={(e) => setNewTitle(e.target.value)}
+              onBlur={() => {
+                if (newTitle.trim().length === 0) cancelNew()
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault()
+                  void submitNew()
+                } else if (e.key === "Escape") {
+                  cancelNew()
+                }
+              }}
+              className="h-7"
+            />
+          </div>
+        )}
         <div className="min-h-0 flex-1 overflow-auto px-1 pb-2">
           {summaries.length === 0 ? (
             <p className="px-3 py-6 text-center text-xs text-muted-foreground">
@@ -120,6 +170,15 @@ export function DocsPage() {
           )}
         </div>
       </aside>
+      <ResizeHandle
+        orientation="col"
+        value={sidebarWidth}
+        min={180}
+        max={() => Math.max(240, window.innerWidth - 480)}
+        onResize={setSidebarWidth}
+        onResizeEnd={(w) => setUiPrefs({ workspaceSidebarWidth: w })}
+        label="Resize sidebar"
+      />
 
       <section className="flex min-w-0 flex-1 flex-col">
         {detail.data == null ? (

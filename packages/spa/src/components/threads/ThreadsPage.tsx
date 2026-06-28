@@ -30,9 +30,9 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select"
-import { Terminal } from "@/components/threads/Terminal"
+import { ResizeHandle } from "@/components/layout/ResizeHandle"
+import { Terminal, disposeLiveTerminal } from "@/components/threads/Terminal"
 import { useThreadsActions } from "@/features/threads/adapters/threads.hook.adapter"
 import {
   AGENTS,
@@ -41,7 +41,7 @@ import {
 } from "@/features/threads/entity/agents"
 import type { AgentKind, ThreadSummary } from "@/lib/api/types"
 import { useKanban, useThreads } from "@/lib/queries"
-import { useUiPrefs } from "@/lib/ui-prefs"
+import { setUiPrefs, useUiPrefs } from "@/lib/ui-prefs"
 import { cn } from "@/lib/utils"
 
 const NO_TASK = "__none__"
@@ -56,11 +56,15 @@ function NewTerminalMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={trigger} />
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="min-w-56">
         {AGENTS.map((agent) => (
-          <DropdownMenuItem key={agent.kind} onClick={() => onPick(agent.kind)}>
+          <DropdownMenuItem
+            key={agent.kind}
+            onClick={() => onPick(agent.kind)}
+            className="gap-6 whitespace-nowrap"
+          >
             <span className="font-medium">{agent.label}</span>
-            <span className="ml-auto pl-4 text-xs text-muted-foreground">
+            <span className="ml-auto text-xs text-muted-foreground">
               {agent.hint}
             </span>
           </DropdownMenuItem>
@@ -79,6 +83,7 @@ export function ThreadsPage() {
   const summaries = useMemo(() => threads.data ?? [], [threads.data])
   const cards = kanban.data?.cards ?? []
 
+  const [sidebarWidth, setSidebarWidth] = useState(prefs.workspaceSidebarWidth)
   const [activeId, setActiveId] = useState<string | null>(null)
   // Threads whose terminal has been mounted (and kept alive) — Zed keeps a
   // backgrounded terminal running, so we never unmount a visited one.
@@ -126,6 +131,8 @@ export function ThreadsPage() {
       setActiveId(next?.id ?? null)
     }
     await actions.remove(id)
+    // Tear down the persistent client-side session (the server kills the PTY).
+    disposeLiveTerminal(id)
   }
 
   const commitRename = async () => {
@@ -144,8 +151,11 @@ export function ThreadsPage() {
 
   return (
     <div className="flex h-full min-h-0">
-      {/* Threads sidebar */}
-      <aside className="flex w-60 shrink-0 flex-col border-r">
+      {/* Threads sidebar (drag-resizable) */}
+      <aside
+        className="flex shrink-0 flex-col border-r"
+        style={{ width: sidebarWidth }}
+      >
         <div className="flex items-center justify-between px-3 py-2">
           <span className="text-sm font-medium">Threads</span>
           <NewTerminalMenu
@@ -178,14 +188,37 @@ export function ThreadsPage() {
                     t.id === activeId && "bg-muted"
                   )}
                   onClick={() => setActiveId(t.id)}
+                  onDoubleClick={() =>
+                    setRenaming({ id: t.id, draft: t.title })
+                  }
+                  title="Double-click to rename"
                 >
                   <Icon className="size-4 shrink-0 text-muted-foreground" />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-medium">{t.title}</div>
-                    <div className="truncate text-xs text-muted-foreground">
-                      {subtitleOf(t)}
+                  {renaming?.id === t.id ? (
+                    <Input
+                      autoFocus
+                      value={renaming.draft}
+                      className="h-6 flex-1"
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) =>
+                        setRenaming({ id: t.id, draft: e.target.value })
+                      }
+                      onBlur={() => void commitRename()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault()
+                          void commitRename()
+                        } else if (e.key === "Escape") setRenaming(null)
+                      }}
+                    />
+                  ) : (
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">{t.title}</div>
+                      <div className="truncate text-xs text-muted-foreground">
+                        {subtitleOf(t)}
+                      </div>
                     </div>
-                  </div>
+                  )}
                   {activity[t.id] && t.id !== activeId && (
                     <span
                       className="size-1.5 shrink-0 rounded-full bg-sky-500"
@@ -214,6 +247,15 @@ export function ThreadsPage() {
           )}
         </div>
       </aside>
+      <ResizeHandle
+        orientation="col"
+        value={sidebarWidth}
+        min={180}
+        max={() => Math.max(240, window.innerWidth - 480)}
+        onResize={setSidebarWidth}
+        onResizeEnd={(w) => setUiPrefs({ workspaceSidebarWidth: w })}
+        label="Resize sidebar"
+      />
 
       {/* Panel body — single active terminal */}
       <section className="flex min-w-0 flex-1 flex-col">
@@ -279,8 +321,16 @@ export function ThreadsPage() {
                     void linkTask(active.id, active.title, v ?? NO_TASK)
                   }
                 >
-                  <SelectTrigger size="sm" className="h-7 w-32">
-                    <SelectValue placeholder="Link task" />
+                  <SelectTrigger
+                    size="sm"
+                    className="h-7 w-auto min-w-28 max-w-52"
+                  >
+                    {/* Render the label directly: base-ui's SelectValue shows
+                        the raw value until the items mount, which surfaced the
+                        "__none__" sentinel. */}
+                    <span className="truncate">
+                      {active.taskKey ?? "Link task"}
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NO_TASK}>No task</SelectItem>
@@ -320,6 +370,7 @@ export function ThreadsPage() {
                     )}
                   >
                     <Terminal
+                      id={t.id}
                       agent={t.agent}
                       active={t.id === activeId}
                       resolvedTheme={prefs.resolvedTheme}

@@ -9,6 +9,7 @@ import { DocsApi } from "./features/docs/http/docs.api.ts"
 import { GitMessageApi } from "./features/git-message/http/git-message.api.ts"
 import { GitHubApi } from "./features/github/http/github.api.ts"
 import { KanbanApi } from "./features/kanban/http/kanban.api.ts"
+import { LocalDevApi } from "./features/local-dev/http/local-dev.api.ts"
 import { RepoApi } from "./features/repo/http/repo.api.ts"
 import { ThreadsApi } from "./features/threads/http/threads.api.ts"
 import { WorkspaceApi } from "./features/workspace/http/workspace.api.ts"
@@ -22,4 +23,5 @@ export class Api extends HttpApi.make("byconvo")
   .add(ThreadsApi)
   .add(DocsApi)
   .add(KanbanApi)
+  .add(LocalDevApi)
   .prefix("/api") {}

@@ -13,6 +13,7 @@ import { Route as WorkspaceRouteImport } from './routes/_workspace'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as WorkspaceThreadsRouteImport } from './routes/_workspace/threads'
+import { Route as WorkspaceLocalDevRouteImport } from './routes/_workspace/local-dev'
 import { Route as WorkspaceKanbanRouteImport } from './routes/_workspace/kanban'
 import { Route as WorkspaceDocsRouteImport } from './routes/_workspace/docs'
 import { Route as AppCommitRouteImport } from './routes/_app/commit'
@@ -38,6 +39,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const WorkspaceThreadsRoute = WorkspaceThreadsRouteImport.update({
   id: '/threads',
   path: '/threads',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceLocalDevRoute = WorkspaceLocalDevRouteImport.update({
+  id: '/local-dev',
+  path: '/local-dev',
   getParentRoute: () => WorkspaceRoute,
 } as any)
 const WorkspaceKanbanRoute = WorkspaceKanbanRouteImport.update({
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/commit': typeof AppCommitRoute
   '/docs': typeof WorkspaceDocsRoute
   '/kanban': typeof WorkspaceKanbanRoute
+  '/local-dev': typeof WorkspaceLocalDevRoute
   '/threads': typeof WorkspaceThreadsRoute
   '/browse/range': typeof AppBrowseRangeRoute
   '/review/$pull': typeof AppReviewPullRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/commit': typeof AppCommitRoute
   '/docs': typeof WorkspaceDocsRoute
   '/kanban': typeof WorkspaceKanbanRoute
+  '/local-dev': typeof WorkspaceLocalDevRoute
   '/threads': typeof WorkspaceThreadsRoute
   '/browse/range': typeof AppBrowseRangeRoute
   '/review/$pull': typeof AppReviewPullRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/_app/commit': typeof AppCommitRoute
   '/_workspace/docs': typeof WorkspaceDocsRoute
   '/_workspace/kanban': typeof WorkspaceKanbanRoute
+  '/_workspace/local-dev': typeof WorkspaceLocalDevRoute
   '/_workspace/threads': typeof WorkspaceThreadsRoute
   '/_app/': typeof AppIndexRoute
   '/_app/browse/range': typeof AppBrowseRangeRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/commit'
     | '/docs'
     | '/kanban'
+    | '/local-dev'
     | '/threads'
     | '/browse/range'
     | '/review/$pull'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/commit'
     | '/docs'
     | '/kanban'
+    | '/local-dev'
     | '/threads'
     | '/browse/range'
     | '/review/$pull'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/_app/commit'
     | '/_workspace/docs'
     | '/_workspace/kanban'
+    | '/_workspace/local-dev'
     | '/_workspace/threads'
     | '/_app/'
     | '/_app/browse/range'
@@ -194,6 +206,13 @@ declare module '@tanstack/react-router' {
       path: '/threads'
       fullPath: '/threads'
       preLoaderRoute: typeof WorkspaceThreadsRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/_workspace/local-dev': {
+      id: '/_workspace/local-dev'
+      path: '/local-dev'
+      fullPath: '/local-dev'
+      preLoaderRoute: typeof WorkspaceLocalDevRouteImport
       parentRoute: typeof WorkspaceRoute
     }
     '/_workspace/kanban': {
@@ -280,12 +299,14 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 interface WorkspaceRouteChildren {
   WorkspaceDocsRoute: typeof WorkspaceDocsRoute
   WorkspaceKanbanRoute: typeof WorkspaceKanbanRoute
+  WorkspaceLocalDevRoute: typeof WorkspaceLocalDevRoute
   WorkspaceThreadsRoute: typeof WorkspaceThreadsRoute
 }
 
 const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceDocsRoute: WorkspaceDocsRoute,
   WorkspaceKanbanRoute: WorkspaceKanbanRoute,
+  WorkspaceLocalDevRoute: WorkspaceLocalDevRoute,
   WorkspaceThreadsRoute: WorkspaceThreadsRoute,
 }
 

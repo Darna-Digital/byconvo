@@ -5,6 +5,7 @@ import {
   IconGitFork,
   IconGitPullRequest,
   IconLayoutKanban,
+  IconPlayerPlay,
   IconTerminal2,
 } from "@tabler/icons-react"
 import { Link } from "@tanstack/react-router"
@@ -70,6 +71,12 @@ const WORKSPACE_MODES: ModeDef[] = [
     to: "/kanban",
     label: "Kanban board",
     icon: IconLayoutKanban,
+  },
+  {
+    mode: "local-dev",
+    to: "/local-dev",
+    label: "Local dev",
+    icon: IconPlayerPlay,
   },
 ]
 

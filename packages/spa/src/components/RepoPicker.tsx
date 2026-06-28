@@ -25,6 +25,12 @@ interface RepoPickerProps {
   workspace: WorkspaceInfo | undefined
   open: boolean
   onOpenChange: (open: boolean) => void
+  /**
+   * Called after a repository is opened, instead of the default jump to the
+   * commit view. The workspace pages pass this so switching repo keeps you on
+   * the current page (now scoped to the newly-opened repo).
+   */
+  onChosen?: () => void
 }
 
 function Avatar({
@@ -52,6 +58,7 @@ export function RepoPicker({
   workspace,
   open,
   onOpenChange,
+  onChosen,
 }: RepoPickerProps) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -80,7 +87,10 @@ export function RepoPicker({
     }
     await queryClient.invalidateQueries()
     onOpenChange(false)
-    void navigate({ to: "/commit", search: {} })
+    // Workspace pages stay put (now scoped to the new repo); the git-review
+    // shell defaults to jumping into the commit view.
+    if (onChosen !== undefined) onChosen()
+    else void navigate({ to: "/commit", search: {} })
   }
 
   const chooseDirectory = async () => {

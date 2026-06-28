@@ -51,20 +51,47 @@ export interface PtyProgram {
   readonly args: ReadonlyArray<string>
 }
 
+/** The user's interactive shell, used both for plain terminals and to host the
+ * agent CLIs. */
+const userShell = (): string => process.env["SHELL"] ?? "bash"
+
+/**
+ * Launch an agent CLI *through* the user's login + interactive shell rather than
+ * spawning the bare binary. A bare `node-pty` spawn searches only
+ * `process.env.PATH`, which under a GUI launch (the Electron app from Finder, or
+ * an IDE) is launchd's minimal PATH — missing `~/.local/bin`, version managers,
+ * Homebrew, etc. — so an agent installed there fails with "posix_spawnp failed".
+ * `$SHELL -lic` sources the same startup files a real terminal tab does, giving
+ * the CLI the exact PATH the developer sees in their terminal. `exec` then hands
+ * the PTY straight to the CLI; if it can't be found we print a clear message
+ * instead of a bare "command not found". (The CLI names are fixed literals, never
+ * user input, so they need no shell-quoting.)
+ */
+const agentInShell = (cli: string): PtyProgram => ({
+  file: userShell(),
+  args: [
+    "-l",
+    "-i",
+    "-c",
+    `command -v ${cli} >/dev/null 2>&1 && exec ${cli} || { echo "could not start ${cli} — is it installed and on your PATH?"; exit 127; }`,
+  ],
+})
+
 /**
  * The interactive program a live PTY terminal launches for `agent`. Terminal
- * threads open the user's login shell; agent threads launch the agent CLI in its
- * normal interactive mode (no `-p`), so it runs as a full TUI in the terminal.
+ * threads open the user's login + interactive shell; agent threads launch the
+ * agent CLI in its normal interactive mode (no `-p`) inside that same shell, so
+ * it runs as a full TUI with the developer's real PATH and environment.
  */
 export const agentPtyProgram = (agent: AgentKind): PtyProgram => {
   switch (agent) {
     case "terminal":
-      return { file: process.env["SHELL"] ?? "bash", args: [] }
+      return { file: userShell(), args: ["-l", "-i"] }
     case "claude":
-      return { file: "claude", args: [] }
+      return agentInShell("claude")
     case "opencode":
-      return { file: "opencode", args: [] }
+      return agentInShell("opencode")
     case "codex":
-      return { file: "codex", args: [] }
+      return agentInShell("codex")
   }
 }

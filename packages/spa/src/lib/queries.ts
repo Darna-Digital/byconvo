@@ -44,6 +44,10 @@ export const useDoc = (id: string | null) =>
 
 export const useKanban = () => api.useQuery("get", "/api/kanban")
 
+/** Saved Local Dev commands for the selected repo, with their runtime status. */
+export const useDevCommands = () =>
+  api.useQuery("get", "/api/local-dev/commands")
+
 /** The base/ours/theirs index stages of a conflicted file. */
 export const useConflictBlobs = (path: string | null) =>
   api.useQuery(

@@ -27,6 +27,9 @@ import { GitHubController } from "./features/github/http/github.controller.ts"
 import { GitHubLive } from "./features/github/layer/github.layer.live.ts"
 import { KanbanController } from "./features/kanban/http/kanban.controller.ts"
 import { KanbanLive } from "./features/kanban/layer/kanban.layer.live.ts"
+import { LocalDevController } from "./features/local-dev/http/local-dev.controller.ts"
+import { LocalDevLive } from "./features/local-dev/layer/local-dev.layer.live.ts"
+import { DevRuntimeLive } from "./features/local-dev/runtime/local-dev.runtime.ts"
 import { RepoController } from "./features/repo/http/repo.controller.ts"
 import { RepoLive } from "./features/repo/layer/repo.layer.live.ts"
 import { ThreadsController } from "./features/threads/http/threads.controller.ts"
@@ -67,7 +70,8 @@ const ApiLive = Layer.mergeAll(
   Layer.provide(GitMessageController),
   Layer.provide(ThreadsController),
   Layer.provide(DocsController),
-  Layer.provide(KanbanController)
+  Layer.provide(KanbanController),
+  Layer.provide(LocalDevController)
 )
 
 /** Stateless feature services, resolved per request. */
@@ -79,7 +83,9 @@ const RequestServices = Layer.mergeAll(
   GitMessageLive,
   ThreadsLive,
   DocsLive,
-  KanbanLive
+  KanbanLive,
+  LocalDevLive,
+  DevRuntimeLive
 )
 
 /**

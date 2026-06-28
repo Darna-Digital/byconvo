@@ -52,6 +52,12 @@ export type KanbanBoard = Ok<paths["/api/kanban"]["get"]>
 export type KanbanCard = KanbanBoard["cards"][number]
 export type KanbanColumn = KanbanCard["column"]
 
+export type DevCommandView =
+  Ok<paths["/api/local-dev/commands"]["get"]>[number]
+export type DevCommand = Ok<paths["/api/local-dev/commands/{id}"]["get"]>
+/** Runtime state of a dev command's process. */
+export type DevCommandStatus = DevCommandView["status"]
+
 /** Log-filter state shared by the toolbar and the route search params. */
 export interface LogQuery {
   readonly author: string | null
@@ -85,6 +91,7 @@ export type AppMode =
   | "threads"
   | "docs"
   | "kanban"
+  | "local-dev"
 
 /** What the center pane is currently diffing. */
 export type DiffTarget =

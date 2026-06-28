@@ -19,6 +19,8 @@ export interface UiPrefs {
   bottomVisible: boolean
   /** Drag-resizable left sidebar width, in px. */
   sidebarWidth: number
+  /** Drag-resizable left sidebar width for the workspace pages (threads/docs). */
+  workspaceSidebarWidth: number
   /** Drag-resizable bottom panel height, in px. */
   bottomHeight: number
   /** Drag-resizable changed-files list height in the commit panel, in px. */
@@ -45,6 +47,7 @@ const defaults: Omit<UiPrefs, "resolvedTheme"> = {
   connectors: true,
   bottomVisible: true,
   sidebarWidth: 288,
+  workspaceSidebarWidth: 256,
   bottomHeight: 256,
   commitFilesHeight: 180,
   commitMessageHeight: 80,
@@ -83,6 +86,7 @@ function persist() {
       connectors,
       bottomVisible,
       sidebarWidth,
+      workspaceSidebarWidth,
       bottomHeight,
       commitFilesHeight,
       commitMessageHeight,
@@ -95,6 +99,7 @@ function persist() {
         connectors,
         bottomVisible,
         sidebarWidth,
+        workspaceSidebarWidth,
         bottomHeight,
         commitFilesHeight,
         commitMessageHeight,
