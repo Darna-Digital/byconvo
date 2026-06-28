@@ -39,6 +39,17 @@ export type CommitPrefix = Ok<paths["/api/git-message/prefixes"]["get"]>[number]
 
 export type PullRequestInfo = Ok<paths["/api/github/pulls"]["get"]>[number]
 
+export type ThreadSummary = Ok<paths["/api/threads"]["get"]>[number]
+export type Thread = Ok<paths["/api/threads/{id}"]["get"]>
+export type ThreadEntry = Thread["entries"][number]
+
+export type DocSummary = Ok<paths["/api/docs"]["get"]>[number]
+export type Doc = Ok<paths["/api/docs/{id}"]["get"]>
+
+export type KanbanBoard = Ok<paths["/api/kanban"]["get"]>
+export type KanbanCard = KanbanBoard["cards"][number]
+export type KanbanColumn = KanbanCard["column"]
+
 /** Log-filter state shared by the toolbar and the route search params. */
 export interface LogQuery {
   readonly author: string | null
@@ -60,8 +71,18 @@ export const emptyLogQuery: LogQuery = {
   path: null,
 }
 
-/** The three top-level IDE modes (also the top-level route segments). */
-export type AppMode = "commit" | "review" | "browse"
+/**
+ * The top-level IDE modes (also the top-level route segments). The first three
+ * are the git-review modes (rendered by AppShell); threads/docs/kanban are the
+ * workspace modes (rendered by WorkspaceShell).
+ */
+export type AppMode =
+  | "commit"
+  | "review"
+  | "browse"
+  | "threads"
+  | "docs"
+  | "kanban"
 
 /** What the center pane is currently diffing. */
 export type DiffTarget =

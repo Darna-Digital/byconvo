@@ -1,8 +1,11 @@
 import {
-  IconGitCommit,
-  IconGitPullRequest,
+  IconFileText,
   IconFolders,
+  IconGitCommit,
   IconGitFork,
+  IconGitPullRequest,
+  IconLayoutKanban,
+  IconTerminal2,
 } from "@tabler/icons-react"
 import { Link } from "@tanstack/react-router"
 import { buttonVariants } from "@/components/ui/button"
@@ -18,17 +21,21 @@ import type { AppMode } from "@/lib/api/types"
 interface ModeRailProps {
   mode: AppMode
   hasGitHub: boolean
-  bottomVisible: boolean
-  onBottomToggle: () => void
+  /** Bottom panel toggle is only meaningful in the git-review shell. */
+  bottomVisible?: boolean
+  onBottomToggle?: () => void
   onModeSelect?: (mode: AppMode) => void
 }
 
-const MODES: {
+interface ModeDef {
   mode: AppMode
   to: string
   label: string
   icon: typeof IconGitCommit
-}[] = [
+}
+
+// The git-review modes (rendered by AppShell).
+const GIT_MODES: ModeDef[] = [
   {
     mode: "commit",
     to: "/commit",
@@ -46,6 +53,23 @@ const MODES: {
     to: "/browse",
     label: "Browse the project",
     icon: IconFolders,
+  },
+]
+
+// The workspace modes (rendered by WorkspaceShell).
+const WORKSPACE_MODES: ModeDef[] = [
+  {
+    mode: "threads",
+    to: "/threads",
+    label: "Terminal threads",
+    icon: IconTerminal2,
+  },
+  { mode: "docs", to: "/docs", label: "Docs & plans", icon: IconFileText },
+  {
+    mode: "kanban",
+    to: "/kanban",
+    label: "Kanban board",
+    icon: IconLayoutKanban,
   },
 ]
 
@@ -94,6 +118,18 @@ export function ModeRail({
   onBottomToggle,
   onModeSelect,
 }: ModeRailProps) {
+  const renderMode = ({ mode: m, to, label, icon: Icon }: ModeDef) => (
+    <RailButton
+      key={m}
+      to={to}
+      label={label}
+      active={mode === m}
+      onClick={() => onModeSelect?.(m)}
+    >
+      <Icon className="size-5" />
+    </RailButton>
+  )
+
   return (
     <nav
       className={cn(
@@ -105,28 +141,22 @@ export function ModeRail({
         isDesktop ? "pt-10 [-webkit-app-region:drag]" : "pt-2"
       )}
     >
-      {MODES.filter((m) => m.mode !== "review" || hasGitHub).map(
-        ({ mode: m, to, label, icon: Icon }) => (
-          <RailButton
-            key={m}
-            to={to}
-            label={label}
-            active={mode === m}
-            onClick={() => onModeSelect?.(m)}
-          >
-            <Icon className="size-5" />
-          </RailButton>
-        )
+      {GIT_MODES.filter((m) => m.mode !== "review" || hasGitHub).map(
+        renderMode
       )}
-      <div className="mt-auto flex flex-col items-center gap-1">
-        <RailButton
-          label="Toggle bottom panel"
-          active={bottomVisible}
-          onClick={onBottomToggle}
-        >
-          <IconGitFork className="size-5" />
-        </RailButton>
-      </div>
+      <div className="my-1 h-px w-6 bg-border" />
+      {WORKSPACE_MODES.map(renderMode)}
+      {onBottomToggle && (
+        <div className="mt-auto flex flex-col items-center gap-1">
+          <RailButton
+            label="Toggle bottom panel"
+            active={bottomVisible}
+            onClick={onBottomToggle}
+          >
+            <IconGitFork className="size-5" />
+          </RailButton>
+        </div>
+      )}
     </nav>
   )
 }

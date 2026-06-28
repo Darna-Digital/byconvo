@@ -20,6 +20,30 @@ export const useCommitPrefixes = () =>
 /** The in-progress merge/rebase operation and its remaining conflicts. */
 export const useMergeState = () => api.useQuery("get", "/api/merge-state")
 
+// --- Threads / Docs / Kanban (workspace features) --------------------------
+
+export const useThreads = () => api.useQuery("get", "/api/threads")
+
+export const useThread = (id: string | null) =>
+  api.useQuery(
+    "get",
+    "/api/threads/{id}",
+    { params: { path: { id: id ?? "" } } },
+    { enabled: id !== null }
+  )
+
+export const useDocs = () => api.useQuery("get", "/api/docs")
+
+export const useDoc = (id: string | null) =>
+  api.useQuery(
+    "get",
+    "/api/docs/{id}",
+    { params: { path: { id: id ?? "" } } },
+    { enabled: id !== null }
+  )
+
+export const useKanban = () => api.useQuery("get", "/api/kanban")
+
 /** The base/ours/theirs index stages of a conflicted file. */
 export const useConflictBlobs = (path: string | null) =>
   api.useQuery(

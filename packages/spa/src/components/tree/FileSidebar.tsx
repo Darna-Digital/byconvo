@@ -15,7 +15,9 @@ interface FileSidebarProps {
   footer?: ReactNode
 }
 
-const HEADER_TITLE: Record<AppMode, string> = {
+// FileSidebar is only mounted in the git-review modes; the workspace modes
+// (threads/docs/kanban) have their own pages, so a partial map + fallback.
+const HEADER_TITLE: Partial<Record<AppMode, string>> = {
   commit: "Changed files",
   review: "Files in this PR",
   browse: "Project",
@@ -202,7 +204,7 @@ export function FileSidebar({
   return (
     <aside className="flex h-full flex-col">
       <div className="flex h-9 shrink-0 items-center justify-between border-b px-3 text-xs text-muted-foreground">
-        <span className="font-medium">{HEADER_TITLE[mode]}</span>
+        <span className="font-medium">{HEADER_TITLE[mode] ?? "Files"}</span>
         {mode !== "browse" && gitStatus.length > 0 && (
           <span>
             {gitStatus.length} {mode === "review" ? "files" : "changed"}

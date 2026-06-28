@@ -19,17 +19,24 @@ import { createServer } from "node:http"
 import { Api } from "./api.ts"
 import { CommentsController } from "./features/comments/http/comments.controller.ts"
 import { CommentsLive } from "./features/comments/layer/comments.layer.live.ts"
+import { DocsController } from "./features/docs/http/docs.controller.ts"
+import { DocsLive } from "./features/docs/layer/docs.layer.live.ts"
 import { GitMessageController } from "./features/git-message/http/git-message.controller.ts"
 import { GitMessageLive } from "./features/git-message/layer/git-message.layer.live.ts"
 import { GitHubController } from "./features/github/http/github.controller.ts"
 import { GitHubLive } from "./features/github/layer/github.layer.live.ts"
+import { KanbanController } from "./features/kanban/http/kanban.controller.ts"
+import { KanbanLive } from "./features/kanban/layer/kanban.layer.live.ts"
 import { RepoController } from "./features/repo/http/repo.controller.ts"
 import { RepoLive } from "./features/repo/layer/repo.layer.live.ts"
+import { ThreadsController } from "./features/threads/http/threads.controller.ts"
+import { ThreadsLive } from "./features/threads/layer/threads.layer.live.ts"
 import { WorkspaceController } from "./features/workspace/http/workspace.controller.ts"
 import { WorkspaceLive } from "./features/workspace/layer/workspace.layer.live.ts"
 import { layer as claudeExecLayer } from "./layers/claude/claude-exec.ts"
 import { layer as gitExecLayer } from "./layers/git/git-exec.ts"
 import { layer as gitHubClientLayer } from "./layers/github/github-client.ts"
+import { layer as terminalExecLayer } from "./layers/terminal/terminal-exec.ts"
 import {
   layer as workspaceContextLayer,
   type InitialSelection,
@@ -45,17 +52,21 @@ const port = Number(process.env["BYCONVO_PORT"] ?? 41811)
 /**
  * The API router with every feature controller attached. The OpenAPI document
  * (consumed by the SPA's typesafe `openapi-fetch` client) is served at
- * /api/openapi.json, and a Scalar API reference at /api/docs.
+ * /api/openapi.json, and a Scalar API reference at /api/reference (the /api/docs
+ * path belongs to the Docs feature).
  */
 const ApiLive = Layer.mergeAll(
   HttpApiBuilder.layer(Api, { openapiPath: "/api/openapi.json" }),
-  HttpApiScalar.layer(Api, { path: "/api/docs" })
+  HttpApiScalar.layer(Api, { path: "/api/reference" })
 ).pipe(
   Layer.provide(WorkspaceController),
   Layer.provide(RepoController),
   Layer.provide(CommentsController),
   Layer.provide(GitHubController),
-  Layer.provide(GitMessageController)
+  Layer.provide(GitMessageController),
+  Layer.provide(ThreadsController),
+  Layer.provide(DocsController),
+  Layer.provide(KanbanController)
 )
 
 /** Stateless feature services, resolved per request. */
@@ -64,7 +75,10 @@ const RequestServices = Layer.mergeAll(
   RepoLive,
   CommentsLive,
   GitHubLive,
-  GitMessageLive
+  GitMessageLive,
+  ThreadsLive,
+  DocsLive,
+  KanbanLive
 )
 
 /**
@@ -73,7 +87,9 @@ const RequestServices = Layer.mergeAll(
  * GitHub client.
  */
 const InfraLive = gitHubClientLayer.pipe(
-  Layer.provideMerge(Layer.mergeAll(gitExecLayer, claudeExecLayer)),
+  Layer.provideMerge(
+    Layer.mergeAll(gitExecLayer, claudeExecLayer, terminalExecLayer)
+  ),
   Layer.provideMerge(workspaceContextLayer(initial)),
   Layer.provide(FetchHttpClient.layer)
 )
