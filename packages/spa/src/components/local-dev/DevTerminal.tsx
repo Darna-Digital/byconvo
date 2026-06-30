@@ -11,19 +11,15 @@
  */
 import { useEffect, useRef, useState } from "react"
 import { devPtySocketUrl } from "@/lib/api/client"
+import { mountTerminal, type TerminalTheme } from "@/lib/terminal/xterm-engine"
 import "@xterm/xterm/css/xterm.css"
 
 interface TerminalHandles {
   fit: () => void
   focus: () => void
   resize: () => void
-  setTheme: (theme: "light" | "dark") => void
+  setTheme: (theme: TerminalTheme) => void
 }
-
-const themeColors = (theme: "light" | "dark") =>
-  theme === "dark"
-    ? { background: "#0a0a0a", foreground: "#e5e5e5", cursor: "#e5e5e5" }
-    : { background: "#ffffff", foreground: "#171717", cursor: "#171717" }
 
 export function DevTerminal({
   commandId,
@@ -34,7 +30,7 @@ export function DevTerminal({
   /** Dev command id — selects the server-side process to attach to. */
   commandId: string
   active: boolean
-  resolvedTheme: "light" | "dark"
+  resolvedTheme: TerminalTheme
   /** Called when the process exits, so the page can refresh its status. */
   onExit?: (exitCode: number) => void
 }) {
@@ -53,34 +49,12 @@ export function DevTerminal({
     let cleanup = () => {}
 
     void (async () => {
-      const [{ Terminal: XTerm }, { FitAddon }] = await Promise.all([
-        import("@xterm/xterm"),
-        import("@xterm/addon-fit"),
-      ])
-      if (disposed) return
-
-      const term = new XTerm({
-        fontFamily:
-          'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
-        fontSize: 12,
-        cursorBlink: true,
-        allowProposedApi: true,
-        theme: themeColors(resolvedTheme),
-      })
-      const fit = new FitAddon()
-      term.loadAddon(fit)
-      term.open(host)
-
-      const safeFit = () => {
-        if (host.clientWidth > 0 && host.clientHeight > 0) {
-          try {
-            fit.fit()
-          } catch {
-            // host detaching
-          }
-        }
+      const mounted = await mountTerminal(host, resolvedTheme)
+      if (disposed) {
+        mounted.dispose()
+        return
       }
-      safeFit()
+      const { term, safeFit } = mounted
 
       const ws = new WebSocket(
         devPtySocketUrl({
@@ -133,9 +107,7 @@ export function DevTerminal({
         fit: safeFit,
         focus: () => term.focus(),
         resize: sendResize,
-        setTheme: (theme) => {
-          term.options.theme = themeColors(theme)
-        },
+        setTheme: (theme) => mounted.setTheme(theme),
       }
 
       cleanup = () => {
@@ -143,7 +115,7 @@ export function DevTerminal({
         observer.disconnect()
         dataSub.dispose()
         ws.close()
-        term.dispose()
+        mounted.dispose()
       }
     })()
 
