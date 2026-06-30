@@ -10,12 +10,16 @@ const unwrap = async <T>(
   p: Promise<{ data?: T; error?: unknown }>
 ): Promise<T> => {
   const { data, error } = await p
-  if (error)
+  if (error) {
+    const e = error as { message?: string; reason?: string; stderr?: string }
+    const stderr = e.stderr?.trim()
     throw new Error(
-      (error as { message?: string; reason?: string }).message ??
-        (error as { reason?: string }).reason ??
+      e.message ??
+        e.reason ??
+        (stderr !== undefined && stderr.length > 0 ? stderr : undefined) ??
         "request failed"
     )
+  }
   return data as T
 }
 

@@ -41,6 +41,10 @@ export const Thread = Schema.Struct({
   /** A prompt typed into the agent once it starts, then cleared. Used when a
    * task comment tags an agent — the task + comment are handed to it. */
   initialPrompt: Schema.String,
+  /** The agent CLI's native session id, so the thread's conversation can be
+   * resumed after its PTY process is gone (server restart / app reopen). null
+   * until known; always null for plain terminal threads. */
+  agentSessionId: Schema.NullOr(Schema.String),
   createdAt: Schema.String,
   updatedAt: Schema.String,
   entries: Schema.Array(ThreadEntry),

@@ -17,6 +17,7 @@
  *                     { exit: number }         // process exited (then close)
  *                     { error: string }        // could not start the program
  */
+import { randomUUID } from "node:crypto"
 import {
   chmodSync,
   existsSync,
@@ -34,10 +35,12 @@ import { WebSocketServer, type WebSocket } from "ws"
 import {
   AGENT_KINDS,
   agentPtyProgram,
+  agentSessionArgs,
   type PtyProgram,
 } from "../../features/threads/agents.ts"
 import type { AgentKind } from "../../features/threads/schema/threads.schema.model.ts"
 import { getCurrentRepo } from "../workspace/current-repo.ts"
+import { recentAgentSessions } from "./agent-session-capture.ts"
 import { DEV_PTY_PATH, startDevSession } from "./dev-process-manager.ts"
 
 const PTY_PATH = "/api/threads/pty"
@@ -146,6 +149,8 @@ interface PtySession {
   /** The currently attached socket, or null while detached (window closed). */
   client: WebSocket | null
   exited: boolean
+  /** Poller discovering an opencode/codex native session id, or null. */
+  captureTimer: ReturnType<typeof setInterval> | null
 }
 
 const sessions = new Map<string, PtySession>()
@@ -167,6 +172,7 @@ export const killPtySession = (id: string): void => {
   const session = sessions.get(id)
   if (session === undefined) return
   sessions.delete(id)
+  if (session.captureTimer !== null) clearInterval(session.captureTimer)
   try {
     session.pty.kill()
   } catch {
@@ -221,6 +227,88 @@ const clearThreadInitialPrompt = (repoPath: string, id: string): void => {
   } catch {
     // best-effort
   }
+}
+
+/** The agent's stored native session id for a thread, or null if none yet. */
+const readThreadAgentSessionId = (
+  repoPath: string,
+  id: string
+): string | null => {
+  try {
+    const raw = JSON.parse(
+      readFileSync(`${repoPath}/.byconvo/threads.json`, "utf8")
+    )
+    if (!Array.isArray(raw)) return null
+    const thread = raw.find(
+      (t) => t !== null && typeof t === "object" && t.id === id
+    )
+    return thread !== undefined && typeof thread.agentSessionId === "string"
+      ? thread.agentSessionId
+      : null
+  } catch {
+    return null
+  }
+}
+
+/** Merge `patch` into a thread record on disk, preserving all other fields. */
+const patchThread = (
+  repoPath: string,
+  id: string,
+  patch: Record<string, unknown>
+): void => {
+  try {
+    const path = `${repoPath}/.byconvo/threads.json`
+    const raw = JSON.parse(readFileSync(path, "utf8"))
+    if (!Array.isArray(raw)) return
+    let changed = false
+    const next = raw.map((t) => {
+      if (t !== null && typeof t === "object" && t.id === id) {
+        changed = true
+        return { ...t, ...patch }
+      }
+      return t
+    })
+    if (changed) writeFileSync(path, `${JSON.stringify(next, null, 2)}\n`)
+  } catch {
+    // best-effort
+  }
+}
+
+// Poll for the native session id opencode/codex minted, then persist it so the
+// thread can be resumed after this process dies. Sessions may only appear once
+// the user sends a first message, so we keep checking for a while.
+const CAPTURE_INTERVAL_MS = 3000
+const CAPTURE_MAX_MS = 30 * 60_000
+
+const startSessionCapture = (
+  session: PtySession,
+  agent: "opencode" | "codex",
+  cwd: string,
+  id: string
+): void => {
+  const since = Date.now() - 2000 // small skew for fs mtime granularity
+  const deadline = Date.now() + CAPTURE_MAX_MS
+  const stop = () => {
+    if (session.captureTimer !== null) {
+      clearInterval(session.captureTimer)
+      session.captureTimer = null
+    }
+  }
+  session.captureTimer = setInterval(() => {
+    if (session.exited || Date.now() > deadline) return stop()
+    let found: ReturnType<typeof recentAgentSessions>
+    try {
+      found = recentAgentSessions(agent, cwd, since)
+    } catch {
+      found = []
+    }
+    if (found.length > 0) {
+      // Newest matching session is the one this launch created.
+      const newest = found.reduce((a, b) => (b.mtimeMs > a.mtimeMs ? b : a))
+      patchThread(cwd, id, { agentSessionId: newest.id })
+      stop()
+    }
+  }, CAPTURE_INTERVAL_MS)
 }
 
 const buildSessionEnv = (
@@ -331,11 +419,32 @@ const startSession = (ws: WebSocket, request: IncomingMessage) => {
   }
 
   const cwd = getCurrentRepo() ?? process.cwd()
-  const program: PtyProgram = agentPtyProgram(agent)
   // A one-shot prompt to type into the program once it's ready (e.g. a task
   // comment handed to an agent). Only on a fresh spawn, never on re-attach.
   const initialPrompt =
     id !== null && id.length > 0 ? readThreadInitialPrompt(cwd, id) : ""
+
+  // Resolve native session resume so the agent's conversation survives this PTY
+  // dying (server restart / app reopen). We only reach here on a fresh spawn —
+  // a live re-attach returned above.
+  let sessionArgs = ""
+  let captureAgent: "opencode" | "codex" | null = null
+  if (id !== null && id.length > 0 && agent !== "terminal") {
+    const stored = readThreadAgentSessionId(cwd, id)
+    if (stored !== null) {
+      // Resume the session we already know about.
+      sessionArgs = agentSessionArgs(agent, { sessionId: stored, resume: true })
+    } else if (agent === "claude") {
+      // Claude lets us choose the id: create it now, persist it, resume later.
+      const uuid = randomUUID()
+      sessionArgs = agentSessionArgs(agent, { sessionId: uuid, resume: false })
+      patchThread(cwd, id, { agentSessionId: uuid })
+    } else {
+      // opencode/codex mint their own id — start fresh, capture it afterwards.
+      captureAgent = agent
+    }
+  }
+  const program: PtyProgram = agentPtyProgram(agent, sessionArgs)
 
   const nodePty = loadNodePty()
   if (nodePty === null) {
@@ -376,9 +485,16 @@ const startSession = (ws: WebSocket, request: IncomingMessage) => {
     size: 0,
     client: ws,
     exited: false,
+    captureTimer: null,
   }
   const persistent = id !== null && id.length > 0
   if (persistent) sessions.set(id, session)
+
+  // For opencode/codex we couldn't preset the session id, so discover the one
+  // the CLI just minted and persist it for next time.
+  if (persistent && id !== null && captureAgent !== null) {
+    startSessionCapture(session, captureAgent, cwd, id)
+  }
 
   // Deliver the initial prompt once the program's output settles (it has booted
   // and is idle waiting for input), with a hard cap as a fallback. Sent once,
@@ -430,6 +546,10 @@ const startSession = (ws: WebSocket, request: IncomingMessage) => {
     promptDone = true
     if (settleTimer) clearTimeout(settleTimer)
     if (capTimer) clearTimeout(capTimer)
+    if (session.captureTimer !== null) {
+      clearInterval(session.captureTimer)
+      session.captureTimer = null
+    }
     session.exited = true
     if (persistent && id !== null) sessions.delete(id)
     if (session.client !== null) {

@@ -70,6 +70,7 @@ export const makeMemoryThreadsRepository = (seed: ReadonlyArray<Thread> = []) =>
             branch: input.branch,
             taskKey: input.taskKey,
             initialPrompt: input.initialPrompt,
+            agentSessionId: null,
             createdAt: now(),
             updatedAt: now(),
             entries: [],

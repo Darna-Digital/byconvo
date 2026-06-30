@@ -67,31 +67,68 @@ const userShell = (): string => process.env["SHELL"] ?? "bash"
  * instead of a bare "command not found". (The CLI names are fixed literals, never
  * user input, so they need no shell-quoting.)
  */
-const agentInShell = (cli: string): PtyProgram => ({
-  file: userShell(),
-  args: [
-    "-l",
-    "-i",
-    "-c",
-    `command -v ${cli} >/dev/null 2>&1 && exec ${cli} || { echo "could not start ${cli} — is it installed and on your PATH?"; exit 127; }`,
-  ],
-})
+const agentInShell = (cli: string, extraArgs = ""): PtyProgram => {
+  const invocation = extraArgs.length > 0 ? `${cli} ${extraArgs}` : cli
+  return {
+    file: userShell(),
+    args: [
+      "-l",
+      "-i",
+      "-c",
+      `command -v ${cli} >/dev/null 2>&1 && exec ${invocation} || { echo "could not start ${cli} — is it installed and on your PATH?"; exit 127; }`,
+    ],
+  }
+}
 
 /**
  * The interactive program a live PTY terminal launches for `agent`. Terminal
  * threads open the user's login + interactive shell; agent threads launch the
  * agent CLI in its normal interactive mode (no `-p`) inside that same shell, so
  * it runs as a full TUI with the developer's real PATH and environment.
+ *
+ * `sessionArgs` (from {@link agentSessionArgs}) start or resume a specific native
+ * session so a thread's conversation survives the PTY process dying.
  */
-export const agentPtyProgram = (agent: AgentKind): PtyProgram => {
+export const agentPtyProgram = (
+  agent: AgentKind,
+  sessionArgs = ""
+): PtyProgram => {
   switch (agent) {
     case "terminal":
       return { file: userShell(), args: ["-l", "-i"] }
     case "claude":
-      return agentInShell("claude")
+      return agentInShell("claude", sessionArgs)
     case "opencode":
-      return agentInShell("opencode")
+      return agentInShell("opencode", sessionArgs)
     case "codex":
-      return agentInShell("codex")
+      return agentInShell("codex", sessionArgs)
+  }
+}
+
+/**
+ * Trailing CLI args that make an agent start or resume a specific session, so a
+ * thread keeps its conversation across a server restart / app reopen.
+ * `sessionId` is the agent's native session id tracked on the thread:
+ *   - claude lets us choose the id, so a fresh launch passes `--session-id` and a
+ *     later one `--resume`.
+ *   - opencode/codex mint their own id (we capture it after the first launch);
+ *     we can only resume an existing one, never force one at start.
+ * Returns "" to launch the agent fresh.
+ */
+export const agentSessionArgs = (
+  agent: AgentKind,
+  opts: { readonly sessionId: string | null; readonly resume: boolean }
+) => {
+  const { sessionId, resume } = opts
+  if (sessionId === null) return ""
+  switch (agent) {
+    case "terminal":
+      return ""
+    case "claude":
+      return resume ? `--resume ${sessionId}` : `--session-id ${sessionId}`
+    case "opencode":
+      return resume ? `--session ${sessionId}` : ""
+    case "codex":
+      return resume ? `resume ${sessionId}` : ""
   }
 }

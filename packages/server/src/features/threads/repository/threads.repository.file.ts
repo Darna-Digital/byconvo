@@ -29,7 +29,7 @@ const readThreads = (repoPath: string): ReadonlyArray<Thread> => {
     const normalized = Array.isArray(parsed)
       ? parsed.map((t) =>
           t !== null && typeof t === "object"
-            ? { branch: "", initialPrompt: "", ...t }
+            ? { branch: "", initialPrompt: "", agentSessionId: null, ...t }
             : t
         )
       : parsed
@@ -126,6 +126,7 @@ export const makeFileThreadsRepository = Effect.gen(function* () {
         branch: input.branch,
         taskKey: input.taskKey,
         initialPrompt: input.initialPrompt,
+        agentSessionId: null,
         createdAt: now,
         updatedAt: now,
         entries: [],

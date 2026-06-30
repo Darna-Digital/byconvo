@@ -8,6 +8,7 @@ const thread = (over: Partial<Thread> = {}): Thread => ({
   branch: "main",
   taskKey: null,
   initialPrompt: "",
+  agentSessionId: null,
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
   entries: [],
