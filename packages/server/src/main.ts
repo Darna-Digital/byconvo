@@ -19,17 +19,27 @@ import { createServer } from "node:http"
 import { Api } from "./api.ts"
 import { CommentsController } from "./features/comments/http/comments.controller.ts"
 import { CommentsLive } from "./features/comments/layer/comments.layer.live.ts"
+import { DocsController } from "./features/docs/http/docs.controller.ts"
+import { DocsLive } from "./features/docs/layer/docs.layer.live.ts"
 import { GitMessageController } from "./features/git-message/http/git-message.controller.ts"
 import { GitMessageLive } from "./features/git-message/layer/git-message.layer.live.ts"
 import { GitHubController } from "./features/github/http/github.controller.ts"
 import { GitHubLive } from "./features/github/layer/github.layer.live.ts"
+import { TasksController } from "./features/tasks/http/tasks.controller.ts"
+import { TasksLive } from "./features/tasks/layer/tasks.layer.live.ts"
+import { LocalDevController } from "./features/local-dev/http/local-dev.controller.ts"
+import { LocalDevLive } from "./features/local-dev/layer/local-dev.layer.live.ts"
+import { DevRuntimeLive } from "./features/local-dev/runtime/local-dev.runtime.ts"
 import { RepoController } from "./features/repo/http/repo.controller.ts"
 import { RepoLive } from "./features/repo/layer/repo.layer.live.ts"
+import { ThreadsController } from "./features/threads/http/threads.controller.ts"
+import { ThreadsLive } from "./features/threads/layer/threads.layer.live.ts"
 import { WorkspaceController } from "./features/workspace/http/workspace.controller.ts"
 import { WorkspaceLive } from "./features/workspace/layer/workspace.layer.live.ts"
-import { layer as claudeExecLayer } from "./layers/claude/claude-exec.ts"
 import { layer as gitExecLayer } from "./layers/git/git-exec.ts"
 import { layer as gitHubClientLayer } from "./layers/github/github-client.ts"
+import { attachPtyServer } from "./layers/terminal/pty-socket.ts"
+import { layer as terminalExecLayer } from "./layers/terminal/terminal-exec.ts"
 import {
   layer as workspaceContextLayer,
   type InitialSelection,
@@ -45,17 +55,22 @@ const port = Number(process.env["BYCONVO_PORT"] ?? 41811)
 /**
  * The API router with every feature controller attached. The OpenAPI document
  * (consumed by the SPA's typesafe `openapi-fetch` client) is served at
- * /api/openapi.json, and a Scalar API reference at /api/docs.
+ * /api/openapi.json, and a Scalar API reference at /api/reference (the /api/docs
+ * path belongs to the Docs feature).
  */
 const ApiLive = Layer.mergeAll(
   HttpApiBuilder.layer(Api, { openapiPath: "/api/openapi.json" }),
-  HttpApiScalar.layer(Api, { path: "/api/docs" })
+  HttpApiScalar.layer(Api, { path: "/api/reference" })
 ).pipe(
   Layer.provide(WorkspaceController),
   Layer.provide(RepoController),
   Layer.provide(CommentsController),
   Layer.provide(GitHubController),
-  Layer.provide(GitMessageController)
+  Layer.provide(GitMessageController),
+  Layer.provide(ThreadsController),
+  Layer.provide(DocsController),
+  Layer.provide(TasksController),
+  Layer.provide(LocalDevController)
 )
 
 /** Stateless feature services, resolved per request. */
@@ -64,7 +79,12 @@ const RequestServices = Layer.mergeAll(
   RepoLive,
   CommentsLive,
   GitHubLive,
-  GitMessageLive
+  GitMessageLive,
+  ThreadsLive,
+  DocsLive,
+  TasksLive,
+  LocalDevLive,
+  DevRuntimeLive
 )
 
 /**
@@ -73,7 +93,7 @@ const RequestServices = Layer.mergeAll(
  * GitHub client.
  */
 const InfraLive = gitHubClientLayer.pipe(
-  Layer.provideMerge(Layer.mergeAll(gitExecLayer, claudeExecLayer)),
+  Layer.provideMerge(Layer.mergeAll(gitExecLayer, terminalExecLayer)),
   Layer.provideMerge(workspaceContextLayer(initial)),
   Layer.provide(FetchHttpClient.layer)
 )
@@ -83,6 +103,16 @@ const InfraLive = gitHubClientLayer.pipe(
  * calls the API at `http://localhost:<port>`, so every request is cross-origin.
  * Allow all origins — this server is local-only and never credentialed.
  */
+// Wrap node's createServer so every server instance also hosts the live-terminal
+// PTY WebSocket (attached to its `upgrade` event) alongside the Effect HttpApi.
+const createServerWithPty: typeof createServer = ((
+  ...args: Parameters<typeof createServer>
+) => {
+  const server = createServer(...args)
+  attachPtyServer(server)
+  return server
+}) as typeof createServer
+
 const HttpLive = HttpRouter.serve(
   Layer.mergeAll(
     ApiLive.pipe(HttpRouter.provideRequest(RequestServices)),
@@ -90,7 +120,7 @@ const HttpLive = HttpRouter.serve(
   )
 ).pipe(
   Layer.provide(InfraLive),
-  Layer.provide(NodeHttpServer.layer(createServer, { port }))
+  Layer.provide(NodeHttpServer.layer(createServerWithPty, { port }))
 )
 
 NodeRuntime.runMain(Layer.launch(HttpLive))

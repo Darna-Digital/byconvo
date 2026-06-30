@@ -14,11 +14,37 @@ export const useBranches = () => api.useQuery("get", "/api/branches")
 export const useRemoteBranches = () =>
   api.useQuery("get", "/api/remote-branches")
 export const useComments = () => api.useQuery("get", "/api/comments")
-export const useCommitPrefixes = () =>
-  api.useQuery("get", "/api/git-message/prefixes")
 
 /** The in-progress merge/rebase operation and its remaining conflicts. */
 export const useMergeState = () => api.useQuery("get", "/api/merge-state")
+
+// --- Threads / Docs / Tasks (workspace features) --------------------------
+
+export const useThreads = () => api.useQuery("get", "/api/threads")
+
+export const useThread = (id: string | null) =>
+  api.useQuery(
+    "get",
+    "/api/threads/{id}",
+    { params: { path: { id: id ?? "" } } },
+    { enabled: id !== null }
+  )
+
+export const useDocs = () => api.useQuery("get", "/api/docs")
+
+export const useDoc = (id: string | null) =>
+  api.useQuery(
+    "get",
+    "/api/docs/{id}",
+    { params: { path: { id: id ?? "" } } },
+    { enabled: id !== null }
+  )
+
+export const useTasks = () => api.useQuery("get", "/api/tasks/board")
+
+/** Saved Local Dev commands for the selected repo, with their runtime status. */
+export const useDevCommands = () =>
+  api.useQuery("get", "/api/local-dev/commands")
 
 /** The base/ours/theirs index stages of a conflicted file. */
 export const useConflictBlobs = (path: string | null) =>

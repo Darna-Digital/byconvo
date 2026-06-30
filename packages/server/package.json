@@ -8,7 +8,7 @@
     "dev": "tsx watch src/main.ts",
     "start": "tsx src/main.ts",
     "build": "tsc -p tsconfig.json --noEmit",
-    "build:bundle": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=cjs --outfile=dist/main.cjs --sourcemap",
+    "build:bundle": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=cjs --outfile=dist/main.cjs --sourcemap --external:node-pty",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -18,11 +18,14 @@
   },
   "dependencies": {
     "@effect/platform-node": "4.0.0-beta.74",
-    "effect": "4.0.0-beta.74"
+    "@types/ws": "^8.18.1",
+    "effect": "4.0.0-beta.74",
+    "node-pty": "^1.1.0",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
-    "@effect/vitest": "4.0.0-beta.74",
     "@byconvo/lint": "workspace:*",
+    "@effect/vitest": "4.0.0-beta.74",
     "@types/node": "^22.15.0",
     "esbuild": "^0.28.1",
     "eslint": "^9",

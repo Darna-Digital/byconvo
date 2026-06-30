@@ -35,9 +35,25 @@ export type CommitFileChange = CommitDetail["files"][number]
 export type ReviewComment = Ok<paths["/api/comments"]["get"]>[number]
 export type CommentSide = ReviewComment["side"]
 
-export type CommitPrefix = Ok<paths["/api/git-message/prefixes"]["get"]>[number]
-
 export type PullRequestInfo = Ok<paths["/api/github/pulls"]["get"]>[number]
+
+export type ThreadSummary = Ok<paths["/api/threads"]["get"]>[number]
+export type Thread = Ok<paths["/api/threads/{id}"]["get"]>
+export type ThreadEntry = Thread["entries"][number]
+/** Which agent runs a thread: raw shell or an agent CLI. */
+export type AgentKind = Thread["agent"]
+
+export type DocSummary = Ok<paths["/api/docs"]["get"]>[number]
+export type Doc = Ok<paths["/api/docs/{id}"]["get"]>
+
+export type TasksBoard = Ok<paths["/api/tasks/board"]["get"]>
+export type TasksCard = TasksBoard["cards"][number]
+export type TasksColumn = TasksCard["column"]
+
+export type DevCommandView = Ok<paths["/api/local-dev/commands"]["get"]>[number]
+export type DevCommand = Ok<paths["/api/local-dev/commands/{id}"]["get"]>
+/** Runtime state of a dev command's process. */
+export type DevCommandStatus = DevCommandView["status"]
 
 /** Log-filter state shared by the toolbar and the route search params. */
 export interface LogQuery {
@@ -60,8 +76,19 @@ export const emptyLogQuery: LogQuery = {
   path: null,
 }
 
-/** The three top-level IDE modes (also the top-level route segments). */
-export type AppMode = "commit" | "review" | "browse"
+/**
+ * The top-level IDE modes (also the top-level route segments). The first three
+ * are the git-review modes (rendered by AppShell); threads/docs/tasks are the
+ * workspace modes (rendered by WorkspaceShell).
+ */
+export type AppMode =
+  | "commit"
+  | "review"
+  | "browse"
+  | "threads"
+  | "docs"
+  | "tasks"
+  | "local-dev"
 
 /** What the center pane is currently diffing. */
 export type DiffTarget =

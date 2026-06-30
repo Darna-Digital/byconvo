@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useCallback, useMemo } from "react"
 import { toast } from "sonner"
 import { fetchClient } from "@/lib/api/client"
+import type { CommitAgent } from "@/lib/ui-prefs"
 import { createGitActionsFunctions } from "../functions/git-actions.functions"
 import { errorText, type NoticeKind } from "../entity/git-actions.interfaces"
 
@@ -9,12 +10,16 @@ const unwrap = async <T>(
   p: Promise<{ data?: T; error?: unknown }>
 ): Promise<T> => {
   const { data, error } = await p
-  if (error)
+  if (error) {
+    const e = error as { message?: string; reason?: string; stderr?: string }
+    const stderr = e.stderr?.trim()
     throw new Error(
-      (error as { message?: string; reason?: string }).message ??
-        (error as { reason?: string }).reason ??
+      e.message ??
+        e.reason ??
+        (stderr !== undefined && stderr.length > 0 ? stderr : undefined) ??
         "request failed"
     )
+  }
   return data as T
 }
 
@@ -63,17 +68,19 @@ export function useGitActions() {
     commitChanges: fns.commitChanges,
 
     /**
-     * Ask the local Claude Code CLI (Haiku) to draft a commit message for the
-     * selected paths. Returns the message, or null when generation failed (the
-     * error is surfaced as a toast so callers can simply ignore the null).
+     * Ask a locally installed agent CLI (claude/opencode/codex) to draft a
+     * commit message for the selected paths. Returns the message, or null when
+     * generation failed (the error is surfaced as a toast so callers can simply
+     * ignore the null).
      */
     generateCommitMessage: async (
-      paths: ReadonlyArray<string>
+      paths: ReadonlyArray<string>,
+      agent: CommitAgent
     ): Promise<string | null> => {
       try {
         const { message } = await unwrap(
           fetchClient.POST("/api/git-message/generate", {
-            body: { paths: [...paths] },
+            body: { paths: [...paths], agent },
           })
         )
         return message

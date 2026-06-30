@@ -9,8 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkspaceRouteImport } from './routes/_workspace'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as WorkspaceThreadsRouteImport } from './routes/_workspace/threads'
+import { Route as WorkspaceTasksRouteImport } from './routes/_workspace/tasks'
+import { Route as WorkspaceLocalDevRouteImport } from './routes/_workspace/local-dev'
+import { Route as WorkspaceDocsRouteImport } from './routes/_workspace/docs'
 import { Route as AppCommitRouteImport } from './routes/_app/commit'
 import { Route as AppReviewIndexRouteImport } from './routes/_app/review/index'
 import { Route as AppBrowseIndexRouteImport } from './routes/_app/browse/index'
@@ -18,6 +23,10 @@ import { Route as AppReviewPullRouteImport } from './routes/_app/review/$pull'
 import { Route as AppBrowseRangeRouteImport } from './routes/_app/browse/range'
 import { Route as AppBrowseCommitShaRouteImport } from './routes/_app/browse/commit.$sha'
 
+const WorkspaceRoute = WorkspaceRouteImport.update({
+  id: '/_workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -26,6 +35,26 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const WorkspaceThreadsRoute = WorkspaceThreadsRouteImport.update({
+  id: '/threads',
+  path: '/threads',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceTasksRoute = WorkspaceTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceLocalDevRoute = WorkspaceLocalDevRouteImport.update({
+  id: '/local-dev',
+  path: '/local-dev',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceDocsRoute = WorkspaceDocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => WorkspaceRoute,
 } as any)
 const AppCommitRoute = AppCommitRouteImport.update({
   id: '/commit',
@@ -61,6 +90,10 @@ const AppBrowseCommitShaRoute = AppBrowseCommitShaRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/commit': typeof AppCommitRoute
+  '/docs': typeof WorkspaceDocsRoute
+  '/local-dev': typeof WorkspaceLocalDevRoute
+  '/tasks': typeof WorkspaceTasksRoute
+  '/threads': typeof WorkspaceThreadsRoute
   '/browse/range': typeof AppBrowseRangeRoute
   '/review/$pull': typeof AppReviewPullRoute
   '/browse/': typeof AppBrowseIndexRoute
@@ -68,8 +101,12 @@ export interface FileRoutesByFullPath {
   '/browse/commit/$sha': typeof AppBrowseCommitShaRoute
 }
 export interface FileRoutesByTo {
-  '/commit': typeof AppCommitRoute
   '/': typeof AppIndexRoute
+  '/commit': typeof AppCommitRoute
+  '/docs': typeof WorkspaceDocsRoute
+  '/local-dev': typeof WorkspaceLocalDevRoute
+  '/tasks': typeof WorkspaceTasksRoute
+  '/threads': typeof WorkspaceThreadsRoute
   '/browse/range': typeof AppBrowseRangeRoute
   '/review/$pull': typeof AppReviewPullRoute
   '/browse': typeof AppBrowseIndexRoute
@@ -79,7 +116,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/_workspace': typeof WorkspaceRouteWithChildren
   '/_app/commit': typeof AppCommitRoute
+  '/_workspace/docs': typeof WorkspaceDocsRoute
+  '/_workspace/local-dev': typeof WorkspaceLocalDevRoute
+  '/_workspace/tasks': typeof WorkspaceTasksRoute
+  '/_workspace/threads': typeof WorkspaceThreadsRoute
   '/_app/': typeof AppIndexRoute
   '/_app/browse/range': typeof AppBrowseRangeRoute
   '/_app/review/$pull': typeof AppReviewPullRoute
@@ -92,6 +134,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/commit'
+    | '/docs'
+    | '/local-dev'
+    | '/tasks'
+    | '/threads'
     | '/browse/range'
     | '/review/$pull'
     | '/browse/'
@@ -99,8 +145,12 @@ export interface FileRouteTypes {
     | '/browse/commit/$sha'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/commit'
     | '/'
+    | '/commit'
+    | '/docs'
+    | '/local-dev'
+    | '/tasks'
+    | '/threads'
     | '/browse/range'
     | '/review/$pull'
     | '/browse'
@@ -109,7 +159,12 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
+    | '/_workspace'
     | '/_app/commit'
+    | '/_workspace/docs'
+    | '/_workspace/local-dev'
+    | '/_workspace/tasks'
+    | '/_workspace/threads'
     | '/_app/'
     | '/_app/browse/range'
     | '/_app/review/$pull'
@@ -120,10 +175,18 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  WorkspaceRoute: typeof WorkspaceRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/_workspace': {
+      id: '/_workspace'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof WorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -137,6 +200,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_workspace/threads': {
+      id: '/_workspace/threads'
+      path: '/threads'
+      fullPath: '/threads'
+      preLoaderRoute: typeof WorkspaceThreadsRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/_workspace/tasks': {
+      id: '/_workspace/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof WorkspaceTasksRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/_workspace/local-dev': {
+      id: '/_workspace/local-dev'
+      path: '/local-dev'
+      fullPath: '/local-dev'
+      preLoaderRoute: typeof WorkspaceLocalDevRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/_workspace/docs': {
+      id: '/_workspace/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof WorkspaceDocsRouteImport
+      parentRoute: typeof WorkspaceRoute
     }
     '/_app/commit': {
       id: '/_app/commit'
@@ -205,8 +296,27 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface WorkspaceRouteChildren {
+  WorkspaceDocsRoute: typeof WorkspaceDocsRoute
+  WorkspaceLocalDevRoute: typeof WorkspaceLocalDevRoute
+  WorkspaceTasksRoute: typeof WorkspaceTasksRoute
+  WorkspaceThreadsRoute: typeof WorkspaceThreadsRoute
+}
+
+const WorkspaceRouteChildren: WorkspaceRouteChildren = {
+  WorkspaceDocsRoute: WorkspaceDocsRoute,
+  WorkspaceLocalDevRoute: WorkspaceLocalDevRoute,
+  WorkspaceTasksRoute: WorkspaceTasksRoute,
+  WorkspaceThreadsRoute: WorkspaceThreadsRoute,
+}
+
+const WorkspaceRouteWithChildren = WorkspaceRoute._addFileChildren(
+  WorkspaceRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  WorkspaceRoute: WorkspaceRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

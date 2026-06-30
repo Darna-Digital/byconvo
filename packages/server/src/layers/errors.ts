@@ -66,6 +66,17 @@ export class StorageError extends Schema.TaggedErrorClass<StorageError>()(
   }
 }
 
+/** A terminal command could not be spawned (the shell itself is missing/broken). */
+export class TerminalError extends Schema.TaggedErrorClass<TerminalError>()(
+  "TerminalError",
+  { reason: Schema.String },
+  { httpApiStatus: 500 }
+) {
+  override get message(): string {
+    return this.reason
+  }
+}
+
 /** A GitHub REST call failed or the repo is not a GitHub remote. */
 export class GitHubError extends Schema.TaggedErrorClass<GitHubError>()(
   "GitHubError",

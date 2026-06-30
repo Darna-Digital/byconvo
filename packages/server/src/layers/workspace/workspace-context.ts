@@ -19,6 +19,7 @@ import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import { homedir } from "node:os"
 import { resolve as pathResolve } from "node:path"
 import { InvalidRepo, NoRepoSelected } from "../errors.ts"
+import { setCurrentRepo } from "./current-repo.ts"
 
 export interface WorkspaceContextShape {
   /** The selected repo root, or fail with NoRepoSelected when none is set. */
@@ -148,14 +149,16 @@ export const make = (initial: InitialSelection | null) =>
           )
         : null
 
-    const currentRef = yield* Ref.make<string | null>(
-      explicitValid ?? persistedValid ?? fallbackValid
-    )
+    const initialCurrent = explicitValid ?? persistedValid ?? fallbackValid
+    const currentRef = yield* Ref.make<string | null>(initialCurrent)
     const recentsRef = yield* Ref.make<ReadonlyArray<string>>(persisted.recents)
+    // Keep the non-Effect snapshot (read by the PTY socket) in sync.
+    setCurrentRepo(initialCurrent)
 
     const select: WorkspaceContextShape["select"] = (root) =>
       Effect.gen(function* () {
         yield* Ref.set(currentRef, root)
+        setCurrentRepo(root)
         const recents = yield* Ref.updateAndGet(recentsRef, (existing) =>
           [root, ...existing.filter((entry) => entry !== root)].slice(
             0,

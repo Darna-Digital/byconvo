@@ -3,6 +3,17 @@ productName: Byconvo
 artifactName: ${productName}-${version}-${os}-${arch}.${ext}
 asar: true
 
+# Rebuild native production deps (node-pty) for Electron's Node ABI at package
+# time. The bundled server runs under Electron's Node (ELECTRON_RUN_AS_NODE),
+# whose ABI differs from system Node, so node-pty must be the right build — just
+# like in dev, where it's the system-Node build in the server's node_modules.
+npmRebuild: true
+# Native modules can't be dlopen'd from inside the asar, so keep node-pty
+# (and any other .node) unpacked next to it.
+asarUnpack:
+  - "**/*.node"
+  - "**/node_modules/node-pty/**"
+
 directories:
   output: dist-packaged
 
@@ -23,6 +34,9 @@ files:
     to: server
     filter:
       - "**/*"
+  # Production dependencies (node-pty + its deps). electron-builder prunes this
+  # to the production dependency tree, so devDeps (electron, etc.) are skipped.
+  - "node_modules/**/*"
   - package.json
 
 mac:

@@ -77,11 +77,23 @@ export const make = Effect.gen(function* () {
       )
     )
 
+  // Some git commands report the reason for a non-zero exit on stdout, not
+  // stderr — e.g. `commit` prints "nothing to commit, working tree clean" to
+  // stdout. Fall back to stdout so the GitError never carries an empty message.
+  const failureText = (stderr: string, stdout: string): string =>
+    stderr.trim().length > 0 ? stderr : stdout
+
   const run: GitExecShape["run"] = (...args) =>
     spawn(args).pipe(
       Effect.flatMap(({ exitCode, stderr, stdout }) =>
         exitCode !== 0
-          ? Effect.fail(new GitError({ args, exitCode, stderr }))
+          ? Effect.fail(
+              new GitError({
+                args,
+                exitCode,
+                stderr: failureText(stderr, stdout),
+              })
+            )
           : Effect.succeed(stdout)
       )
     )
@@ -90,7 +102,13 @@ export const make = Effect.gen(function* () {
     spawn(args).pipe(
       Effect.flatMap(({ exitCode, stderr, stdout }) =>
         exitCode !== 0
-          ? Effect.fail(new GitError({ args, exitCode, stderr }))
+          ? Effect.fail(
+              new GitError({
+                args,
+                exitCode,
+                stderr: failureText(stderr, stdout),
+              })
+            )
           : Effect.succeed(`${stdout}${stderr}`.trim())
       )
     )

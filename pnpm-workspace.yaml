@@ -7,4 +7,5 @@ allowBuilds:
   electron-winstaller: true
   esbuild: true
   msgpackr-extract: true
+  node-pty: true
   unrs-resolver: true

@@ -108,7 +108,7 @@ function SelectItem({
           <IconCheck className="size-4" />
         </SelectPrimitive.ItemIndicator>
       </span>
-      <SelectPrimitive.ItemText className="truncate">
+      <SelectPrimitive.ItemText className="flex items-center gap-2 truncate">
         {children}
       </SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
