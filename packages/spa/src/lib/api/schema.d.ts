@@ -4,4797 +4,4830 @@
  */
 
 export interface paths {
-    "/api/workspace": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["workspace.info"];
-        put?: never;
-        post: operations["workspace.setCurrent"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/fs/browse": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["workspace.browse"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/file": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["workspace.readFile"];
-        put: operations["workspace.writeFile"];
-        post?: never;
-        delete: operations["workspace.deleteFile"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/file/rename": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["workspace.renameFile"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/repo": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["repo.info"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/files": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["repo.files"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["repo.status"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/branches": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["repo.branches"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/remote-branches": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["repo.remoteBranches"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/log": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["repo.log"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/commit/{sha}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["repo.commitDetail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/diff": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["repo.diff"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/checkout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["repo.checkout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/commit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["repo.commit"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/push": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["repo.push"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/pull": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["repo.pull"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/fetch": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["repo.fetch"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/merge": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["repo.merge"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/rebase": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["repo.rebase"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/merge-state": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["repo.mergeState"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/conflict": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["repo.conflict"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/conflicts/resolve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["repo.resolveConflict"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/merge/abort": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["repo.abortMerge"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/merge/continue": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["repo.continueMerge"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/branch": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["repo.createBranch"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/branch/rename": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["repo.renameBranch"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/branch/delete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["repo.deleteBranch"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/comments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["comments.list"];
-        put?: never;
-        post: operations["comments.add"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/comments/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["comments.remove"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/github/pulls": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["github.pulls"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/github/pulls/{number}/diff": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["github.pullDiff"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/github/pulls/{number}/comments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["github.pullComments"];
-        put?: never;
-        post: operations["github.createPullComment"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/github/pulls/{number}/comments/{commentId}/replies": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["github.replyPullComment"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/git-message/generate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["gitMessage.generate"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/threads": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["threads.list"];
-        put?: never;
-        post: operations["threads.create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/threads/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["threads.get"];
-        put?: never;
-        post?: never;
-        delete: operations["threads.remove"];
-        options?: never;
-        head?: never;
-        patch: operations["threads.rename"];
-        trace?: never;
-    };
-    "/api/threads/{id}/run": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["threads.run"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/docs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["docs.list"];
-        put?: never;
-        post: operations["docs.create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/docs/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["docs.get"];
-        put: operations["docs.update"];
-        post?: never;
-        delete: operations["docs.remove"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tasks/board": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["tasks.board"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tasks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["tasks.listTasks"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tasks/resolve/{ref}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["tasks.resolveTask"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tasks/prefix": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["tasks.setPrefix"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tasks/cards": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["tasks.create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tasks/cards/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["tasks.remove"];
-        options?: never;
-        head?: never;
-        patch: operations["tasks.update"];
-        trace?: never;
-    };
-    "/api/tasks/columns": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["tasks.addColumn"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tasks/columns/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["tasks.removeColumn"];
-        options?: never;
-        head?: never;
-        patch: operations["tasks.updateColumn"];
-        trace?: never;
-    };
-    "/api/tasks/cards/{id}/comments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["tasks.addComment"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tasks/cards/{id}/comments/{commentId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["tasks.removeComment"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tasks/comments/{commentId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["tasks.resolveComment"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/local-dev/commands": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["localDev.list"];
-        put?: never;
-        post: operations["localDev.create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/local-dev/commands/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["localDev.get"];
-        put?: never;
-        post?: never;
-        delete: operations["localDev.remove"];
-        options?: never;
-        head?: never;
-        patch: operations["localDev.update"];
-        trace?: never;
-    };
-    "/api/local-dev/commands/{id}/start": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["localDev.start"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/local-dev/commands/{id}/stop": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["localDev.stop"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/local-dev/start-all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["localDev.startAll"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/local-dev/stop-all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["localDev.stopAll"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
+  "/api/workspace": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["workspace.info"]
+    put?: never
+    post: operations["workspace.setCurrent"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/fs/browse": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["workspace.browse"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/file": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["workspace.readFile"]
+    put: operations["workspace.writeFile"]
+    post?: never
+    delete: operations["workspace.deleteFile"]
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/file/rename": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["workspace.renameFile"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/repo": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["repo.info"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/files": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["repo.files"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/status": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["repo.status"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/branches": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["repo.branches"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/remote-branches": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["repo.remoteBranches"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/log": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["repo.log"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/commit/{sha}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["repo.commitDetail"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/diff": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["repo.diff"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/checkout": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["repo.checkout"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/commit": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["repo.commit"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/push": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["repo.push"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/pull": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["repo.pull"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/fetch": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["repo.fetch"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/merge": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["repo.merge"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/rebase": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["repo.rebase"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/merge-state": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["repo.mergeState"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/conflict": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["repo.conflict"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/conflicts/resolve": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["repo.resolveConflict"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/merge/abort": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["repo.abortMerge"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/merge/continue": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["repo.continueMerge"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/branch": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["repo.createBranch"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/branch/rename": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["repo.renameBranch"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/branch/delete": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["repo.deleteBranch"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/comments": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["comments.list"]
+    put?: never
+    post: operations["comments.add"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/comments/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    delete: operations["comments.remove"]
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/github/pulls": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["github.pulls"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/github/pulls/{number}/diff": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["github.pullDiff"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/github/pulls/{number}/comments": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["github.pullComments"]
+    put?: never
+    post: operations["github.createPullComment"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/github/pulls/{number}/comments/{commentId}/replies": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["github.replyPullComment"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/git-message/generate": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["gitMessage.generate"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/threads": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["threads.list"]
+    put?: never
+    post: operations["threads.create"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/threads/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["threads.get"]
+    put?: never
+    post?: never
+    delete: operations["threads.remove"]
+    options?: never
+    head?: never
+    patch: operations["threads.rename"]
+    trace?: never
+  }
+  "/api/threads/{id}/run": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["threads.run"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/docs": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["docs.list"]
+    put?: never
+    post: operations["docs.create"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/docs/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["docs.get"]
+    put: operations["docs.update"]
+    post?: never
+    delete: operations["docs.remove"]
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/tasks/board": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["tasks.board"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/tasks": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["tasks.listTasks"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/tasks/resolve/{ref}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["tasks.resolveTask"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/tasks/prefix": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put: operations["tasks.setPrefix"]
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/tasks/cards": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["tasks.create"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/tasks/cards/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    delete: operations["tasks.remove"]
+    options?: never
+    head?: never
+    patch: operations["tasks.update"]
+    trace?: never
+  }
+  "/api/tasks/columns": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["tasks.addColumn"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/tasks/columns/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    delete: operations["tasks.removeColumn"]
+    options?: never
+    head?: never
+    patch: operations["tasks.updateColumn"]
+    trace?: never
+  }
+  "/api/tasks/cards/{id}/comments": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["tasks.addComment"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/tasks/cards/{id}/comments/{commentId}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    delete: operations["tasks.removeComment"]
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/tasks/comments/{commentId}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["tasks.resolveComment"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/local-dev/commands": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["localDev.list"]
+    put?: never
+    post: operations["localDev.create"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/local-dev/commands/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["localDev.get"]
+    put?: never
+    post?: never
+    delete: operations["localDev.remove"]
+    options?: never
+    head?: never
+    patch: operations["localDev.update"]
+    trace?: never
+  }
+  "/api/local-dev/commands/{id}/start": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["localDev.start"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/local-dev/commands/{id}/stop": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["localDev.stop"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/local-dev/start-all": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["localDev.startAll"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/local-dev/stop-all": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["localDev.stopAll"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
-export type webhooks = Record<string, never>;
+export type webhooks = Record<string, never>
 export interface components {
-    schemas: {
-        StorageError: {
-            /** @enum {string} */
-            _tag: "StorageError";
-            reason: string;
-        };
-        InvalidRepo: {
-            /** @enum {string} */
-            _tag: "InvalidRepo";
-            path: string;
-            reason: string;
-        };
-        NoRepoSelected: {
-            /** @enum {string} */
-            _tag: "NoRepoSelected";
-        };
-        GitError: {
-            /** @enum {string} */
-            _tag: "GitError";
-            args: string[];
-            exitCode: number;
-            stderr: string;
-        };
-        GitHubError: {
-            /** @enum {string} */
-            _tag: "GitHubError";
-            reason: string;
-        };
-        TerminalError: {
-            /** @enum {string} */
-            _tag: "TerminalError";
-            reason: string;
-        };
-        NotFound: {
-            /** @enum {string} */
-            _tag: "NotFound";
-            reason: string;
-        };
-    };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+  schemas: {
+    StorageError: {
+      /** @enum {string} */
+      _tag: "StorageError"
+      reason: string
+    }
+    InvalidRepo: {
+      /** @enum {string} */
+      _tag: "InvalidRepo"
+      path: string
+      reason: string
+    }
+    NoRepoSelected: {
+      /** @enum {string} */
+      _tag: "NoRepoSelected"
+    }
+    GitError: {
+      /** @enum {string} */
+      _tag: "GitError"
+      args: string[]
+      exitCode: number
+      stderr: string
+    }
+    GitHubError: {
+      /** @enum {string} */
+      _tag: "GitHubError"
+      reason: string
+    }
+    TerminalError: {
+      /** @enum {string} */
+      _tag: "TerminalError"
+      reason: string
+    }
+    NotFound: {
+      /** @enum {string} */
+      _tag: "NotFound"
+      reason: string
+    }
+  }
+  responses: never
+  parameters: never
+  requestBodies: never
+  headers: never
+  pathItems: never
 }
-export type $defs = Record<string, never>;
+export type $defs = Record<string, never>
 export interface operations {
-    "workspace.info": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        current: string | null;
-                        recents: string[];
-                        home: string;
-                        isGitRepo: boolean;
-                        childRepos: {
-                            name: string;
-                            path: string;
-                        }[];
-                    };
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "workspace.setCurrent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    path: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        current: string | null;
-                        recents: string[];
-                        home: string;
-                        isGitRepo: boolean;
-                        childRepos: {
-                            name: string;
-                            path: string;
-                        }[];
-                    };
-                };
-            };
-            /** @description InvalidRepo */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InvalidRepo"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "workspace.browse": {
-        parameters: {
-            query?: {
-                path?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        path: string;
-                        parent: string | null;
-                        isGitRepo: boolean;
-                        entries: {
-                            name: string;
-                            path: string;
-                            isGitRepo: boolean;
-                        }[];
-                    };
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "workspace.readFile": {
-        parameters: {
-            query: {
-                path: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        name: string;
-                        contents: string;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "workspace.writeFile": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    path: string;
-                    contents: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "workspace.deleteFile": {
-        parameters: {
-            query: {
-                path: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "workspace.renameFile": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    from: string;
-                    to: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "repo.info": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        root: string;
-                        name: string;
-                        currentBranch: string;
-                        remoteUrl: string | null;
-                        github: {
-                            owner: string;
-                            repo: string;
-                        } | null;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.files": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        paths: string[];
-                        gitStatus: {
-                            path: string;
-                            /** @enum {string} */
-                            status: "added" | "deleted" | "ignored" | "modified" | "renamed" | "untracked";
-                        }[];
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        branch: string;
-                        upstream: string | null;
-                        ahead: number;
-                        behind: number;
-                        headSha: string;
-                        changed: number;
-                        staged: number;
-                        unstaged: number;
-                        untracked: number;
-                        conflicted: number;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.branches": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        name: string;
-                        sha: string;
-                        isCurrent: boolean;
-                        upstream: string | null;
-                        ahead: number;
-                        behind: number;
-                        committedAt: string;
-                        subject: string;
-                    }[];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.remoteBranches": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        name: string;
-                        remote: string;
-                        shortName: string;
-                        sha: string;
-                        committedAt: string;
-                        subject: string;
-                    }[];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.log": {
-        parameters: {
-            query?: {
-                ref?: string;
-                limit?: string;
-                author?: string;
-                grep?: string;
-                regex?: string;
-                case?: string;
-                after?: string;
-                before?: string;
-                path?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        sha: string;
-                        shortSha: string;
-                        author: string;
-                        authoredAt: string;
-                        subject: string;
-                        refs: string[];
-                        parents: string[];
-                    }[];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.commitDetail": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                sha: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        sha: string;
-                        shortSha: string;
-                        author: string;
-                        authorEmail: string;
-                        authoredAt: string;
-                        subject: string;
-                        body: string;
-                        refs: string[];
-                        parents: string[];
-                        files: {
-                            path: string;
-                            /** @enum {string} */
-                            status: "added" | "deleted" | "ignored" | "modified" | "renamed" | "untracked";
-                            oldPath: string | null;
-                        }[];
-                        containingBranches: string[];
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.diff": {
-        parameters: {
-            query?: {
-                commit?: string;
-                base?: string;
-                head?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": string;
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.checkout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    branch: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.commit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    message: string;
-                    paths?: string[];
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        sha: string;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.push": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        output: string;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.pull": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        output: string;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.fetch": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        output: string;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.merge": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    branch: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        output: string;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.rebase": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    onto: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        output: string;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.mergeState": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {string} */
-                        operation: "merge" | "rebase" | "cherry-pick" | "revert" | "none";
-                        incoming: string | null;
-                        onto: string | null;
-                        conflicted: {
-                            path: string;
-                            /** @enum {string} */
-                            kind: "both-modified" | "both-added" | "both-deleted" | "added-by-us" | "added-by-them" | "deleted-by-us" | "deleted-by-them";
-                        }[];
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.conflict": {
-        parameters: {
-            query: {
-                path: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        path: string;
-                        base: string | null;
-                        ours: string;
-                        theirs: string;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.resolveConflict": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    path: string;
-                    /** @enum {string} */
-                    resolution: "ours" | "theirs" | "content";
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.abortMerge": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        output: string;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.continueMerge": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        output: string;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.createBranch": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    startPoint?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.renameBranch": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    from: string;
-                    to: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "repo.deleteBranch": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    force?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"];
-                };
-            };
-        };
-    };
-    "comments.list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        filePath: string;
-                        /** @enum {string} */
-                        side: "deletions" | "additions";
-                        lineNumber: number;
-                        body: string;
-                        author: string;
-                        createdAt: string;
-                        target: string;
-                        /** @enum {string} */
-                        source: "local" | "github";
-                    }[];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "comments.add": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    filePath: string;
-                    /** @enum {string} */
-                    side: "deletions" | "additions";
-                    lineNumber: number;
-                    body: string;
-                    author?: string;
-                    target?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        filePath: string;
-                        /** @enum {string} */
-                        side: "deletions" | "additions";
-                        lineNumber: number;
-                        body: string;
-                        author: string;
-                        createdAt: string;
-                        target: string;
-                        /** @enum {string} */
-                        source: "local" | "github";
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "comments.remove": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "github.pulls": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        number: number;
-                        title: string;
-                        author: string;
-                        baseRef: string;
-                        headRef: string;
-                        headSha: string;
-                        url: string;
-                        updatedAt: string;
-                    }[];
-                };
-            };
-            /** @description GitHubError */
-            502: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitHubError"];
-                };
-            };
-        };
-    };
-    "github.pullDiff": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                number: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": string;
-                };
-            };
-            /** @description GitHubError */
-            502: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitHubError"];
-                };
-            };
-        };
-    };
-    "github.pullComments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                number: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        filePath: string;
-                        /** @enum {string} */
-                        side: "deletions" | "additions";
-                        lineNumber: number;
-                        body: string;
-                        author: string;
-                        createdAt: string;
-                        target: string;
-                        /** @enum {string} */
-                        source: "local" | "github";
-                    }[];
-                };
-            };
-            /** @description GitHubError */
-            502: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitHubError"];
-                };
-            };
-        };
-    };
-    "github.createPullComment": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                number: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    filePath: string;
-                    /** @enum {string} */
-                    side: "deletions" | "additions";
-                    lineNumber: number;
-                    body: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        filePath: string;
-                        /** @enum {string} */
-                        side: "deletions" | "additions";
-                        lineNumber: number;
-                        body: string;
-                        author: string;
-                        createdAt: string;
-                        target: string;
-                        /** @enum {string} */
-                        source: "local" | "github";
-                    };
-                };
-            };
-            /** @description GitHubError */
-            502: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitHubError"];
-                };
-            };
-        };
-    };
-    "github.replyPullComment": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                number: string;
-                commentId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    body: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        filePath: string;
-                        /** @enum {string} */
-                        side: "deletions" | "additions";
-                        lineNumber: number;
-                        body: string;
-                        author: string;
-                        createdAt: string;
-                        target: string;
-                        /** @enum {string} */
-                        source: "local" | "github";
-                    };
-                };
-            };
-            /** @description GitHubError */
-            502: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitHubError"];
-                };
-            };
-        };
-    };
-    "gitMessage.generate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    paths?: string[];
-                    /** @enum {string} */
-                    agent?: "claude" | "opencode" | "codex";
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        message: string;
-                    };
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description GitError | TerminalError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GitError"] | components["schemas"]["TerminalError"];
-                };
-            };
-        };
-    };
-    "threads.list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        title: string;
-                        /** @enum {string} */
-                        agent: "terminal" | "claude" | "opencode" | "codex";
-                        branch: string;
-                        taskKey: string | null;
-                        createdAt: string;
-                        updatedAt: string;
-                        entryCount: number;
-                        lastCommand: string | null;
-                    }[];
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError | TerminalError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"] | components["schemas"]["TerminalError"];
-                };
-            };
-        };
-    };
-    "threads.create": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    title?: string;
-                    /** @enum {string} */
-                    agent?: "terminal" | "claude" | "opencode" | "codex";
-                    branch?: string;
-                    taskKey?: string;
-                    initialPrompt?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        title: string;
-                        /** @enum {string} */
-                        agent: "terminal" | "claude" | "opencode" | "codex";
-                        branch: string;
-                        taskKey: string | null;
-                        initialPrompt: string;
-                        agentSessionId: string | null;
-                        createdAt: string;
-                        updatedAt: string;
-                        entries: {
-                            id: string;
-                            command: string;
-                            stdout: string;
-                            stderr: string;
-                            exitCode: number;
-                            createdAt: string;
-                        }[];
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError | TerminalError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"] | components["schemas"]["TerminalError"];
-                };
-            };
-        };
-    };
-    "threads.get": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        title: string;
-                        /** @enum {string} */
-                        agent: "terminal" | "claude" | "opencode" | "codex";
-                        branch: string;
-                        taskKey: string | null;
-                        initialPrompt: string;
-                        agentSessionId: string | null;
-                        createdAt: string;
-                        updatedAt: string;
-                        entries: {
-                            id: string;
-                            command: string;
-                            stdout: string;
-                            stderr: string;
-                            exitCode: number;
-                            createdAt: string;
-                        }[];
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError | TerminalError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"] | components["schemas"]["TerminalError"];
-                };
-            };
-        };
-    };
-    "threads.remove": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError | TerminalError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"] | components["schemas"]["TerminalError"];
-                };
-            };
-        };
-    };
-    "threads.rename": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    title: string;
-                    branch?: string;
-                    taskKey?: string | null;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        title: string;
-                        /** @enum {string} */
-                        agent: "terminal" | "claude" | "opencode" | "codex";
-                        branch: string;
-                        taskKey: string | null;
-                        initialPrompt: string;
-                        agentSessionId: string | null;
-                        createdAt: string;
-                        updatedAt: string;
-                        entries: {
-                            id: string;
-                            command: string;
-                            stdout: string;
-                            stderr: string;
-                            exitCode: number;
-                            createdAt: string;
-                        }[];
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError | TerminalError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"] | components["schemas"]["TerminalError"];
-                };
-            };
-        };
-    };
-    "threads.run": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    command: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        command: string;
-                        stdout: string;
-                        stderr: string;
-                        exitCode: number;
-                        createdAt: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError | TerminalError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"] | components["schemas"]["TerminalError"];
-                };
-            };
-        };
-    };
-    "docs.list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        title: string;
-                        updatedAt: string;
-                    }[];
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "docs.create": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    title: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        title: string;
-                        content: string;
-                        updatedAt: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "docs.get": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        title: string;
-                        content: string;
-                        updatedAt: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "docs.update": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    content: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        title: string;
-                        content: string;
-                        updatedAt: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "docs.remove": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "tasks.board": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        cards: {
-                            id: string;
-                            key: string;
-                            title: string;
-                            description: string;
-                            column: string;
-                            order: number;
-                            comments: {
-                                id: string;
-                                body: string;
-                                parentId: string | null;
-                                createdAt: string;
-                            }[];
-                            createdAt: string;
-                            updatedAt: string;
-                        }[];
-                        columns: {
-                            id: string;
-                            name: string;
-                            order: number;
-                        }[];
-                        prefix: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "tasks.listTasks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        key: string;
-                        title: string;
-                        description: string;
-                        column: string;
-                        order: number;
-                        comments: {
-                            id: string;
-                            body: string;
-                            parentId: string | null;
-                            createdAt: string;
-                        }[];
-                        createdAt: string;
-                        updatedAt: string;
-                    }[];
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "tasks.resolveTask": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                ref: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        key: string;
-                        title: string;
-                        description: string;
-                        column: string;
-                        order: number;
-                        comments: {
-                            id: string;
-                            body: string;
-                            parentId: string | null;
-                            createdAt: string;
-                        }[];
-                        createdAt: string;
-                        updatedAt: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "tasks.setPrefix": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    prefix: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        cards: {
-                            id: string;
-                            key: string;
-                            title: string;
-                            description: string;
-                            column: string;
-                            order: number;
-                            comments: {
-                                id: string;
-                                body: string;
-                                parentId: string | null;
-                                createdAt: string;
-                            }[];
-                            createdAt: string;
-                            updatedAt: string;
-                        }[];
-                        columns: {
-                            id: string;
-                            name: string;
-                            order: number;
-                        }[];
-                        prefix: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "tasks.create": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    title: string;
-                    description?: string;
-                    column?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        key: string;
-                        title: string;
-                        description: string;
-                        column: string;
-                        order: number;
-                        comments: {
-                            id: string;
-                            body: string;
-                            parentId: string | null;
-                            createdAt: string;
-                        }[];
-                        createdAt: string;
-                        updatedAt: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "tasks.remove": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "tasks.update": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    title?: string;
-                    description?: string;
-                    column?: string;
-                    order?: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        key: string;
-                        title: string;
-                        description: string;
-                        column: string;
-                        order: number;
-                        comments: {
-                            id: string;
-                            body: string;
-                            parentId: string | null;
-                            createdAt: string;
-                        }[];
-                        createdAt: string;
-                        updatedAt: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "tasks.addColumn": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        cards: {
-                            id: string;
-                            key: string;
-                            title: string;
-                            description: string;
-                            column: string;
-                            order: number;
-                            comments: {
-                                id: string;
-                                body: string;
-                                parentId: string | null;
-                                createdAt: string;
-                            }[];
-                            createdAt: string;
-                            updatedAt: string;
-                        }[];
-                        columns: {
-                            id: string;
-                            name: string;
-                            order: number;
-                        }[];
-                        prefix: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "tasks.removeColumn": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        cards: {
-                            id: string;
-                            key: string;
-                            title: string;
-                            description: string;
-                            column: string;
-                            order: number;
-                            comments: {
-                                id: string;
-                                body: string;
-                                parentId: string | null;
-                                createdAt: string;
-                            }[];
-                            createdAt: string;
-                            updatedAt: string;
-                        }[];
-                        columns: {
-                            id: string;
-                            name: string;
-                            order: number;
-                        }[];
-                        prefix: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "tasks.updateColumn": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name?: string;
-                    order?: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        cards: {
-                            id: string;
-                            key: string;
-                            title: string;
-                            description: string;
-                            column: string;
-                            order: number;
-                            comments: {
-                                id: string;
-                                body: string;
-                                parentId: string | null;
-                                createdAt: string;
-                            }[];
-                            createdAt: string;
-                            updatedAt: string;
-                        }[];
-                        columns: {
-                            id: string;
-                            name: string;
-                            order: number;
-                        }[];
-                        prefix: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "tasks.addComment": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    body: string;
-                    parentId?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        key: string;
-                        title: string;
-                        description: string;
-                        column: string;
-                        order: number;
-                        comments: {
-                            id: string;
-                            body: string;
-                            parentId: string | null;
-                            createdAt: string;
-                        }[];
-                        createdAt: string;
-                        updatedAt: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "tasks.removeComment": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                commentId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        key: string;
-                        title: string;
-                        description: string;
-                        column: string;
-                        order: number;
-                        comments: {
-                            id: string;
-                            body: string;
-                            parentId: string | null;
-                            createdAt: string;
-                        }[];
-                        createdAt: string;
-                        updatedAt: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "tasks.resolveComment": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                commentId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        card: {
-                            id: string;
-                            key: string;
-                            title: string;
-                            description: string;
-                            column: string;
-                            order: number;
-                            comments: {
-                                id: string;
-                                body: string;
-                                parentId: string | null;
-                                createdAt: string;
-                            }[];
-                            createdAt: string;
-                            updatedAt: string;
-                        };
-                        comment: {
-                            id: string;
-                            body: string;
-                            parentId: string | null;
-                            createdAt: string;
-                        };
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "localDev.list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        command: string;
-                        createdAt: string;
-                        updatedAt: string;
-                        /** @enum {string} */
-                        status: "stopped" | "running" | "exited";
-                        exitCode: (number) | null;
-                    }[];
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "localDev.create": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    command: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        command: string;
-                        createdAt: string;
-                        updatedAt: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "localDev.get": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        command: string;
-                        createdAt: string;
-                        updatedAt: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "localDev.remove": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "localDev.update": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name?: string;
-                    command?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        command: string;
-                        createdAt: string;
-                        updatedAt: string;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "localDev.start": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        command: string;
-                        createdAt: string;
-                        updatedAt: string;
-                        /** @enum {string} */
-                        status: "stopped" | "running" | "exited";
-                        exitCode: (number) | null;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "localDev.stop": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "localDev.startAll": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        id: string;
-                        name: string;
-                        command: string;
-                        createdAt: string;
-                        updatedAt: string;
-                        /** @enum {string} */
-                        status: "stopped" | "running" | "exited";
-                        exitCode: (number) | null;
-                    }[];
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
-    "localDev.stopAll": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
-                };
-            };
-            /** @description NotFound */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFound"];
-                };
-            };
-            /** @description NoRepoSelected */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NoRepoSelected"];
-                };
-            };
-            /** @description StorageError */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageError"];
-                };
-            };
-        };
-    };
+  "workspace.info": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            current: string | null
+            recents: string[]
+            home: string
+            isGitRepo: boolean
+            childRepos: {
+              name: string
+              path: string
+            }[]
+          }
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "workspace.setCurrent": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          path: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            current: string | null
+            recents: string[]
+            home: string
+            isGitRepo: boolean
+            childRepos: {
+              name: string
+              path: string
+            }[]
+          }
+        }
+      }
+      /** @description InvalidRepo */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["InvalidRepo"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "workspace.browse": {
+    parameters: {
+      query?: {
+        path?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            path: string
+            parent: string | null
+            isGitRepo: boolean
+            entries: {
+              name: string
+              path: string
+              isGitRepo: boolean
+            }[]
+          }
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "workspace.readFile": {
+    parameters: {
+      query: {
+        path: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            name: string
+            contents: string
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "workspace.writeFile": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          path: string
+          contents: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "workspace.deleteFile": {
+    parameters: {
+      query: {
+        path: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "workspace.renameFile": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          from: string
+          to: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "repo.info": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            root: string
+            name: string
+            currentBranch: string
+            remoteUrl: string | null
+            github: {
+              owner: string
+              repo: string
+            } | null
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.files": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            paths: string[]
+            gitStatus: {
+              path: string
+              /** @enum {string} */
+              status:
+                | "added"
+                | "deleted"
+                | "ignored"
+                | "modified"
+                | "renamed"
+                | "untracked"
+            }[]
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.status": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            branch: string
+            upstream: string | null
+            ahead: number
+            behind: number
+            headSha: string
+            changed: number
+            staged: number
+            unstaged: number
+            untracked: number
+            conflicted: number
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.branches": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            name: string
+            sha: string
+            isCurrent: boolean
+            upstream: string | null
+            ahead: number
+            behind: number
+            committedAt: string
+            subject: string
+          }[]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.remoteBranches": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            name: string
+            remote: string
+            shortName: string
+            sha: string
+            committedAt: string
+            subject: string
+          }[]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.log": {
+    parameters: {
+      query?: {
+        ref?: string
+        limit?: string
+        author?: string
+        grep?: string
+        regex?: string
+        case?: string
+        after?: string
+        before?: string
+        path?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            sha: string
+            shortSha: string
+            author: string
+            authoredAt: string
+            subject: string
+            refs: string[]
+            parents: string[]
+          }[]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.commitDetail": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        sha: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            sha: string
+            shortSha: string
+            author: string
+            authorEmail: string
+            authoredAt: string
+            subject: string
+            body: string
+            refs: string[]
+            parents: string[]
+            files: {
+              path: string
+              /** @enum {string} */
+              status:
+                | "added"
+                | "deleted"
+                | "ignored"
+                | "modified"
+                | "renamed"
+                | "untracked"
+              oldPath: string | null
+            }[]
+            containingBranches: string[]
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.diff": {
+    parameters: {
+      query?: {
+        commit?: string
+        base?: string
+        head?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": string
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.checkout": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          branch: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.commit": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          message: string
+          paths?: string[]
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            sha: string
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.push": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            output: string
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.pull": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            output: string
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.fetch": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            output: string
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.merge": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          branch: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            output: string
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.rebase": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          onto: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            output: string
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.mergeState": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            operation: "merge" | "rebase" | "cherry-pick" | "revert" | "none"
+            incoming: string | null
+            onto: string | null
+            conflicted: {
+              path: string
+              /** @enum {string} */
+              kind:
+                | "both-modified"
+                | "both-added"
+                | "both-deleted"
+                | "added-by-us"
+                | "added-by-them"
+                | "deleted-by-us"
+                | "deleted-by-them"
+            }[]
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.conflict": {
+    parameters: {
+      query: {
+        path: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            path: string
+            base: string | null
+            ours: string
+            theirs: string
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.resolveConflict": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          path: string
+          /** @enum {string} */
+          resolution: "ours" | "theirs" | "content"
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.abortMerge": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            output: string
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.continueMerge": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            output: string
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.createBranch": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          name: string
+          startPoint?: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.renameBranch": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          from: string
+          to: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "repo.deleteBranch": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          name: string
+          force?: boolean
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitError"]
+        }
+      }
+    }
+  }
+  "comments.list": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            filePath: string
+            /** @enum {string} */
+            side: "deletions" | "additions"
+            lineNumber: number
+            body: string
+            author: string
+            createdAt: string
+            target: string
+            /** @enum {string} */
+            source: "local" | "github"
+          }[]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "comments.add": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          filePath: string
+          /** @enum {string} */
+          side: "deletions" | "additions"
+          lineNumber: number
+          body: string
+          author?: string
+          target?: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            filePath: string
+            /** @enum {string} */
+            side: "deletions" | "additions"
+            lineNumber: number
+            body: string
+            author: string
+            createdAt: string
+            target: string
+            /** @enum {string} */
+            source: "local" | "github"
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "comments.remove": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "github.pulls": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            number: number
+            title: string
+            author: string
+            baseRef: string
+            headRef: string
+            headSha: string
+            url: string
+            updatedAt: string
+          }[]
+        }
+      }
+      /** @description GitHubError */
+      502: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitHubError"]
+        }
+      }
+    }
+  }
+  "github.pullDiff": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        number: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": string
+        }
+      }
+      /** @description GitHubError */
+      502: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitHubError"]
+        }
+      }
+    }
+  }
+  "github.pullComments": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        number: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            filePath: string
+            /** @enum {string} */
+            side: "deletions" | "additions"
+            lineNumber: number
+            body: string
+            author: string
+            createdAt: string
+            target: string
+            /** @enum {string} */
+            source: "local" | "github"
+          }[]
+        }
+      }
+      /** @description GitHubError */
+      502: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitHubError"]
+        }
+      }
+    }
+  }
+  "github.createPullComment": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        number: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          filePath: string
+          /** @enum {string} */
+          side: "deletions" | "additions"
+          lineNumber: number
+          body: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            filePath: string
+            /** @enum {string} */
+            side: "deletions" | "additions"
+            lineNumber: number
+            body: string
+            author: string
+            createdAt: string
+            target: string
+            /** @enum {string} */
+            source: "local" | "github"
+          }
+        }
+      }
+      /** @description GitHubError */
+      502: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitHubError"]
+        }
+      }
+    }
+  }
+  "github.replyPullComment": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        number: string
+        commentId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          body: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            filePath: string
+            /** @enum {string} */
+            side: "deletions" | "additions"
+            lineNumber: number
+            body: string
+            author: string
+            createdAt: string
+            target: string
+            /** @enum {string} */
+            source: "local" | "github"
+          }
+        }
+      }
+      /** @description GitHubError */
+      502: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["GitHubError"]
+        }
+      }
+    }
+  }
+  "gitMessage.generate": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          paths?: string[]
+          /** @enum {string} */
+          agent?: "claude" | "opencode" | "codex"
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            message: string
+          }
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description GitError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["GitError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "threads.list": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            /** @enum {string} */
+            agent: "terminal" | "claude" | "opencode" | "codex"
+            branch: string
+            taskKey: string | null
+            createdAt: string
+            updatedAt: string
+            entryCount: number
+            lastCommand: string | null
+          }[]
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["StorageError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "threads.create": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          title?: string
+          /** @enum {string} */
+          agent?: "terminal" | "claude" | "opencode" | "codex"
+          branch?: string
+          taskKey?: string
+          initialPrompt?: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            /** @enum {string} */
+            agent: "terminal" | "claude" | "opencode" | "codex"
+            branch: string
+            taskKey: string | null
+            initialPrompt: string
+            agentSessionId: string | null
+            createdAt: string
+            updatedAt: string
+            entries: {
+              id: string
+              command: string
+              stdout: string
+              stderr: string
+              exitCode: number
+              createdAt: string
+            }[]
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["StorageError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "threads.get": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            /** @enum {string} */
+            agent: "terminal" | "claude" | "opencode" | "codex"
+            branch: string
+            taskKey: string | null
+            initialPrompt: string
+            agentSessionId: string | null
+            createdAt: string
+            updatedAt: string
+            entries: {
+              id: string
+              command: string
+              stdout: string
+              stderr: string
+              exitCode: number
+              createdAt: string
+            }[]
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["StorageError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "threads.remove": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["StorageError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "threads.rename": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          title: string
+          branch?: string
+          taskKey?: string | null
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            /** @enum {string} */
+            agent: "terminal" | "claude" | "opencode" | "codex"
+            branch: string
+            taskKey: string | null
+            initialPrompt: string
+            agentSessionId: string | null
+            createdAt: string
+            updatedAt: string
+            entries: {
+              id: string
+              command: string
+              stdout: string
+              stderr: string
+              exitCode: number
+              createdAt: string
+            }[]
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["StorageError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "threads.run": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          command: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            command: string
+            stdout: string
+            stderr: string
+            exitCode: number
+            createdAt: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["StorageError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "docs.list": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            updatedAt: string
+          }[]
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "docs.create": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          title: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            content: string
+            updatedAt: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "docs.get": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            content: string
+            updatedAt: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "docs.update": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          content: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            content: string
+            updatedAt: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "docs.remove": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "tasks.board": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            cards: {
+              id: string
+              key: string
+              title: string
+              description: string
+              column: string
+              order: number
+              comments: {
+                id: string
+                body: string
+                parentId: string | null
+                createdAt: string
+              }[]
+              createdAt: string
+              updatedAt: string
+            }[]
+            columns: {
+              id: string
+              name: string
+              order: number
+            }[]
+            prefix: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "tasks.listTasks": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            key: string
+            title: string
+            description: string
+            column: string
+            order: number
+            comments: {
+              id: string
+              body: string
+              parentId: string | null
+              createdAt: string
+            }[]
+            createdAt: string
+            updatedAt: string
+          }[]
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "tasks.resolveTask": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        ref: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            key: string
+            title: string
+            description: string
+            column: string
+            order: number
+            comments: {
+              id: string
+              body: string
+              parentId: string | null
+              createdAt: string
+            }[]
+            createdAt: string
+            updatedAt: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "tasks.setPrefix": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          prefix: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            cards: {
+              id: string
+              key: string
+              title: string
+              description: string
+              column: string
+              order: number
+              comments: {
+                id: string
+                body: string
+                parentId: string | null
+                createdAt: string
+              }[]
+              createdAt: string
+              updatedAt: string
+            }[]
+            columns: {
+              id: string
+              name: string
+              order: number
+            }[]
+            prefix: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "tasks.create": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          title: string
+          description?: string
+          column?: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            key: string
+            title: string
+            description: string
+            column: string
+            order: number
+            comments: {
+              id: string
+              body: string
+              parentId: string | null
+              createdAt: string
+            }[]
+            createdAt: string
+            updatedAt: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "tasks.remove": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "tasks.update": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          title?: string
+          description?: string
+          column?: string
+          order?: number
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            key: string
+            title: string
+            description: string
+            column: string
+            order: number
+            comments: {
+              id: string
+              body: string
+              parentId: string | null
+              createdAt: string
+            }[]
+            createdAt: string
+            updatedAt: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "tasks.addColumn": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          name: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            cards: {
+              id: string
+              key: string
+              title: string
+              description: string
+              column: string
+              order: number
+              comments: {
+                id: string
+                body: string
+                parentId: string | null
+                createdAt: string
+              }[]
+              createdAt: string
+              updatedAt: string
+            }[]
+            columns: {
+              id: string
+              name: string
+              order: number
+            }[]
+            prefix: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "tasks.removeColumn": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            cards: {
+              id: string
+              key: string
+              title: string
+              description: string
+              column: string
+              order: number
+              comments: {
+                id: string
+                body: string
+                parentId: string | null
+                createdAt: string
+              }[]
+              createdAt: string
+              updatedAt: string
+            }[]
+            columns: {
+              id: string
+              name: string
+              order: number
+            }[]
+            prefix: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "tasks.updateColumn": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          name?: string
+          order?: number
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            cards: {
+              id: string
+              key: string
+              title: string
+              description: string
+              column: string
+              order: number
+              comments: {
+                id: string
+                body: string
+                parentId: string | null
+                createdAt: string
+              }[]
+              createdAt: string
+              updatedAt: string
+            }[]
+            columns: {
+              id: string
+              name: string
+              order: number
+            }[]
+            prefix: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "tasks.addComment": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          body: string
+          parentId?: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            key: string
+            title: string
+            description: string
+            column: string
+            order: number
+            comments: {
+              id: string
+              body: string
+              parentId: string | null
+              createdAt: string
+            }[]
+            createdAt: string
+            updatedAt: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "tasks.removeComment": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+        commentId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            key: string
+            title: string
+            description: string
+            column: string
+            order: number
+            comments: {
+              id: string
+              body: string
+              parentId: string | null
+              createdAt: string
+            }[]
+            createdAt: string
+            updatedAt: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "tasks.resolveComment": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        commentId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            card: {
+              id: string
+              key: string
+              title: string
+              description: string
+              column: string
+              order: number
+              comments: {
+                id: string
+                body: string
+                parentId: string | null
+                createdAt: string
+              }[]
+              createdAt: string
+              updatedAt: string
+            }
+            comment: {
+              id: string
+              body: string
+              parentId: string | null
+              createdAt: string
+            }
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "localDev.list": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            name: string
+            command: string
+            createdAt: string
+            updatedAt: string
+            /** @enum {string} */
+            status: "stopped" | "running" | "exited"
+            exitCode: number | null
+          }[]
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "localDev.create": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          name: string
+          command: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            name: string
+            command: string
+            createdAt: string
+            updatedAt: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "localDev.get": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            name: string
+            command: string
+            createdAt: string
+            updatedAt: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "localDev.remove": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "localDev.update": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          name?: string
+          command?: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            name: string
+            command: string
+            createdAt: string
+            updatedAt: string
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "localDev.start": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            name: string
+            command: string
+            createdAt: string
+            updatedAt: string
+            /** @enum {string} */
+            status: "stopped" | "running" | "exited"
+            exitCode: number | null
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "localDev.stop": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "localDev.startAll": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            name: string
+            command: string
+            createdAt: string
+            updatedAt: string
+            /** @enum {string} */
+            status: "stopped" | "running" | "exited"
+            exitCode: number | null
+          }[]
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "localDev.stopAll": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
 }
