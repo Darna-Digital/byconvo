@@ -83,7 +83,11 @@ export function DevTerminal({
       safeFit()
 
       const ws = new WebSocket(
-        devPtySocketUrl({ command: commandId, cols: term.cols, rows: term.rows })
+        devPtySocketUrl({
+          command: commandId,
+          cols: term.cols,
+          rows: term.rows,
+        })
       )
       const sendResize = () => {
         if (ws.readyState === WebSocket.OPEN)

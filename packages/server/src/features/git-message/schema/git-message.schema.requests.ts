@@ -1,23 +1,15 @@
-/** Request payloads / path params for the git-message endpoints. */
+/** Request payloads for the git-message endpoints. */
 import * as Schema from "effect/Schema"
+
+/**
+ * Which locally installed agent CLI drafts the message. Mirrors the threads
+ * agent kinds minus "terminal" (there's no plain-shell way to write a message).
+ */
+export const CommitAgent = Schema.Literals(["claude", "opencode", "codex"])
+export type CommitAgent = typeof CommitAgent.Type
 
 /** Generate a commit message for the given changed paths (empty = all). */
 export const GenerateBody = Schema.Struct({
   paths: Schema.optionalKey(Schema.Array(Schema.String)),
+  agent: Schema.optionalKey(CommitAgent),
 })
-
-/** Create a new saved commit prefix. */
-export const NewPrefix = Schema.Struct({
-  value: Schema.String,
-  description: Schema.optionalKey(Schema.String),
-})
-export type NewPrefix = typeof NewPrefix.Type
-
-/** Update an existing saved commit prefix. */
-export const UpdatePrefix = Schema.Struct({
-  value: Schema.String,
-  description: Schema.optionalKey(Schema.String),
-})
-export type UpdatePrefix = typeof UpdatePrefix.Type
-
-export const PrefixIdParam = Schema.Struct({ id: Schema.String })

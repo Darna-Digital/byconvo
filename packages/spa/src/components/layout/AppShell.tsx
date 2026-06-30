@@ -26,12 +26,12 @@ import {
   useRouterState,
   useSearch,
 } from "@tanstack/react-router"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 import { CommandMenu, type Command } from "@/components/CommandMenu"
 import { CommitPanel } from "@/components/CommitPanel"
-import { CommitPrefixDialog } from "@/components/CommitPrefixDialog"
 import { RepoList } from "@/components/RepoList"
+import { ReviewAssignBar } from "@/components/ReviewAssignBar"
 import { DiffPane, type DraftLocation } from "@/components/diff/DiffPane"
 import { CodeEditor } from "@/components/editor/CodeEditor"
 import { CodeView } from "@/components/editor/CodeView"
@@ -45,10 +45,12 @@ import { FileSidebar } from "@/components/tree/FileSidebar"
 import { useCommentsActions } from "@/features/comments/adapters/comments.hook.adapter"
 import { useDiffFunctions } from "@/features/diff/adapters/diff.hook.adapter"
 import { useGitActions } from "@/features/git-actions/adapters/git-actions.hook.adapter"
+import { useThreadsActions } from "@/features/threads/adapters/threads.hook.adapter"
 import { fetchClient } from "@/lib/api/client"
 import {
   diffTargetKey,
   emptyLogQuery,
+  type AgentKind,
   type AppMode,
   type DiffTarget,
   type LogQuery,
@@ -87,6 +89,7 @@ export function AppShell() {
   const diffFns = useDiffFunctions()
   const git = useGitActions()
   const comments = useCommentsActions()
+  const threadActions = useThreadsActions()
   const queryClient = useQueryClient()
 
   const pathname = useRouterState({ select: (s) => s.location.pathname })
@@ -118,6 +121,12 @@ export function AppShell() {
     ],
     [localComments.data]
   )
+  // The floating "assign to agent" bar's dismiss state. The comment set it acts
+  // on (visibleComments — local + GitHub) is derived lower down, so the handler
+  // lives there; the state stays here with the other UI state.
+  const [assignBarDismissed, setAssignBarDismissed] = useState(false)
+  const reviewCountRef = useRef(0)
+
   const hasGitHub = repo.data?.github != null
   const pulls = usePulls(hasGitHub)
 
@@ -270,6 +279,39 @@ export function AppShell() {
       }),
     [diffFns, target?.kind, targetKey, localComments.data, pullComments.data]
   )
+
+  // --- review → agent: hand the comments in view (local + GitHub) to an agent.
+  useEffect(() => {
+    // Re-show the bar whenever a new comment appears (count grows past last seen).
+    if (visibleComments.length > reviewCountRef.current)
+      setAssignBarDismissed(false)
+    reviewCountRef.current = visibleComments.length
+  }, [visibleComments.length])
+
+  const assignReviewToAgent = async (agent: AgentKind) => {
+    if (visibleComments.length === 0) return
+    const plural = visibleComments.length === 1 ? "" : "s"
+    const lines = visibleComments
+      .map((c) => `- ${c.filePath}:${c.lineNumber} — ${c.body}`)
+      .join("\n")
+    try {
+      await threadActions.spawnForTask({
+        agent,
+        branch: repo.data?.currentBranch ?? "",
+        taskKey: null,
+        title: `Fix ${visibleComments.length} review comment${plural}`,
+        initialPrompt: `Address these review comments in the codebase:\n\n${lines}`,
+      })
+      toast.success(
+        `Started ${agent} on ${visibleComments.length} comment${plural}`
+      )
+      void navigate({ to: "/threads" })
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "could not start agent"
+      )
+    }
+  }
 
   // --- navigation helpers ----------------------------------------------------
   const setSearch = (patch: Partial<Search>) =>
@@ -623,6 +665,13 @@ export function AppShell() {
         files={allPaths}
         onOpenFile={(path) => openFile(path, false)}
       />
+      {visibleComments.length > 0 && !assignBarDismissed && (
+        <ReviewAssignBar
+          count={visibleComments.length}
+          onAssign={assignReviewToAgent}
+          onDismiss={() => setAssignBarDismissed(true)}
+        />
+      )}
       <ModeRail
         mode={mode}
         hasGitHub={hasGitHub}
@@ -704,8 +753,9 @@ export function AppShell() {
                       changes={changedFiles}
                       busy={false}
                       onCommit={(m, p, push) => git.commitChanges(m, p, push)}
-                      onGenerate={(p) => git.generateCommitMessage(p)}
-                      prefixSlot={<CommitPrefixDialog />}
+                      onGenerate={(p, agent) =>
+                        git.generateCommitMessage(p, agent)
+                      }
                     />
                   ) : undefined
                 }

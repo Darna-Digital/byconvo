@@ -27,7 +27,7 @@ export const agentLabel: Record<AgentKind, string> = {
 /**
  * The default title for a new thread of this agent. Terminal threads keep the
  * generic placeholder so the first command renames them; agent threads are named
- * after the agent (Zed shows the running agent as the thread title).
+ * after the agent (the running agent is shown as the thread title).
  */
 export const agentDefaultTitle = (agent: AgentKind): string =>
   agent === "terminal" ? "New thread" : agentLabel[agent]

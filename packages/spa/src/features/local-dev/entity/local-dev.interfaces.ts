@@ -29,10 +29,7 @@ export interface LocalDevDependencies {
 export interface LocalDevFunctions {
   /** Create a command; returns null (no-op) when the command is blank. A blank
    * name defaults to the command text. */
-  readonly create: (
-    name: string,
-    command: string
-  ) => Promise<DevCommand | null>
+  readonly create: (name: string, command: string) => Promise<DevCommand | null>
   /** Update a command; returns null (no-op) when the command is blank. */
   readonly update: (
     id: string,

@@ -24,7 +24,16 @@ const threadsPath = (repoPath: string) => `${repoPath}/.byconvo/threads.json`
 const readThreads = (repoPath: string): ReadonlyArray<Thread> => {
   try {
     const raw = readFileSync(threadsPath(repoPath), "utf8")
-    return Schema.decodeUnknownSync(ThreadsFile)(JSON.parse(raw))
+    const parsed = JSON.parse(raw)
+    // Default fields added after entries were first written.
+    const normalized = Array.isArray(parsed)
+      ? parsed.map((t) =>
+          t !== null && typeof t === "object"
+            ? { branch: "", initialPrompt: "", ...t }
+            : t
+        )
+      : parsed
+    return Schema.decodeUnknownSync(ThreadsFile)(normalized)
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") {
       return []
@@ -42,6 +51,7 @@ const summarize = (thread: Thread) => ({
   id: thread.id,
   title: thread.title,
   agent: thread.agent,
+  branch: thread.branch,
   taskKey: thread.taskKey,
   createdAt: thread.createdAt,
   updatedAt: thread.updatedAt,
@@ -52,7 +62,7 @@ const summarize = (thread: Thread) => ({
       : null,
 })
 
-/** A short title from a command — the first token, like Zed's thread labels. */
+/** A short title from a command — the first token. */
 const titleFromCommand = (command: string) => {
   const trimmed = command.trim()
   const first = trimmed.split(/\s+/)[0] ?? ""
@@ -113,7 +123,9 @@ export const makeFileThreadsRepository = Effect.gen(function* () {
             ? input.title.trim()
             : agentDefaultTitle(input.agent),
         agent: input.agent,
+        branch: input.branch,
         taskKey: input.taskKey,
+        initialPrompt: input.initialPrompt,
         createdAt: now,
         updatedAt: now,
         entries: [],
@@ -129,6 +141,7 @@ export const makeFileThreadsRepository = Effect.gen(function* () {
         ...existing,
         title:
           input.title.trim().length > 0 ? input.title.trim() : existing.title,
+        branch: input.branch === undefined ? existing.branch : input.branch,
         taskKey: input.taskKey === undefined ? existing.taskKey : input.taskKey,
         updatedAt: new Date().toISOString(),
       }
@@ -166,7 +179,7 @@ export const makeFileThreadsRepository = Effect.gen(function* () {
         }
         const updated: Thread = {
           ...existing,
-          // Reflect what's running in the title, like Zed terminal threads.
+          // Reflect what's running in the title.
           title:
             existing.title === DEFAULT_TITLE
               ? titleFromCommand(input)

@@ -48,7 +48,12 @@ const ensureSpawnHelperExecutable = (moduleEntry: string): void => {
   }
   const helpers = [
     join(root, "build", "Release", "spawn-helper"),
-    join(root, "prebuilds", `${process.platform}-${process.arch}`, "spawn-helper"),
+    join(
+      root,
+      "prebuilds",
+      `${process.platform}-${process.arch}`,
+      "spawn-helper"
+    ),
   ]
   for (const helper of helpers) {
     try {

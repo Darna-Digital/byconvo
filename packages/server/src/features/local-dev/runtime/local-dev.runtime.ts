@@ -28,10 +28,9 @@ export interface DevRuntimeShape {
   ) => Effect.Effect<ReadonlyArray<DevRunStatus>>
 }
 
-export class DevRuntime extends Context.Service<
-  DevRuntime,
-  DevRuntimeShape
->()("DevRuntime") {}
+export class DevRuntime extends Context.Service<DevRuntime, DevRuntimeShape>()(
+  "DevRuntime"
+) {}
 
 export const fromManager = (manager: DevProcessManager): DevRuntimeShape => ({
   start: (input) => Effect.sync(() => manager.start(input)),

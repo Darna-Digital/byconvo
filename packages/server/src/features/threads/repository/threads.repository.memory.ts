@@ -15,6 +15,7 @@ const summarize = (thread: Thread) => ({
   id: thread.id,
   title: thread.title,
   agent: thread.agent,
+  branch: thread.branch,
   taskKey: thread.taskKey,
   createdAt: thread.createdAt,
   updatedAt: thread.updatedAt,
@@ -66,7 +67,9 @@ export const makeMemoryThreadsRepository = (seed: ReadonlyArray<Thread> = []) =>
                 ? input.title.trim()
                 : agentDefaultTitle(input.agent),
             agent: input.agent,
+            branch: input.branch,
             taskKey: input.taskKey,
+            initialPrompt: input.initialPrompt,
             createdAt: now(),
             updatedAt: now(),
             entries: [],
@@ -83,6 +86,7 @@ export const makeMemoryThreadsRepository = (seed: ReadonlyArray<Thread> = []) =>
               input.title.trim().length > 0
                 ? input.title.trim()
                 : existing.title,
+            branch: input.branch === undefined ? existing.branch : input.branch,
             taskKey:
               input.taskKey === undefined ? existing.taskKey : input.taskKey,
             updatedAt: now(),

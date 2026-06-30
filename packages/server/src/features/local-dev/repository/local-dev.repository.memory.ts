@@ -24,7 +24,9 @@ export const makeMemoryDevCommandsRepository = (
     const find = (commands: ReadonlyArray<DevCommand>, id: string) => {
       const command = commands.find((c) => c.id === id)
       if (command === undefined) {
-        return Effect.fail(new NotFound({ reason: `dev command ${id} not found` }))
+        return Effect.fail(
+          new NotFound({ reason: `dev command ${id} not found` })
+        )
       }
       return Effect.succeed(command)
     }

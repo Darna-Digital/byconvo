@@ -384,7 +384,9 @@ export function LocalDevPage() {
                 value={draft?.name ?? ""}
                 placeholder="Web server"
                 onChange={(e) =>
-                  setDraft((d) => (d === null ? d : { ...d, name: e.target.value }))
+                  setDraft((d) =>
+                    d === null ? d : { ...d, name: e.target.value }
+                  )
                 }
               />
             </label>

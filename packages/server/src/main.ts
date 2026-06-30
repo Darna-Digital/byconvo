@@ -25,8 +25,8 @@ import { GitMessageController } from "./features/git-message/http/git-message.co
 import { GitMessageLive } from "./features/git-message/layer/git-message.layer.live.ts"
 import { GitHubController } from "./features/github/http/github.controller.ts"
 import { GitHubLive } from "./features/github/layer/github.layer.live.ts"
-import { KanbanController } from "./features/kanban/http/kanban.controller.ts"
-import { KanbanLive } from "./features/kanban/layer/kanban.layer.live.ts"
+import { TasksController } from "./features/tasks/http/tasks.controller.ts"
+import { TasksLive } from "./features/tasks/layer/tasks.layer.live.ts"
 import { LocalDevController } from "./features/local-dev/http/local-dev.controller.ts"
 import { LocalDevLive } from "./features/local-dev/layer/local-dev.layer.live.ts"
 import { DevRuntimeLive } from "./features/local-dev/runtime/local-dev.runtime.ts"
@@ -36,7 +36,6 @@ import { ThreadsController } from "./features/threads/http/threads.controller.ts
 import { ThreadsLive } from "./features/threads/layer/threads.layer.live.ts"
 import { WorkspaceController } from "./features/workspace/http/workspace.controller.ts"
 import { WorkspaceLive } from "./features/workspace/layer/workspace.layer.live.ts"
-import { layer as claudeExecLayer } from "./layers/claude/claude-exec.ts"
 import { layer as gitExecLayer } from "./layers/git/git-exec.ts"
 import { layer as gitHubClientLayer } from "./layers/github/github-client.ts"
 import { attachPtyServer } from "./layers/terminal/pty-socket.ts"
@@ -70,7 +69,7 @@ const ApiLive = Layer.mergeAll(
   Layer.provide(GitMessageController),
   Layer.provide(ThreadsController),
   Layer.provide(DocsController),
-  Layer.provide(KanbanController),
+  Layer.provide(TasksController),
   Layer.provide(LocalDevController)
 )
 
@@ -83,7 +82,7 @@ const RequestServices = Layer.mergeAll(
   GitMessageLive,
   ThreadsLive,
   DocsLive,
-  KanbanLive,
+  TasksLive,
   LocalDevLive,
   DevRuntimeLive
 )
@@ -94,9 +93,7 @@ const RequestServices = Layer.mergeAll(
  * GitHub client.
  */
 const InfraLive = gitHubClientLayer.pipe(
-  Layer.provideMerge(
-    Layer.mergeAll(gitExecLayer, claudeExecLayer, terminalExecLayer)
-  ),
+  Layer.provideMerge(Layer.mergeAll(gitExecLayer, terminalExecLayer)),
   Layer.provideMerge(workspaceContextLayer(initial)),
   Layer.provide(FetchHttpClient.layer)
 )

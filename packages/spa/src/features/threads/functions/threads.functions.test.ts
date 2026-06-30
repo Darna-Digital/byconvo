@@ -6,11 +6,11 @@ describe("threads functions", () => {
   it("create passes the agent, trims the title, and drops it when blank", async () => {
     const { deps, calls } = mockThreadsDependencies()
     const fns = createThreadsFunctions(deps)
-    await fns.create("terminal", "  ", null)
-    await fns.create("claude", "  Build  ", "T-1")
+    await fns.create("terminal", "  ", null, "main")
+    await fns.create("claude", "  Build  ", "T-1", "feat")
     expect(calls.create).toEqual([
-      { title: undefined, agent: "terminal", taskKey: null },
-      { title: "Build", agent: "claude", taskKey: "T-1" },
+      { title: undefined, agent: "terminal", branch: "main", taskKey: null },
+      { title: "Build", agent: "claude", branch: "feat", taskKey: "T-1" },
     ])
   })
 

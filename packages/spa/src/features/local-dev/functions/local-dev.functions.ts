@@ -32,8 +32,7 @@ export function createLocalDevFunctions(
   const remove: LocalDevFunctions["remove"] = (id) => d.sideEffects.remove(id)
   const start: LocalDevFunctions["start"] = (id) => d.sideEffects.start(id)
   const stop: LocalDevFunctions["stop"] = (id) => d.sideEffects.stop(id)
-  const startAll: LocalDevFunctions["startAll"] = () =>
-    d.sideEffects.startAll()
+  const startAll: LocalDevFunctions["startAll"] = () => d.sideEffects.startAll()
   const stopAll: LocalDevFunctions["stopAll"] = () => d.sideEffects.stopAll()
 
   return { create, update, remove, start, stop, startAll, stopAll }

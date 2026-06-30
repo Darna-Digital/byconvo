@@ -17,7 +17,13 @@
  *                     { exit: number }         // process exited (then close)
  *                     { error: string }        // could not start the program
  */
-import { chmodSync, existsSync, readFileSync, statSync } from "node:fs"
+import {
+  chmodSync,
+  existsSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs"
 import { createRequire } from "node:module"
 import type { IncomingMessage, Server } from "node:http"
 import { dirname, join } from "node:path"
@@ -171,9 +177,52 @@ export const killPtySession = (id: string): void => {
 /**
  * Environment a session's program inherits. Exposes the thread id and the local
  * API origin so an agent CLI can always look up its own thread / linked task
- * (GET /api/threads/{id}, GET /api/tasks/{ref}); the linked task at spawn time is
- * also passed directly for convenience.
+ * (GET /api/threads/{id}, GET /api/tasks/resolve/{ref}); the linked task at spawn
+ * time is also passed directly for convenience.
  */
+/** The one-shot initial prompt stored on a thread, or "" if none. */
+const readThreadInitialPrompt = (repoPath: string, id: string): string => {
+  try {
+    const raw = JSON.parse(
+      readFileSync(`${repoPath}/.byconvo/threads.json`, "utf8")
+    )
+    if (!Array.isArray(raw)) return ""
+    const thread = raw.find(
+      (t) => t !== null && typeof t === "object" && t.id === id
+    )
+    return thread !== undefined && typeof thread.initialPrompt === "string"
+      ? thread.initialPrompt
+      : ""
+  } catch {
+    return ""
+  }
+}
+
+/** Clear a thread's initial prompt after it has been delivered (best-effort). */
+const clearThreadInitialPrompt = (repoPath: string, id: string): void => {
+  try {
+    const path = `${repoPath}/.byconvo/threads.json`
+    const raw = JSON.parse(readFileSync(path, "utf8"))
+    if (!Array.isArray(raw)) return
+    let changed = false
+    const next = raw.map((t) => {
+      if (
+        t !== null &&
+        typeof t === "object" &&
+        t.id === id &&
+        t.initialPrompt
+      ) {
+        changed = true
+        return { ...t, initialPrompt: "" }
+      }
+      return t
+    })
+    if (changed) writeFileSync(path, `${JSON.stringify(next, null, 2)}\n`)
+  } catch {
+    // best-effort
+  }
+}
+
 const buildSessionEnv = (
   repoPath: string,
   threadId: string
@@ -205,7 +254,7 @@ const buildSessionEnv = (
   if (taskKey === null) return env
 
   env["BYCONVO_TASK_KEY"] = taskKey
-  const board = readJson(`${repoPath}/.byconvo/kanban.json`) as
+  const board = readJson(`${repoPath}/.byconvo/tasks.json`) as
     | { cards?: ReadonlyArray<Record<string, unknown>> }
     | undefined
   const card = board?.cards?.find((c) => c["key"] === taskKey)
@@ -283,6 +332,10 @@ const startSession = (ws: WebSocket, request: IncomingMessage) => {
 
   const cwd = getCurrentRepo() ?? process.cwd()
   const program: PtyProgram = agentPtyProgram(agent)
+  // A one-shot prompt to type into the program once it's ready (e.g. a task
+  // comment handed to an agent). Only on a fresh spawn, never on re-attach.
+  const initialPrompt =
+    id !== null && id.length > 0 ? readThreadInitialPrompt(cwd, id) : ""
 
   const nodePty = loadNodePty()
   if (nodePty === null) {
@@ -327,13 +380,56 @@ const startSession = (ws: WebSocket, request: IncomingMessage) => {
   const persistent = id !== null && id.length > 0
   if (persistent) sessions.set(id, session)
 
+  // Deliver the initial prompt once the program's output settles (it has booted
+  // and is idle waiting for input), with a hard cap as a fallback. Sent once,
+  // then cleared from disk so a reload/respawn never re-sends it.
+  let promptDone = initialPrompt.length === 0
+  let settleTimer: ReturnType<typeof setTimeout> | null = null
+  let capTimer: ReturnType<typeof setTimeout> | null = null
+  const flushPrompt = () => {
+    if (promptDone) return
+    promptDone = true
+    if (settleTimer) clearTimeout(settleTimer)
+    if (capTimer) clearTimeout(capTimer)
+    // Collapse to a single line: some agent TUIs (e.g. Claude Code) treat an
+    // embedded newline in typed input as a submit, which would fire the prompt
+    // prematurely (or not at all). Codex tolerates either, so one line is safe.
+    const oneLine = initialPrompt.replace(/\s*\n+\s*/g, " ").trim()
+    try {
+      pty.write(oneLine)
+    } catch {
+      // pty already gone
+    }
+    // Send Enter as a separate, slightly-delayed keystroke so the TUI registers
+    // it as a discrete submit — a combined text+Enter write can be read as a
+    // paste and left sitting in the input (this is what kept Claude from
+    // auto-starting).
+    setTimeout(() => {
+      try {
+        pty.write("\r")
+      } catch {
+        // pty already gone
+      }
+    }, 350)
+    if (persistent && id !== null) clearThreadInitialPrompt(cwd, id)
+  }
+  // Claude Code can take several seconds to become input-ready on first launch.
+  if (!promptDone) capTimer = setTimeout(flushPrompt, 8000)
+
   // One persistent data subscription per PTY: buffer everything, forward to
   // whichever client is currently attached (if any).
   pty.onData((data) => {
     appendChunk(session, data)
     if (session.client !== null) send(session.client, { d: data })
+    if (!promptDone) {
+      if (settleTimer) clearTimeout(settleTimer)
+      settleTimer = setTimeout(flushPrompt, 900)
+    }
   })
   pty.onExit(({ exitCode }) => {
+    promptDone = true
+    if (settleTimer) clearTimeout(settleTimer)
+    if (capTimer) clearTimeout(capTimer)
     session.exited = true
     if (persistent && id !== null) sessions.delete(id)
     if (session.client !== null) {

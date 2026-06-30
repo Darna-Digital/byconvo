@@ -1,12 +1,21 @@
 /**
  * TerminalExec — runs a one-shot shell command in the currently selected
  * repository and captures its output. It is the "connection to the shell" that
- * powers the Threads feature (Zed-style terminal threads): each run is a
- * non-interactive `sh -c <command>`, scoped to the repo so commands inherit its
- * working directory, exactly the way GitExec/ClaudeExec borrow the local CLIs.
+ * powers terminal threads and AI commit-message drafting: each run is scoped to
+ * the repo so commands inherit its working directory, exactly the way GitExec
+ * borrows the local `git` CLI.
+ *
+ * On POSIX the command runs *through the user's login + interactive shell*
+ * (`$SHELL -lic`), not a bare `sh -c`. A bare spawn searches only
+ * `process.env.PATH`, which under a GUI launch (the Electron app from Finder, or
+ * an IDE) is launchd's minimal PATH — missing `~/.local/bin`, version managers,
+ * Homebrew, `~/.bun/bin`, etc. — so an agent CLI installed there isn't found.
+ * Sourcing the startup files gives the command the exact PATH the developer sees
+ * in their terminal, which is what makes `claude`/`opencode`/`codex` reliable
+ * here. (This mirrors how the live PTY terminals launch their programs.)
  *
  * A command that exits non-zero is NOT a failure — its exit code and stderr are
- * captured in the result so the thread can show them. Only a genuine spawn/IO
+ * captured in the result so the caller can show them. Only a genuine spawn/IO
  * failure (no shell on PATH) fails the effect with TerminalError.
  */
 import * as Context from "effect/Context"
@@ -25,8 +34,8 @@ export interface TerminalResult {
 
 export interface TerminalExecShape {
   /**
-   * Run `command` through `sh -c` in the selected repo (or the server cwd when
-   * none is selected) and capture stdout/stderr/exit code.
+   * Run `command` through the platform shell in the selected repo (or the
+   * server cwd when none is selected) and capture stdout/stderr/exit code.
    */
   readonly run: (
     command: string
@@ -48,8 +57,16 @@ export const make = Effect.gen(function* () {
         const cwd = yield* workspace.current.pipe(
           Effect.map((root) => root ?? process.cwd())
         )
+        const isWin = process.platform === "win32"
+        // POSIX: go through the user's login + interactive shell so the command
+        // sees the same PATH a real terminal tab does (see the file header).
+        const shell = isWin ? "cmd.exe" : (process.env["SHELL"] ?? "/bin/bash")
+        const args = isWin ? ["/c", command] : ["-l", "-i", "-c", command]
+        // Ignore stdin (an immediately-closed /dev/null). Without this the
+        // default "pipe" leaves the child's stdin open, and CLIs that read it —
+        // notably `opencode run` — block forever waiting for input/EOF.
         const handle = yield* spawner.spawn(
-          ChildProcess.make("sh", ["-c", command], { cwd })
+          ChildProcess.make(shell, args, { cwd, stdin: "ignore" })
         )
         const [stdout, stderr, exitCode] = yield* Effect.all(
           [
@@ -65,7 +82,7 @@ export const make = Effect.gen(function* () {
       Effect.catch((error) =>
         Effect.fail(
           new TerminalError({
-            reason: `could not run a terminal command — is a POSIX shell on your PATH? (${
+            reason: `could not run a terminal command — is a compatible shell on your PATH? (${
               error instanceof Error ? error.message : String(error)
             })`,
           })

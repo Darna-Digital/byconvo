@@ -1,9 +1,9 @@
 /**
  * WorkspaceShell — the layout for the workspace feature pages (threads, docs,
- * kanban). It mirrors AppShell's frame (mode rail + a rounded, bordered content
+ * tasks). It mirrors AppShell's frame (mode rail + a rounded, bordered content
  * panel) and shares the git-review top bar's left cluster — the repo picker and
  * branch switcher — so the open repository is visible and switchable here too
- * (threads/docs/kanban are all scoped to it). The git-diff/theme controls on the
+ * (threads/docs/tasks are all scoped to it). The git-diff/theme controls on the
  * right of AppShell's bar don't apply to these pages, so they're omitted. Each
  * feature page renders its own header and body into the `<Outlet />`.
  */
@@ -26,8 +26,8 @@ import { cn } from "@/lib/utils"
 const modeForPath = (pathname: string): AppMode =>
   pathname.startsWith("/docs")
     ? "docs"
-    : pathname.startsWith("/kanban")
-      ? "kanban"
+    : pathname.startsWith("/tasks")
+      ? "tasks"
       : pathname.startsWith("/local-dev")
         ? "local-dev"
         : "threads"

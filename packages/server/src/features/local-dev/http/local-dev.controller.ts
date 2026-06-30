@@ -36,7 +36,9 @@ export const LocalDevController = HttpApiBuilder.group(
           const commands = yield* dev.list
           const statuses = yield* runtime.statuses(repoPath)
           const byId = new Map(statuses.map((s) => [s.commandId, s]))
-          return commands.map((command) => toView(command, byId.get(command.id)))
+          return commands.map((command) =>
+            toView(command, byId.get(command.id))
+          )
         })
       )
       .handle("create", ({ payload }) =>
@@ -81,9 +83,7 @@ export const LocalDevController = HttpApiBuilder.group(
         })
       )
       .handle("stop", ({ params }) =>
-        Effect.flatMap(DevRuntime, (r) => r.stop(params.id)).pipe(
-          Effect.as(ok)
-        )
+        Effect.flatMap(DevRuntime, (r) => r.stop(params.id)).pipe(Effect.as(ok))
       )
       .handle("startAll", () =>
         Effect.gen(function* () {

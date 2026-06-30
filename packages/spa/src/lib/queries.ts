@@ -14,13 +14,11 @@ export const useBranches = () => api.useQuery("get", "/api/branches")
 export const useRemoteBranches = () =>
   api.useQuery("get", "/api/remote-branches")
 export const useComments = () => api.useQuery("get", "/api/comments")
-export const useCommitPrefixes = () =>
-  api.useQuery("get", "/api/git-message/prefixes")
 
 /** The in-progress merge/rebase operation and its remaining conflicts. */
 export const useMergeState = () => api.useQuery("get", "/api/merge-state")
 
-// --- Threads / Docs / Kanban (workspace features) --------------------------
+// --- Threads / Docs / Tasks (workspace features) --------------------------
 
 export const useThreads = () => api.useQuery("get", "/api/threads")
 
@@ -42,7 +40,7 @@ export const useDoc = (id: string | null) =>
     { enabled: id !== null }
   )
 
-export const useKanban = () => api.useQuery("get", "/api/kanban")
+export const useTasks = () => api.useQuery("get", "/api/tasks/board")
 
 /** Saved Local Dev commands for the selected repo, with their runtime status. */
 export const useDevCommands = () =>

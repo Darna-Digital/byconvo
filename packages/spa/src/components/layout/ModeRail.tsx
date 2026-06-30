@@ -4,7 +4,7 @@ import {
   IconGitCommit,
   IconGitFork,
   IconGitPullRequest,
-  IconLayoutKanban,
+  IconListCheck,
   IconPlayerPlay,
   IconTerminal2,
 } from "@tabler/icons-react"
@@ -67,10 +67,10 @@ const WORKSPACE_MODES: ModeDef[] = [
   },
   { mode: "docs", to: "/docs", label: "Docs & plans", icon: IconFileText },
   {
-    mode: "kanban",
-    to: "/kanban",
-    label: "Kanban board",
-    icon: IconLayoutKanban,
+    mode: "tasks",
+    to: "/tasks",
+    label: "Tasks",
+    icon: IconListCheck,
   },
   {
     mode: "local-dev",

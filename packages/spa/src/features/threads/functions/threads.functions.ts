@@ -6,10 +6,11 @@ import type {
 export function createThreadsFunctions(
   d: ThreadsDependencies
 ): ThreadsFunctions {
-  const create: ThreadsFunctions["create"] = (agent, title, taskKey) =>
+  const create: ThreadsFunctions["create"] = (agent, title, taskKey, branch) =>
     d.sideEffects.create({
       title: title.trim().length > 0 ? title.trim() : undefined,
       agent,
+      branch,
       taskKey,
     })
 
@@ -25,7 +26,10 @@ export function createThreadsFunctions(
   const linkTask: ThreadsFunctions["linkTask"] = (id, currentTitle, taskKey) =>
     d.sideEffects.rename(id, { title: currentTitle, taskKey })
 
+  const setBranch: ThreadsFunctions["setBranch"] = (id, currentTitle, branch) =>
+    d.sideEffects.rename(id, { title: currentTitle, branch })
+
   const remove: ThreadsFunctions["remove"] = (id) => d.sideEffects.remove(id)
 
-  return { create, run, rename, linkTask, remove }
+  return { create, run, rename, linkTask, setBranch, remove }
 }

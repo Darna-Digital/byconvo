@@ -16,7 +16,7 @@ interface FileSidebarProps {
 }
 
 // FileSidebar is only mounted in the git-review modes; the workspace modes
-// (threads/docs/kanban) have their own pages, so a partial map + fallback.
+// (threads/docs/tasks) have their own pages, so a partial map + fallback.
 const HEADER_TITLE: Partial<Record<AppMode, string>> = {
   commit: "Changed files",
   review: "Files in this PR",

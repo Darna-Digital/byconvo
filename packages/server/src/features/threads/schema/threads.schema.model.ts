@@ -1,13 +1,12 @@
 /**
- * Terminal-thread schemas — Zed-style "terminal threads" stored locally in
+ * Terminal-thread schemas — "terminal threads" stored locally in
  * `.byconvo/threads.json` inside the selected repository. A thread is a named,
  * repo-scoped terminal session; each run appends an entry capturing the command
  * and its captured output.
  *
  * A thread is bound to an agent: a plain "terminal" (raw shell), or an agent CLI
  * (Claude Code, opencode, Codex) the developer has installed. Running in an agent
- * thread sends the input as a prompt to that CLI, the same way Zed hosts agent
- * CLIs as terminal threads.
+ * thread sends the input as a prompt to that CLI.
  */
 import * as Schema from "effect/Schema"
 
@@ -35,8 +34,13 @@ export const Thread = Schema.Struct({
   title: Schema.String,
   /** Which agent runs this thread's input (raw shell or an agent CLI). */
   agent: AgentKind,
-  /** Optional Kanban card key this thread references (cross-feature link). */
+  /** The git branch this thread is grouped under (the branch when created). */
+  branch: Schema.String,
+  /** Optional task key this thread references (cross-feature link). */
   taskKey: Schema.NullOr(Schema.String),
+  /** A prompt typed into the agent once it starts, then cleared. Used when a
+   * task comment tags an agent — the task + comment are handed to it. */
+  initialPrompt: Schema.String,
   createdAt: Schema.String,
   updatedAt: Schema.String,
   entries: Schema.Array(ThreadEntry),
@@ -48,6 +52,7 @@ export const ThreadSummary = Schema.Struct({
   id: Schema.String,
   title: Schema.String,
   agent: AgentKind,
+  branch: Schema.String,
   taskKey: Schema.NullOr(Schema.String),
   createdAt: Schema.String,
   updatedAt: Schema.String,

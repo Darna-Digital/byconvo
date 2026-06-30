@@ -11,6 +11,8 @@ describe("ThreadsService", () => {
       const created = yield* threads.create({
         title: "",
         agent: "terminal",
+        branch: "main",
+        initialPrompt: "",
         taskKey: null,
       })
       expect(created.id).not.toBe("")
@@ -27,6 +29,8 @@ describe("ThreadsService", () => {
       const created = yield* threads.create({
         title: "",
         agent: "terminal",
+        branch: "main",
+        initialPrompt: "",
         taskKey: null,
       })
       const entry = yield* threads.run(created.id, "echo hi")
@@ -45,9 +49,11 @@ describe("ThreadsService", () => {
       const created = yield* threads.create({
         title: "",
         agent: "claude",
+        branch: "main",
+        initialPrompt: "",
         taskKey: null,
       })
-      // Agent threads are named after the agent (Zed-style).
+      // Agent threads are named after the agent.
       expect(created.title).toBe("Claude Code")
       const entry = yield* threads.run(created.id, "explain this repo")
       // The history stores the raw prompt, not the wrapped command…
@@ -67,6 +73,8 @@ describe("ThreadsService", () => {
       const created = yield* threads.create({
         title: "",
         agent: "opencode",
+        branch: "main",
+        initialPrompt: "",
         taskKey: null,
       })
       const entry = yield* threads.run(created.id, "add a test")
@@ -88,6 +96,8 @@ describe("ThreadsService", () => {
       const created = yield* threads.create({
         title: "work",
         agent: "terminal",
+        branch: "main",
+        initialPrompt: "",
         taskKey: null,
       })
       yield* threads.remove(created.id)

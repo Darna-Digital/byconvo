@@ -8,6 +8,8 @@ import { useSyncExternalStore } from "react"
 export type ThemePref = "light" | "dark" | "system"
 export type Theme = "light" | "dark"
 export type DiffStyle = "split" | "unified"
+/** Agent CLIs that can draft a commit message (threads kinds minus terminal). */
+export type CommitAgent = "claude" | "opencode" | "codex"
 
 export interface UiPrefs {
   /** The user's choice; "system" follows the OS. */
@@ -27,6 +29,8 @@ export interface UiPrefs {
   commitFilesHeight: number
   /** Drag-resizable commit-message textarea height, in px. */
   commitMessageHeight: number
+  /** Which agent CLI drafts commit messages via the "Generate" button. */
+  commitAgent: CommitAgent
 }
 
 const STORE_KEY = "byconvo-ui"
@@ -51,6 +55,7 @@ const defaults: Omit<UiPrefs, "resolvedTheme"> = {
   bottomHeight: 256,
   commitFilesHeight: 180,
   commitMessageHeight: 80,
+  commitAgent: "claude",
 }
 
 function load(): UiPrefs {
@@ -90,6 +95,7 @@ function persist() {
       bottomHeight,
       commitFilesHeight,
       commitMessageHeight,
+      commitAgent,
     } = state
     window.localStorage.setItem(
       STORE_KEY,
@@ -103,6 +109,7 @@ function persist() {
         bottomHeight,
         commitFilesHeight,
         commitMessageHeight,
+        commitAgent,
       })
     )
     window.localStorage.setItem(THEME_KEY, state.theme)

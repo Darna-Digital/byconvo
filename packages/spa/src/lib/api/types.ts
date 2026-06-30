@@ -35,8 +35,6 @@ export type CommitFileChange = CommitDetail["files"][number]
 export type ReviewComment = Ok<paths["/api/comments"]["get"]>[number]
 export type CommentSide = ReviewComment["side"]
 
-export type CommitPrefix = Ok<paths["/api/git-message/prefixes"]["get"]>[number]
-
 export type PullRequestInfo = Ok<paths["/api/github/pulls"]["get"]>[number]
 
 export type ThreadSummary = Ok<paths["/api/threads"]["get"]>[number]
@@ -48,12 +46,11 @@ export type AgentKind = Thread["agent"]
 export type DocSummary = Ok<paths["/api/docs"]["get"]>[number]
 export type Doc = Ok<paths["/api/docs/{id}"]["get"]>
 
-export type KanbanBoard = Ok<paths["/api/kanban"]["get"]>
-export type KanbanCard = KanbanBoard["cards"][number]
-export type KanbanColumn = KanbanCard["column"]
+export type TasksBoard = Ok<paths["/api/tasks/board"]["get"]>
+export type TasksCard = TasksBoard["cards"][number]
+export type TasksColumn = TasksCard["column"]
 
-export type DevCommandView =
-  Ok<paths["/api/local-dev/commands"]["get"]>[number]
+export type DevCommandView = Ok<paths["/api/local-dev/commands"]["get"]>[number]
 export type DevCommand = Ok<paths["/api/local-dev/commands/{id}"]["get"]>
 /** Runtime state of a dev command's process. */
 export type DevCommandStatus = DevCommandView["status"]
@@ -81,7 +78,7 @@ export const emptyLogQuery: LogQuery = {
 
 /**
  * The top-level IDE modes (also the top-level route segments). The first three
- * are the git-review modes (rendered by AppShell); threads/docs/kanban are the
+ * are the git-review modes (rendered by AppShell); threads/docs/tasks are the
  * workspace modes (rendered by WorkspaceShell).
  */
 export type AppMode =
@@ -90,7 +87,7 @@ export type AppMode =
   | "browse"
   | "threads"
   | "docs"
-  | "kanban"
+  | "tasks"
   | "local-dev"
 
 /** What the center pane is currently diffing. */

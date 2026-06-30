@@ -18,7 +18,11 @@ export const DevCommand = Schema.Struct({
 export type DevCommand = typeof DevCommand.Type
 
 /** Runtime state of a command's process. */
-export const DevCommandStatus = Schema.Literals(["stopped", "running", "exited"])
+export const DevCommandStatus = Schema.Literals([
+  "stopped",
+  "running",
+  "exited",
+])
 export type DevCommandStatus = typeof DevCommandStatus.Type
 
 /** A command definition plus its live runtime status, returned to the SPA. */

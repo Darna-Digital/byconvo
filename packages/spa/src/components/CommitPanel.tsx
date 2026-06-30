@@ -1,12 +1,23 @@
 import { IconLoader2, IconSparkles } from "@tabler/icons-react"
-import { useMemo, useState, type ReactNode } from "react"
+import { useMemo, useState } from "react"
 import { ResizeHandle } from "@/components/layout/ResizeHandle"
+import { agentIcon } from "@/components/threads/agent-icons"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { AGENTS, agentLabel } from "@/features/threads/entity/agents"
 import type { GitFileStatus, GitStatusEntry } from "@/lib/api/types"
-import { setUiPrefs, useUiPrefs } from "@/lib/ui-prefs"
+import { setUiPrefs, useUiPrefs, type CommitAgent } from "@/lib/ui-prefs"
 import { cn } from "@/lib/utils"
+
+/** Agents that can draft a message — every kind except the plain terminal. */
+const COMMIT_AGENTS = AGENTS.filter((a) => a.kind !== "terminal")
 
 interface CommitPanelProps {
   changes: ReadonlyArray<GitStatusEntry>
@@ -16,10 +27,11 @@ interface CommitPanelProps {
     paths: ReadonlyArray<string>,
     andPush: boolean
   ) => Promise<unknown>
-  /** Draft a commit message for the chosen paths (local Claude Code, Haiku). */
-  onGenerate?: (paths: ReadonlyArray<string>) => Promise<string | null>
-  /** Optional control rendered beside Generate (e.g. the prefix manager). */
-  prefixSlot?: ReactNode
+  /** Draft a commit message for the chosen paths with the chosen agent CLI. */
+  onGenerate?: (
+    paths: ReadonlyArray<string>,
+    agent: CommitAgent
+  ) => Promise<string | null>
 }
 
 const STATUS_COLOR: Record<GitFileStatus, string> = {
@@ -45,9 +57,8 @@ export function CommitPanel({
   busy,
   onCommit,
   onGenerate,
-  prefixSlot,
 }: CommitPanelProps) {
-  const { commitFilesHeight, commitMessageHeight } = useUiPrefs()
+  const { commitFilesHeight, commitMessageHeight, commitAgent } = useUiPrefs()
   // Live heights for smooth dragging; committed back to prefs on release.
   const [filesHeight, setFilesHeight] = useState(commitFilesHeight)
   const [messageHeight, setMessageHeight] = useState(commitMessageHeight)
@@ -112,12 +123,14 @@ export function CommitPanel({
     if (!canGenerate || onGenerate === undefined) return
     setGenerating(true)
     try {
-      const generated = await onGenerate(chosen)
+      const generated = await onGenerate(chosen, commitAgent)
       if (generated !== null && generated.length > 0) setMessage(generated)
     } finally {
       setGenerating(false)
     }
   }
+
+  const AgentGlyph = agentIcon(commitAgent)
 
   return (
     <div className="flex shrink-0 flex-col border-t">
@@ -189,27 +202,49 @@ export function CommitPanel({
                 void commit(false)
             }}
           />
-          {(onGenerate !== undefined || prefixSlot !== undefined) && (
+          {onGenerate !== undefined && (
             <div className="absolute right-1.5 bottom-1.5 flex items-center gap-1">
-              {prefixSlot}
-              {onGenerate !== undefined && (
-                <Button
-                  type="button"
+              {/* Pick which local agent CLI drafts the message. */}
+              <Select
+                value={commitAgent}
+                onValueChange={(v) => v && setUiPrefs({ commitAgent: v })}
+              >
+                <SelectTrigger
                   size="sm"
-                  variant="ghost"
-                  className="h-6 gap-1 px-2 text-xs text-muted-foreground"
-                  disabled={!canGenerate}
-                  title="Generate a commit message with Claude (Haiku)"
-                  onClick={() => void generate()}
+                  className="h-6 w-auto gap-1 rounded-md border-0 bg-transparent px-1.5 text-xs text-muted-foreground shadow-none hover:bg-muted"
+                  aria-label="Commit message agent"
+                  title={`Draft with ${agentLabel(commitAgent)}`}
                 >
-                  {generating ? (
-                    <IconLoader2 className="size-3.5 animate-spin" />
-                  ) : (
-                    <IconSparkles className="size-3.5" />
-                  )}
-                  {generating ? "Generating..." : "Generate"}
-                </Button>
-              )}
+                  <AgentGlyph className="size-3.5 shrink-0" />
+                </SelectTrigger>
+                <SelectContent align="end">
+                  {COMMIT_AGENTS.map((a) => {
+                    const Icon = agentIcon(a.kind)
+                    return (
+                      <SelectItem key={a.kind} value={a.kind}>
+                        <Icon className="size-4 shrink-0 text-muted-foreground" />
+                        {a.label}
+                      </SelectItem>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-6 gap-1 px-2 text-xs text-muted-foreground"
+                disabled={!canGenerate}
+                title={`Generate a commit message with ${agentLabel(commitAgent)}`}
+                onClick={() => void generate()}
+              >
+                {generating ? (
+                  <IconLoader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <IconSparkles className="size-3.5" />
+                )}
+                {generating ? "Generating..." : "Generate"}
+              </Button>
             </div>
           )}
         </div>

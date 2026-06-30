@@ -144,8 +144,7 @@ const ensureLiveTerminal = (
     ws.onerror = () => setError("connection failed")
 
     const dataSub = term.onData((data) => {
-      if (ws.readyState === WebSocket.OPEN)
-        ws.send(JSON.stringify({ d: data }))
+      if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ d: data }))
     })
     const titleSub = term.onTitleChange((t) => {
       live.lastTitle = t

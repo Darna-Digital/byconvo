@@ -100,7 +100,13 @@ export function DocsPage() {
 
   const removeDoc = async (id: string) => {
     if (!window.confirm("Delete this plan?")) return
-    await actions.remove(id)
+    try {
+      await actions.remove(id)
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "could not delete plan"
+      )
+    }
   }
 
   return (

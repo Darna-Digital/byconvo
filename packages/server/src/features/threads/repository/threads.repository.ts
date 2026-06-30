@@ -17,11 +17,16 @@ import type {
 export interface CreateThreadInput {
   readonly title: string
   readonly agent: AgentKind
+  readonly branch: string
   readonly taskKey: string | null
+  /** Typed into the agent once it starts (e.g. a task + comment), then cleared. */
+  readonly initialPrompt: string
 }
 
 export interface RenameThreadInput {
   readonly title: string
+  /** `undefined` leaves the branch untouched. */
+  readonly branch?: string
   /** `undefined` leaves the link untouched; `null` clears it. */
   readonly taskKey?: string | null
 }

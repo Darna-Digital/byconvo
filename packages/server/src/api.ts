@@ -8,7 +8,7 @@ import { CommentsApi } from "./features/comments/http/comments.api.ts"
 import { DocsApi } from "./features/docs/http/docs.api.ts"
 import { GitMessageApi } from "./features/git-message/http/git-message.api.ts"
 import { GitHubApi } from "./features/github/http/github.api.ts"
-import { KanbanApi } from "./features/kanban/http/kanban.api.ts"
+import { TasksApi } from "./features/tasks/http/tasks.api.ts"
 import { LocalDevApi } from "./features/local-dev/http/local-dev.api.ts"
 import { RepoApi } from "./features/repo/http/repo.api.ts"
 import { ThreadsApi } from "./features/threads/http/threads.api.ts"
@@ -22,6 +22,6 @@ export class Api extends HttpApi.make("byconvo")
   .add(GitMessageApi)
   .add(ThreadsApi)
   .add(DocsApi)
-  .add(KanbanApi)
+  .add(TasksApi)
   .add(LocalDevApi)
   .prefix("/api") {}

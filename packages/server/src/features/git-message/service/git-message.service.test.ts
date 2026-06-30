@@ -1,45 +1,51 @@
 import { it } from "@effect/vitest"
 import { Effect, Layer } from "effect"
 import { describe, expect } from "vitest"
-import { ClaudeExec } from "../../../layers/claude/claude-exec.ts"
 import { GitExec } from "../../../layers/git/git-exec.ts"
+import {
+  memoryLayer as terminalMemory,
+  type TerminalResult,
+} from "../../../layers/terminal/terminal-exec.ts"
 import { GitMessageMemory } from "../layer/git-message.layer.memory.ts"
 import { GitMessageService } from "./git-message.service.ts"
 
-/** A GitExec stub whose `git diff` returns `diff` and `ls-files` returns []. */
-const gitWith = (diff: string) =>
+/**
+ * A GitExec stub: `git diff` returns `diff`, `rev-parse` returns `branch`, and
+ * `ls-files` (via `lines`) returns nothing.
+ */
+const gitWith = (diff: string, branch = "main") =>
   Layer.effect(GitExec)(
     Effect.succeed(
       GitExec.of({
-        run: () => Effect.succeed(diff),
+        run: (...args) =>
+          Effect.succeed(args[0] === "rev-parse" ? branch : diff),
         runVerbose: () => Effect.succeed(""),
         lines: () => Effect.succeed([]),
       })
     )
   )
 
-/** A ClaudeExec stub. By default it echoes the prompt so tests can inspect it. */
-const claudeReturning = (reply?: string) =>
-  Layer.effect(ClaudeExec)(
-    Effect.succeed(
-      ClaudeExec.of({
-        prompt: (text) => Effect.succeed(reply ?? text),
-      })
-    )
-  )
+/** A TerminalExec stub. By default it echoes the command so tests can inspect
+ * the prompt; pass a result to drive success/quotes/failure. */
+const agentReturning = (result?: Partial<TerminalResult>) =>
+  terminalMemory((command) => ({
+    stdout: result?.stdout ?? command,
+    stderr: result?.stderr ?? "",
+    exitCode: result?.exitCode ?? 0,
+  }))
 
 describe("GitMessageService", () => {
   it.effect("generate drafts a message from the diff", () =>
     Effect.gen(function* () {
       const svc = yield* GitMessageService
-      const message = yield* svc.generate([])
-      expect(message).toBe("feat: do the thing")
+      const message = yield* svc.generate([], "claude")
+      expect(message).toBe("Add the thing\n\n- did the thing")
     }).pipe(
       Effect.provide(GitMessageMemory()),
       Effect.provide(
         Layer.mergeAll(
           gitWith("diff --git a b"),
-          claudeReturning("feat: do the thing")
+          agentReturning({ stdout: "Add the thing\n\n- did the thing" })
         )
       )
     )
@@ -48,58 +54,61 @@ describe("GitMessageService", () => {
   it.effect("generate cleans wrapping quotes from the model output", () =>
     Effect.gen(function* () {
       const svc = yield* GitMessageService
-      const message = yield* svc.generate([])
-      expect(message).toBe("fix: trim it")
+      const message = yield* svc.generate([], "claude")
+      expect(message).toBe("trim it")
     }).pipe(
       Effect.provide(GitMessageMemory()),
       Effect.provide(
-        Layer.mergeAll(gitWith("some diff"), claudeReturning("'fix: trim it'"))
+        Layer.mergeAll(
+          gitWith("some diff"),
+          agentReturning({ stdout: "'trim it'" })
+        )
       )
     )
   )
 
-  it.effect("generate steers the prompt with saved prefixes", () =>
+  it.effect("generate prepends the branch issue slug to the prompt", () =>
     Effect.gen(function* () {
       const svc = yield* GitMessageService
-      // claude echoes the prompt, so the result should mention the prefix.
-      const prompt = yield* svc.generate([])
-      expect(prompt).toContain("DAR-144:")
+      // The terminal stub echoes the command (which embeds the prompt), so the
+      // slug instruction should be visible in the result.
+      const echoed = yield* svc.generate([], "claude")
+      expect(echoed).toContain("DAR-144")
     }).pipe(
+      Effect.provide(GitMessageMemory()),
       Effect.provide(
-        GitMessageMemory([
-          { id: "p1", value: "DAR-144:", description: "current ticket" },
-        ])
-      ),
-      Effect.provide(Layer.mergeAll(gitWith("some diff"), claudeReturning()))
+        Layer.mergeAll(
+          gitWith("some diff", "feature/DAR-144-add-thing"),
+          agentReturning()
+        )
+      )
     )
   )
 
   it.effect("generate fails when there are no changes", () =>
     Effect.gen(function* () {
       const svc = yield* GitMessageService
-      const result = yield* Effect.exit(svc.generate([]))
+      const result = yield* Effect.exit(svc.generate([], "claude"))
       expect(result._tag).toBe("Failure")
     }).pipe(
       Effect.provide(GitMessageMemory()),
-      Effect.provide(Layer.mergeAll(gitWith(""), claudeReturning()))
+      Effect.provide(Layer.mergeAll(gitWith(""), agentReturning()))
     )
   )
 
-  it.effect("prefixes can be added, updated and removed", () =>
+  it.effect("generate fails when the agent CLI exits non-zero", () =>
     Effect.gen(function* () {
       const svc = yield* GitMessageService
-      const created = yield* svc.addPrefix("feat:", "a feature")
-      expect((yield* svc.prefixes).map((p) => p.value)).toEqual(["feat:"])
-
-      const updated = yield* svc.updatePrefix(created.id, "fix:", null)
-      expect(updated.value).toBe("fix:")
-      expect(updated.description).toBeNull()
-
-      yield* svc.removePrefix(created.id)
-      expect(yield* svc.prefixes).toEqual([])
+      const result = yield* Effect.exit(svc.generate([], "opencode"))
+      expect(result._tag).toBe("Failure")
     }).pipe(
       Effect.provide(GitMessageMemory()),
-      Effect.provide(Layer.mergeAll(gitWith(""), claudeReturning()))
+      Effect.provide(
+        Layer.mergeAll(
+          gitWith("some diff"),
+          agentReturning({ exitCode: 1, stderr: "command not found" })
+        )
+      )
     )
   )
 })
