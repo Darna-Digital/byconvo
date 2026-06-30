@@ -17,10 +17,12 @@
  */
 import { useEffect, useRef, useState } from "react"
 import { ptySocketUrl } from "@/lib/api/client"
+import { attachImageDrop } from "@/lib/terminal/image-drop"
+import { mountTerminal, type TerminalTheme } from "@/lib/terminal/xterm-engine"
 import type { AgentKind } from "@/lib/api/types"
 import "@xterm/xterm/css/xterm.css"
 
-type Theme = "light" | "dark"
+type Theme = TerminalTheme
 type Status = "connecting" | "open" | "closed"
 
 /** A terminal session that outlives any single React mount. */
@@ -33,6 +35,8 @@ interface LiveTerminal {
   onState: ((s: { status: Status; error: string | null }) => void) | null
   onTitle: ((title: string) => void) | null
   onBell: (() => void) | null
+  /** Drag-over affordance — shown by the mounted view while a file hovers. */
+  onDrag: ((dragging: boolean) => void) | null
   fit: () => void
   focus: () => void
   resize: () => void
@@ -41,11 +45,6 @@ interface LiveTerminal {
 }
 
 const registry = new Map<string, LiveTerminal>()
-
-const themeColors = (theme: Theme) =>
-  theme === "dark"
-    ? { background: "#0a0a0a", foreground: "#e5e5e5", cursor: "#e5e5e5" }
-    : { background: "#ffffff", foreground: "#171717", cursor: "#171717" }
 
 /**
  * Get (or lazily create) the persistent terminal for a thread. Creating one
@@ -70,6 +69,7 @@ const ensureLiveTerminal = (
     onState: null,
     onTitle: null,
     onBell: null,
+    onDrag: null,
     fit: () => {},
     focus: () => {},
     resize: () => {},
@@ -89,34 +89,12 @@ const ensureLiveTerminal = (
 
   // The engine is imported lazily so it never runs during SSR/prerender.
   void (async () => {
-    const [{ Terminal: XTerm }, { FitAddon }] = await Promise.all([
-      import("@xterm/xterm"),
-      import("@xterm/addon-fit"),
-    ])
-    if (registry.get(id) !== live) return // disposed before the engine loaded
-
-    const term = new XTerm({
-      fontFamily:
-        'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
-      fontSize: 12,
-      cursorBlink: true,
-      allowProposedApi: true,
-      theme: themeColors(theme),
-    })
-    const fit = new FitAddon()
-    term.loadAddon(fit)
-    term.open(host)
-
-    const safeFit = () => {
-      if (host.clientWidth > 0 && host.clientHeight > 0) {
-        try {
-          fit.fit()
-        } catch {
-          // host detaching
-        }
-      }
+    const mounted = await mountTerminal(host, theme)
+    if (registry.get(id) !== live) {
+      mounted.dispose() // disposed before the engine loaded
+      return
     }
-    safeFit()
+    const { term, safeFit } = mounted
 
     const ws = new WebSocket(
       ptySocketUrl({ id, agent, cols: term.cols, rows: term.rows })
@@ -152,6 +130,14 @@ const ensureLiveTerminal = (
     })
     const bellSub = term.onBell(() => live.onBell?.())
 
+    // Drop an image onto the terminal to hand its path to the agent, like the
+    // Claude Code CLI in a native terminal (the server saves it and types the
+    // path — see pty-socket.ts).
+    const detachDrop = attachImageDrop(host, {
+      getSocket: () => ws,
+      onDragState: (dragging) => live.onDrag?.(dragging),
+    })
+
     const observer = new ResizeObserver(() => {
       safeFit()
       sendResize()
@@ -161,11 +147,10 @@ const ensureLiveTerminal = (
     live.fit = safeFit
     live.focus = () => term.focus()
     live.resize = sendResize
-    live.setTheme = (next) => {
-      term.options.theme = themeColors(next)
-    }
+    live.setTheme = (next) => mounted.setTheme(next)
     live.dispose = () => {
       observer.disconnect()
+      detachDrop()
       dataSub.dispose()
       titleSub.dispose()
       bellSub.dispose()
@@ -174,7 +159,7 @@ const ensureLiveTerminal = (
       } catch {
         // already closing
       }
-      term.dispose()
+      mounted.dispose()
       host.remove()
     }
     safeFit()
@@ -211,6 +196,7 @@ export function Terminal({
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [status, setStatus] = useState<Status>("connecting")
   const [error, setError] = useState<string | null>(null)
+  const [dragging, setDragging] = useState(false)
 
   // Adopt (or create) the persistent terminal for this thread and attach its host
   // element. On unmount we detach the host but keep the session alive.
@@ -221,6 +207,7 @@ export function Terminal({
 
     live.onTitle = onTitle ?? null
     live.onBell = onBell ?? null
+    live.onDrag = setDragging
     live.onState = ({ status: s, error: e }) => {
       setStatus(s)
       setError(e)
@@ -241,7 +228,9 @@ export function Terminal({
       cancelAnimationFrame(raf)
       live.onTitle = null
       live.onBell = null
+      live.onDrag = null
       live.onState = null
+      setDragging(false)
       // Detach but keep the session alive. (React also removes `container`;
       // pulling the host out first guarantees it isn't torn down with it.)
       if (live.host.parentNode === container) container.removeChild(live.host)
@@ -270,6 +259,11 @@ export function Terminal({
   return (
     <div className="relative h-full min-h-0 w-full">
       <div ref={containerRef} className="h-full w-full" />
+      {dragging && (
+        <div className="pointer-events-none absolute inset-1 z-10 flex items-center justify-center rounded-md border-2 border-dashed border-primary bg-primary/10 text-sm font-medium text-foreground">
+          Drop an image to attach it
+        </div>
+      )}
       {error !== null ? (
         <div className="absolute inset-x-0 bottom-0 bg-destructive/10 px-3 py-1.5 text-xs text-destructive">
           {error}

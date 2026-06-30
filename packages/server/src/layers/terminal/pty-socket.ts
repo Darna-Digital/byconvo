@@ -13,6 +13,7 @@
  * Wire protocol — JSON text frames both directions:
  *   client → server: { d: string }           // keystrokes / input
  *                     { r: { cols, rows } }   // resize
+ *                     { img: { name, data } } // dropped image (base64) → path
  *   server → client: { d: string }            // terminal output
  *                     { exit: number }         // process exited (then close)
  *                     { error: string }        // could not start the program
@@ -21,13 +22,15 @@ import { randomUUID } from "node:crypto"
 import {
   chmodSync,
   existsSync,
+  mkdirSync,
   readFileSync,
   statSync,
   writeFileSync,
 } from "node:fs"
 import { createRequire } from "node:module"
 import type { IncomingMessage, Server } from "node:http"
-import { dirname, join } from "node:path"
+import { tmpdir } from "node:os"
+import { dirname, extname, join } from "node:path"
 import type { Duplex } from "node:stream"
 import type { IPty } from "node-pty"
 import type * as NodePtyModule from "node-pty"
@@ -131,6 +134,58 @@ const parseAgent = (value: string | null): AgentKind =>
 const send = (ws: WebSocket, message: unknown) => {
   if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(message))
 }
+
+// Dropped images are decoded to a temp file whose path is typed into the PTY,
+// mirroring how a native terminal hands a dragged file's path to the program
+// (the Claude Code CLI then reads the image). Cap the size so a stray huge frame
+// can't exhaust memory/disk; keep only known image extensions.
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024
+const IMAGE_EXTS = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".bmp",
+  ".svg",
+  ".avif",
+])
+
+/**
+ * Decode a base64 image into a temp file and return its absolute path, or null
+ * if it's too large or not a recognised image. Best-effort: any fs error yields
+ * null so a bad drop never breaks the session.
+ */
+const saveDroppedImage = (name: unknown, data: unknown): string | null => {
+  if (typeof data !== "string" || data.length === 0) return null
+  const rawName = typeof name === "string" ? name : ""
+  const ext = extname(rawName).toLowerCase()
+  if (!IMAGE_EXTS.has(ext)) return null
+  let bytes: Buffer
+  try {
+    bytes = Buffer.from(data, "base64")
+  } catch {
+    return null
+  }
+  if (bytes.length === 0 || bytes.length > MAX_IMAGE_BYTES) return null
+  try {
+    const dir = join(tmpdir(), "byconvo-dropped")
+    mkdirSync(dir, { recursive: true })
+    const path = join(dir, `${randomUUID()}${ext}`)
+    writeFileSync(path, bytes)
+    return path
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Format a saved image path as the program should receive it: single-quoted with
+ * a trailing space, so a path with spaces stays one token and the next typed
+ * character doesn't run into it. The path is a UUID + safe extension under a
+ * temp dir, so it never contains a single quote.
+ */
+const droppedPathInput = (path: string): string => `'${path}' `
 
 /**
  * A live PTY kept alive independently of any one WebSocket. The browser tab can
@@ -376,7 +431,11 @@ const attachClient = (
   }
 
   ws.on("message", (raw) => {
-    let msg: { d?: string; r?: { cols: number; rows: number } }
+    let msg: {
+      d?: string
+      r?: { cols: number; rows: number }
+      img?: { name?: unknown; data?: unknown }
+    }
     try {
       msg = JSON.parse(raw.toString())
     } catch {
@@ -391,6 +450,15 @@ const attachClient = (
         )
       } catch {
         // window can race the process exit — ignore a resize on a dead pty
+      }
+    } else if (msg.img) {
+      const path = saveDroppedImage(msg.img.name, msg.img.data)
+      if (path !== null) {
+        try {
+          session.pty.write(droppedPathInput(path))
+        } catch {
+          // pty already gone
+        }
       }
     }
   })
