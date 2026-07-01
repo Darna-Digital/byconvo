@@ -33,10 +33,13 @@ export const ChatsController = HttpApiBuilder.group(Api, "chats", (handlers) =>
       )
     )
     .handle("remove", ({ params }) =>
-      Effect.flatMap(ChatsService, (s) => s.remove(params.id)).pipe(
-        // Tear down the live ACP subprocess (if any) so a deleted chat leaves
-        // no orphaned agent; sessions otherwise outlive their socket.
-        Effect.tap(() => Effect.sync(() => killChatSession(params.id))),
+      // Tear down the live ACP subprocess (if any) FIRST, best-effort, so that
+      // even if the record delete then fails the chat can never leave an
+      // orphaned agent behind; sessions otherwise outlive their socket.
+      Effect.sync(() => killChatSession(params.id)).pipe(
+        Effect.flatMap(() =>
+          Effect.flatMap(ChatsService, (s) => s.remove(params.id))
+        ),
         Effect.as(ok)
       )
     )

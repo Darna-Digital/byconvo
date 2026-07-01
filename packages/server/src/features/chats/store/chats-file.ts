@@ -29,6 +29,7 @@ export const readChats = (repoPath: string): ReadonlyArray<Chat> => {
                 taskKey: null,
                 initialPrompt: "",
                 agentSessionId: null,
+                model: null,
                 messages: [],
                 ...c,
               }

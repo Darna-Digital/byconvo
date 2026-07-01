@@ -4955,6 +4955,7 @@ export interface operations {
             taskKey: string | null
             initialPrompt: string
             agentSessionId: string | null
+            model: string | null
             createdAt: string
             updatedAt: string
             messages: (
@@ -5141,6 +5142,7 @@ export interface operations {
             taskKey: string | null
             initialPrompt: string
             agentSessionId: string | null
+            model: string | null
             createdAt: string
             updatedAt: string
             messages: (
@@ -5386,6 +5388,7 @@ export interface operations {
             taskKey: string | null
             initialPrompt: string
             agentSessionId: string | null
+            model: string | null
             createdAt: string
             updatedAt: string
             messages: (

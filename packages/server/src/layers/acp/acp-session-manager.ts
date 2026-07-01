@@ -18,15 +18,24 @@
  * WS wire protocol (JSON text frames):
  *   client → server: { prompt: { text } } | { cancel: true }
  *                     | { permission: { requestId, optionId } | { requestId, cancelled: true } }
+ *                     | { setAgent: { agent } } | { setModel: { modelId } }
  *   server → client: { t:"snapshot", messages } | { t:"delta", id, role, text }
  *                     | { t:"message", message } | { t:"busy", busy }
+ *                     | { t:"config", agent, model, models }
  *                     | { t:"status", state, detail? } | { t:"error", message }
+ *
+ * Agent and model are chat-level, changeable mid-conversation: switching the
+ * agent tears down its subprocess and spawns the new one (the transcript, being
+ * our own record, is kept for display); switching the model asks the current
+ * agent to `session/set_model`. Each agent advertises its own selectable models.
  */
 import type { WebSocket } from "ws"
 import type {
   ContentBlock,
+  ModelInfo,
   RequestPermissionRequest,
   RequestPermissionResponse,
+  SessionModelState,
   SessionNotification,
 } from "@zed-industries/agent-client-protocol"
 import type {
@@ -34,6 +43,7 @@ import type {
   AcpConnection,
   ConnectFn,
 } from "./acp-connection.ts"
+import { isChatAgent } from "../../features/chats/agents.ts"
 import {
   appendMessage,
   resolvePermission,
@@ -43,21 +53,40 @@ import {
 } from "../../features/chats/store/chats-ops.ts"
 import type {
   Chat,
+  ChatAgent,
   ChatMessage,
   ToolContent,
 } from "../../features/chats/schema/chats.schema.model.ts"
+
+/** A selectable model surfaced to the client (a trimmed ACP `ModelInfo`). */
+export interface ChatModel {
+  readonly modelId: string
+  readonly name: string
+}
 
 export type WsEvent =
   | { t: "snapshot"; messages: ReadonlyArray<ChatMessage> }
   | { t: "delta"; id: string; role: "agent" | "thought"; text: string }
   | { t: "message"; message: ChatMessage }
   | { t: "busy"; busy: boolean }
+  | {
+      t: "config"
+      agent: ChatAgent
+      model: string | null
+      models: ReadonlyArray<ChatModel>
+    }
   | { t: "status"; state: "connecting" | "ready" | "error"; detail?: string }
   | { t: "error"; message: string }
 
 export interface PersistUpdate {
   readonly messages: ReadonlyArray<ChatMessage>
   readonly agentSessionId: string | null
+  /** The (usually cleared) one-shot initial prompt, so consuming it sticks. */
+  readonly initialPrompt: string
+  /** The current agent (may change mid-conversation). */
+  readonly agent: ChatAgent
+  /** The user's model override for the current agent, or null for its default. */
+  readonly model: string | null
 }
 
 export interface AcpManagerDeps {
@@ -79,8 +108,14 @@ export interface AcpSessionManager {
   readonly attach: (chatId: string, ws: WebSocket) => void
   /** Cancel the in-flight turn for a chat, if any. */
   readonly cancel: (chatId: string) => void
+  /** Switch the chat's agent (restarts the ACP session, keeps the transcript). */
+  readonly setAgent: (chatId: string, agent: ChatAgent) => void
+  /** Select a model for the chat's current agent. */
+  readonly setModel: (chatId: string, modelId: string) => void
   /** Kill the agent subprocess and forget the chat (on delete). */
   readonly kill: (chatId: string) => void
+  /** Kill every live agent subprocess (server shutdown), leaving no orphans. */
+  readonly killAll: () => void
   /** Live turn state, for tests. */
   readonly isBusy: (chatId: string) => boolean
 }
@@ -101,6 +136,10 @@ interface AcpSession {
   client: WebSocket | null
   openAgentId: string | null
   openThoughtId: string | null
+  /** Models the current agent advertises as selectable (may be empty). */
+  models: ReadonlyArray<ChatModel>
+  /** The model the agent is currently using (its default, or the user's pick). */
+  currentModelId: string | null
   /** requestId → resolver for an in-flight permission ask. */
   readonly pendingPermissions: Map<
     string,
@@ -188,7 +227,45 @@ export const createAcpSessionManager = (
     deps.persist(session.chatId, session.repoPath, {
       messages: session.chat.messages,
       agentSessionId: session.chat.agentSessionId,
+      initialPrompt: session.chat.initialPrompt,
+      agent: session.chat.agent,
+      model: session.chat.model,
     })
+
+  const emitConfig = (session: AcpSession) =>
+    emit(session, {
+      t: "config",
+      agent: session.chat.agent,
+      model: session.currentModelId,
+      models: session.models,
+    })
+
+  /**
+   * Adopt the model state an agent advertises on session start. If the chat
+   * carries a user model override that differs, ask the agent to switch to it.
+   */
+  const applyModelState = (
+    session: AcpSession,
+    state: SessionModelState | null
+  ) => {
+    session.models =
+      state?.availableModels.map((m: ModelInfo) => ({
+        modelId: m.modelId,
+        name: m.name,
+      })) ?? []
+    session.currentModelId = state?.currentModelId ?? null
+    const override = session.chat.model
+    if (
+      override !== null &&
+      override !== session.currentModelId &&
+      session.conn !== null &&
+      session.chat.agentSessionId !== null
+    ) {
+      session.conn.setModel(session.chat.agentSessionId, override)
+      session.currentModelId = override
+    }
+    emitConfig(session)
+  }
 
   /** Append a structural message, stream it, and persist. */
   const commit = (session: AcpSession, message: ChatMessage) => {
@@ -419,19 +496,21 @@ export const createAcpSessionManager = (
           // (we already hold the transcript) by loading with `loading` set.
           session.loading = true
           try {
-            await conn.loadSession(
+            const res = await conn.loadSession(
               session.chat.agentSessionId,
               session.repoPath
             )
+            applyModelState(session, res.models)
           } finally {
             session.loading = false
           }
         } else {
           // Fresh session (or an agent that can't resume). Keep the persisted
           // transcript for display; mint a new ACP session id going forward.
-          const { sessionId } = await conn.newSession(session.repoPath)
+          const { sessionId, models } = await conn.newSession(session.repoPath)
           session.chat = setAgentSessionId(session.chat, sessionId, now())
           flush(session)
+          applyModelState(session, models)
         }
         session.connectError = null
         emit(session, { t: "status", state: "ready" })
@@ -531,6 +610,8 @@ export const createAcpSessionManager = (
           optionId?: string
           cancelled?: boolean
         }
+        setAgent?: { agent?: string }
+        setModel?: { modelId?: string }
       }
       try {
         msg = JSON.parse(String(raw))
@@ -552,10 +633,18 @@ export const createAcpSessionManager = (
             ? null
             : (msg.permission.optionId ?? null)
         )
+      } else if (msg.setAgent && typeof msg.setAgent.agent === "string") {
+        setAgent(session, msg.setAgent.agent)
+      } else if (msg.setModel && typeof msg.setModel.modelId === "string") {
+        setModel(session, msg.setModel.modelId)
       }
     })
     ws.on("close", () => {
       // Detach but keep the session (and its agent) alive for a reconnect.
+      // A pending permission request is intentionally NOT cancelled here: the
+      // resolver lives on the session, so a reconnecting client sees the still
+      // pending prompt in the snapshot and can answer it, resuming the turn.
+      // (Abandoned sessions are reaped on chat delete or server shutdown.)
       if (session.client === ws) session.client = null
     })
   }
@@ -569,6 +658,50 @@ export const createAcpSessionManager = (
     ) {
       void session.conn.cancel(session.chat.agentSessionId)
     }
+  }
+
+  /** Switch the chat's agent: tear down the old subprocess, spawn the new one.
+   * The transcript is our own record, so it's kept for display; the new agent
+   * starts a fresh ACP session (its own context) for subsequent turns. */
+  const setAgent = (session: AcpSession, agent: string) => {
+    if (!isChatAgent(agent) || agent === session.chat.agent) return
+    cancelPendingPermissions(session)
+    session.conn?.kill()
+    session.conn = null
+    session.connecting = null
+    session.loadSupported = false
+    session.loading = false
+    session.models = []
+    session.currentModelId = null
+    session.openAgentId = null
+    session.openThoughtId = null
+    session.connectError = null
+    if (session.turnActive) {
+      session.turnActive = false
+      emit(session, { t: "busy", busy: false })
+    }
+    // A new agent means a new (model-less) ACP session; drop the old ids.
+    session.chat = {
+      ...session.chat,
+      agent,
+      agentSessionId: null,
+      model: null,
+      updatedAt: now(),
+    }
+    flush(session)
+    emitConfig(session)
+    void ensureConnected(session)
+  }
+
+  /** Select a model for the current agent (applied live if connected). */
+  const setModel = (session: AcpSession, modelId: string) => {
+    if (session.conn !== null && session.chat.agentSessionId !== null) {
+      session.conn.setModel(session.chat.agentSessionId, modelId)
+    }
+    session.currentModelId = modelId
+    session.chat = { ...session.chat, model: modelId, updatedAt: now() }
+    flush(session)
+    emitConfig(session)
   }
 
   const attach: AcpSessionManager["attach"] = (chatId, ws) => {
@@ -594,6 +727,8 @@ export const createAcpSessionManager = (
         client: null,
         openAgentId: null,
         openThoughtId: null,
+        models: [],
+        currentModelId: null,
         pendingPermissions: new Map(),
       }
       sessions.set(chatId, session)
@@ -602,6 +737,8 @@ export const createAcpSessionManager = (
     session.client = ws
     send(ws, { t: "snapshot", messages: session.chat.messages })
     send(ws, { t: "busy", busy: session.turnActive })
+    // The agent is known immediately; the model list fills in once connected.
+    emitConfig(session)
     send(ws, {
       t: "status",
       state: session.conn !== null ? "ready" : "connecting",
@@ -624,8 +761,30 @@ export const createAcpSessionManager = (
     sessions.delete(chatId)
   }
 
+  const killAll: AcpSessionManager["killAll"] = () => {
+    for (const chatId of [...sessions.keys()]) kill(chatId)
+  }
+
   const isBusy: AcpSessionManager["isBusy"] = (chatId) =>
     sessions.get(chatId)?.turnActive ?? false
 
-  return { attach, cancel, kill, isBusy }
+  const setAgentFor: AcpSessionManager["setAgent"] = (chatId, agent) => {
+    const session = sessions.get(chatId)
+    if (session !== undefined) setAgent(session, agent)
+  }
+
+  const setModelFor: AcpSessionManager["setModel"] = (chatId, modelId) => {
+    const session = sessions.get(chatId)
+    if (session !== undefined) setModel(session, modelId)
+  }
+
+  return {
+    attach,
+    cancel,
+    setAgent: setAgentFor,
+    setModel: setModelFor,
+    kill,
+    killAll,
+    isBusy,
+  }
 }

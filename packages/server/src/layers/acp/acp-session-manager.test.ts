@@ -5,7 +5,10 @@ import {
   type PersistUpdate,
   type WsEvent,
 } from "./acp-session-manager.ts"
-import type { PromptResponse } from "@zed-industries/agent-client-protocol"
+import type {
+  PromptResponse,
+  SessionModelState,
+} from "@zed-industries/agent-client-protocol"
 import type {
   AcpClientHandlers,
   AcpConnection,
@@ -25,6 +28,7 @@ const baseChat = (over: Partial<Chat> = {}): Chat => ({
   taskKey: null,
   initialPrompt: "",
   agentSessionId: null,
+  model: null,
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
   messages: [],
@@ -35,6 +39,7 @@ const baseChat = (over: Partial<Chat> = {}): Chat => ({
 const makeConn = (opts?: {
   loadSession?: boolean
   sessionId?: string
+  models?: SessionModelState | null
   prompt?: (h: AcpClientHandlers, sessionId: string) => Promise<PromptResponse>
 }) => {
   const state: {
@@ -46,18 +51,23 @@ const makeConn = (opts?: {
   }
   const cancel = vi.fn(async () => {})
   const kill = vi.fn(() => {})
+  const setModel = vi.fn()
   const conn: AcpConnection = {
     initialize: async () => ({
       protocolVersion: 1,
       agentCapabilities: { loadSession: opts?.loadSession ?? false },
     }),
-    newSession: async () => ({ sessionId: opts?.sessionId ?? "ses-1" }),
-    loadSession: async () => {},
+    newSession: async () => ({
+      sessionId: opts?.sessionId ?? "ses-1",
+      models: opts?.models ?? null,
+    }),
+    loadSession: async () => ({ models: opts?.models ?? null }),
     prompt: async (sessionId) =>
       opts?.prompt
         ? opts.prompt(state.handlers!, sessionId)
         : { stopReason: "end_turn" },
     cancel,
+    setModel,
     stderr: () => "",
     kill,
   }
@@ -66,7 +76,7 @@ const makeConn = (opts?: {
     state.onExit = onExit
     return conn
   }
-  return { conn, connect, cancel, kill, state }
+  return { conn, connect, cancel, kill, setModel, state }
 }
 
 /** A fake WebSocket capturing sent frames and registered handlers. */
@@ -106,6 +116,9 @@ const harness = (
         ...chat.current,
         messages: [...update.messages],
         agentSessionId: update.agentSessionId,
+        initialPrompt: update.initialPrompt,
+        agent: update.agent,
+        model: update.model,
       }
     },
     now: () => "2026-01-01T00:00:00.000Z",
@@ -344,5 +357,153 @@ describe("AcpSessionManager", () => {
     manager.cancel("c1")
     expect(bundle.cancel).toHaveBeenCalledWith("ses-1")
     deferred.resolve({ stopReason: "cancelled" })
+  })
+
+  it("killAll tears down every live agent subprocess", async () => {
+    const bundle = makeConn()
+    const { manager } = harness(bundle)
+    const viewer = makeFakeWs()
+    manager.attach("c1", viewer.ws)
+    await vi.waitFor(() =>
+      expect(viewer.sent).toContainEqual({ t: "status", state: "ready" })
+    )
+
+    manager.killAll()
+    expect(bundle.kill).toHaveBeenCalledTimes(1)
+    // The session is forgotten; a later attach starts fresh.
+    expect(manager.isBusy("c1")).toBe(false)
+  })
+
+  it("sends a seeded initial prompt once and clears it in the persisted chat", async () => {
+    const bundle = makeConn({
+      prompt: async (h, sid) => {
+        await h.sessionUpdate({
+          sessionId: sid,
+          update: {
+            sessionUpdate: "agent_message_chunk",
+            content: { type: "text", text: "on it" },
+          },
+        })
+        return { stopReason: "end_turn" }
+      },
+    })
+    const { manager, persisted } = harness(
+      bundle,
+      baseChat({ initialPrompt: "do the thing" })
+    )
+    const viewer = makeFakeWs()
+    manager.attach("c1", viewer.ws)
+
+    await vi.waitFor(() => {
+      const tags = lastPersisted(persisted).map((m) => m._tag)
+      expect(tags).toEqual(["user", "agent", "turnEnd"])
+    })
+    const user = lastPersisted(persisted)[0]
+    expect(user._tag === "user" && user.text).toBe("do the thing")
+    // The one-shot prompt is cleared on disk so it never re-sends.
+    expect(persisted[persisted.length - 1]?.initialPrompt).toBe("")
+  })
+
+  it("advertises the agent's models and current selection via config", async () => {
+    const bundle = makeConn({
+      models: {
+        availableModels: [
+          { modelId: "sonnet", name: "Sonnet" },
+          { modelId: "opus", name: "Opus" },
+        ],
+        currentModelId: "sonnet",
+      },
+    })
+    const { manager } = harness(bundle)
+    const viewer = makeFakeWs()
+    manager.attach("c1", viewer.ws)
+
+    await vi.waitFor(() => {
+      const cfg = viewer.sent.find(
+        (e) => e.t === "config" && e.models.length > 0
+      )
+      expect(cfg && cfg.t === "config" && cfg.model).toBe("sonnet")
+    })
+    const cfg = viewer.sent.findLast((e) => e.t === "config")!
+    expect(cfg.t === "config" && cfg.models.map((m) => m.modelId)).toEqual([
+      "sonnet",
+      "opus",
+    ])
+    expect(cfg.t === "config" && cfg.agent).toBe("claude")
+  })
+
+  it("setModel asks the agent to switch and persists the choice", async () => {
+    const bundle = makeConn({
+      models: {
+        availableModels: [
+          { modelId: "sonnet", name: "Sonnet" },
+          { modelId: "opus", name: "Opus" },
+        ],
+        currentModelId: "sonnet",
+      },
+    })
+    const { manager, persisted } = harness(bundle)
+    const viewer = makeFakeWs()
+    manager.attach("c1", viewer.ws)
+    await vi.waitFor(() =>
+      expect(viewer.sent).toContainEqual({ t: "status", state: "ready" })
+    )
+
+    viewer.message({ setModel: { modelId: "opus" } })
+
+    expect(bundle.setModel).toHaveBeenCalledWith("ses-1", "opus")
+    await vi.waitFor(() =>
+      expect(persisted[persisted.length - 1]?.model).toBe("opus")
+    )
+    const cfg = viewer.sent.findLast((e) => e.t === "config")!
+    expect(cfg.t === "config" && cfg.model).toBe("opus")
+  })
+
+  it("setAgent restarts the session with the new agent, keeping the transcript", async () => {
+    const first = makeConn({ sessionId: "ses-claude" })
+    const second = makeConn({ sessionId: "ses-codex" })
+    const conns = [first, second]
+    let idx = 0
+    const persisted: PersistUpdate[] = []
+    const seed = baseChat({
+      messages: [
+        {
+          _tag: "user",
+          id: "m0",
+          text: "hello",
+          createdAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    })
+    const chat = { current: seed }
+    const manager = createAcpSessionManager({
+      connect: (agent, cwd, handlers, onExit) =>
+        conns[idx++].connect(agent, cwd, handlers, onExit),
+      loadChat: () => ({ repoPath: "/repo", chat: chat.current }),
+      persist: (_id, _repo, update) => {
+        persisted.push(update)
+        chat.current = { ...chat.current, agent: update.agent }
+      },
+      now: () => "2026-01-01T00:00:00.000Z",
+    })
+    const viewer = makeFakeWs()
+    manager.attach("c1", viewer.ws)
+    await vi.waitFor(() =>
+      expect(viewer.sent).toContainEqual({ t: "status", state: "ready" })
+    )
+
+    viewer.message({ setAgent: { agent: "codex" } })
+
+    // The old agent is killed and the new one spawned.
+    expect(first.kill).toHaveBeenCalledTimes(1)
+    await vi.waitFor(() =>
+      expect(persisted.some((p) => p.agent === "codex")).toBe(true)
+    )
+    // The transcript (our own record) survives the switch.
+    const snap = viewer.sent.find((e) => e.t === "snapshot")
+    expect(snap && snap.t === "snapshot" && snap.messages.length).toBe(1)
+    // An invalid agent is ignored.
+    viewer.message({ setAgent: { agent: "bogus" } })
+    expect(second.kill).not.toHaveBeenCalled()
   })
 })

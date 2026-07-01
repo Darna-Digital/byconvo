@@ -13,9 +13,14 @@
  */
 import { useCallback, useSyncExternalStore } from "react"
 import { chatSocketUrl } from "@/lib/api/client"
-import type { ChatMessage } from "@/lib/api/types"
+import type { ChatAgent, ChatMessage } from "@/lib/api/types"
 
 type Role = "agent" | "thought"
+
+export interface ChatModel {
+  readonly modelId: string
+  readonly name: string
+}
 
 /** Server → client events (mirrors acp-session-manager.ts `WsEvent`). */
 type WsEvent =
@@ -23,6 +28,12 @@ type WsEvent =
   | { t: "delta"; id: string; role: Role; text: string }
   | { t: "message"; message: ChatMessage }
   | { t: "busy"; busy: boolean }
+  | {
+      t: "config"
+      agent: ChatAgent
+      model: string | null
+      models: ReadonlyArray<ChatModel>
+    }
   | { t: "status"; state: "connecting" | "ready" | "error"; detail?: string }
   | { t: "error"; message: string }
 
@@ -33,6 +44,12 @@ export interface ChatStreamState {
   readonly status: ChatStatus
   readonly busy: boolean
   readonly error: string | null
+  /** The agent driving this chat (null until the first config arrives). */
+  readonly agent: ChatAgent | null
+  /** The current model id, or null for the agent's default. */
+  readonly model: string | null
+  /** The models the current agent advertises as selectable (may be empty). */
+  readonly models: ReadonlyArray<ChatModel>
 }
 
 const EMPTY_STATE: ChatStreamState = {
@@ -40,6 +57,9 @@ const EMPTY_STATE: ChatStreamState = {
   status: "connecting",
   busy: false,
   error: null,
+  agent: null,
+  model: null,
+  models: [],
 }
 
 interface LiveChat {
@@ -85,6 +105,13 @@ const applyEvent = (prev: ChatStreamState, event: WsEvent): ChatStreamState => {
     }
     case "busy":
       return { ...prev, busy: event.busy }
+    case "config":
+      return {
+        ...prev,
+        agent: event.agent,
+        model: event.model,
+        models: [...event.models],
+      }
     case "status":
       return {
         ...prev,
@@ -193,6 +220,14 @@ export const respondChatPermission = (
       ? { permission: { requestId, cancelled: true } }
       : { permission: { requestId, optionId } }
   )
+
+/** Switch the chat's agent (server restarts the ACP session, keeps transcript). */
+export const setChatAgent = (chatId: string, agent: ChatAgent): void =>
+  send(chatId, { setAgent: { agent } })
+
+/** Select a model for the chat's current agent. */
+export const setChatModel = (chatId: string, modelId: string): void =>
+  send(chatId, { setModel: { modelId } })
 
 /** Subscribe a React component to a chat's live transcript. */
 export function useChatStream(chatId: string): ChatStreamState {

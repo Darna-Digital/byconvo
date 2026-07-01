@@ -2,8 +2,9 @@
  * ChatsPage — ACP chats. A sidebar on the left lists every repo-scoped chat
  * (grouped by branch, like terminal threads); the panel on the right shows the
  * selected chat's streaming transcript with a toolbar (title + rename, branch,
- * task link, and the New-chat agent selector). Each chat is a structured
- * conversation with a coding agent (Claude Code / Codex / opencode) over ACP.
+ * task link). A new chat is just a "+"; the agent and model are chosen inside
+ * the chat (see ChatView). Each chat is a structured conversation with a coding
+ * agent (Claude Code / Codex / opencode) over ACP.
  */
 import { IconGitBranch, IconPencil, IconPlus, IconX } from "@tabler/icons-react"
 import { useEffect, useMemo, useState } from "react"
@@ -12,12 +13,6 @@ import { ChatView } from "@/components/chats/ChatView"
 import { ResizeHandle } from "@/components/layout/ResizeHandle"
 import { agentIcon } from "@/components/threads/agent-icons"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -26,7 +21,8 @@ import {
   SelectTrigger,
 } from "@/components/ui/select"
 import { useChatsActions } from "@/features/chats/adapters/chats.hook.adapter"
-import type { ChatAgent, ChatSummary } from "@/lib/api/types"
+import { chatAgentLabel } from "@/features/chats/entity/agents"
+import type { ChatSummary } from "@/lib/api/types"
 import { useBranches, useChats, useRepo, useTasks } from "@/lib/queries"
 import { setUiPrefs, useUiPrefs } from "@/lib/ui-prefs"
 import { cn } from "@/lib/utils"
@@ -34,53 +30,8 @@ import { cn } from "@/lib/utils"
 const NO_TASK = "__none__"
 const ALL_BRANCHES = "__all__"
 
-const CHAT_AGENTS: ReadonlyArray<{
-  kind: ChatAgent
-  label: string
-  hint: string
-}> = [
-  { kind: "claude", label: "Claude Code", hint: "claude-code-acp" },
-  { kind: "codex", label: "Codex", hint: "codex-acp" },
-  { kind: "opencode", label: "opencode", hint: "opencode acp" },
-]
-
-const agentLabel = (agent: ChatAgent) =>
-  CHAT_AGENTS.find((a) => a.kind === agent)?.label ?? agent
-
 const branchLabel = (branch: string) =>
   branch.length > 0 ? branch : "No branch"
-
-function NewChatMenu({
-  onPick,
-  trigger,
-}: {
-  onPick: (agent: ChatAgent) => void
-  trigger: React.ReactElement
-}) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger render={trigger} />
-      <DropdownMenuContent align="end" className="min-w-56">
-        {CHAT_AGENTS.map((agent) => {
-          const Icon = agentIcon(agent.kind)
-          return (
-            <DropdownMenuItem
-              key={agent.kind}
-              onClick={() => onPick(agent.kind)}
-              className="gap-3 whitespace-nowrap"
-            >
-              <Icon className="size-4 shrink-0 text-muted-foreground" />
-              <span className="font-medium">{agent.label}</span>
-              <span className="ml-auto pl-4 text-xs text-muted-foreground">
-                {agent.hint}
-              </span>
-            </DropdownMenuItem>
-          )
-        })}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
 
 export function ChatsPage() {
   const chats = useChats()
@@ -142,9 +93,16 @@ export function ChatsPage() {
   const active = summaries.find((c) => c.id === activeId) ?? null
   const ActiveIcon = agentIcon(active?.agent ?? "claude")
 
-  const createChat = async (agent: ChatAgent) => {
+  // A new chat is just a "+": it starts with the last-used agent, and the agent
+  // and model are chosen inside the chat (see ChatView).
+  const createChat = async () => {
     try {
-      const created = await actions.create(agent, "", null, newChatBranch)
+      const created = await actions.create(
+        prefs.lastChatAgent,
+        "",
+        null,
+        newChatBranch
+      )
       setActiveId(created.id)
     } catch (error) {
       toast.error(
@@ -171,7 +129,8 @@ export function ChatsPage() {
   const linkTask = (id: string, title: string, key: string) =>
     actions.linkTask(id, title, key === NO_TASK ? null : key)
 
-  const subtitleOf = (c: ChatSummary) => c.lastMessage ?? agentLabel(c.agent)
+  const subtitleOf = (c: ChatSummary) =>
+    c.lastMessage ?? chatAgentLabel(c.agent)
 
   const renderRow = (c: ChatSummary) => {
     const Icon = agentIcon(c.agent)
@@ -262,19 +221,15 @@ export function ChatsPage() {
               ))}
             </SelectContent>
           </Select>
-          <NewChatMenu
-            onPick={(a) => void createChat(a)}
-            trigger={
-              <Button
-                size="icon"
-                variant="ghost"
-                className="size-7 shrink-0"
-                aria-label="New chat"
-              >
-                <IconPlus className="size-4" />
-              </Button>
-            }
-          />
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-7 shrink-0"
+            aria-label="New chat"
+            onClick={() => void createChat()}
+          >
+            <IconPlus className="size-4" />
+          </Button>
         </div>
         <div className="min-h-0 flex-1 overflow-auto px-1 pb-2">
           {summaries.length === 0 ? (
@@ -325,14 +280,14 @@ export function ChatsPage() {
             <div className="text-muted-foreground">
               Start a chat with Claude Code, Codex, or opencode.
             </div>
-            <NewChatMenu
-              onPick={(a) => void createChat(a)}
-              trigger={
-                <Button size="sm" variant="outline" className="mt-1">
-                  <IconPlus className="size-4" /> New chat
-                </Button>
-              }
-            />
+            <Button
+              size="sm"
+              variant="outline"
+              className="mt-1"
+              onClick={() => void createChat()}
+            >
+              <IconPlus className="size-4" /> New chat
+            </Button>
           </div>
         ) : (
           <>
@@ -417,19 +372,15 @@ export function ChatsPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <NewChatMenu
-                  onPick={(a) => void createChat(a)}
-                  trigger={
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-7"
-                      aria-label="New chat"
-                    >
-                      <IconPlus className="size-4" />
-                    </Button>
-                  }
-                />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-7"
+                  aria-label="New chat"
+                  onClick={() => void createChat()}
+                >
+                  <IconPlus className="size-4" />
+                </Button>
               </div>
             </header>
 

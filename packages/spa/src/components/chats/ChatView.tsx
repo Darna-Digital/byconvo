@@ -1,24 +1,40 @@
 /**
  * ChatView — the streaming transcript + composer for one ACP chat. Subscribes to
  * the chat's live WebSocket stream (see lib/chat/chat-stream.ts): the server
- * sends a snapshot on connect then message/delta/busy events, and the composer
- * sends prompts, cancels a turn, and answers permission prompts back over it.
+ * sends a snapshot + config on connect then message/delta/busy events, and the
+ * composer sends prompts, cancels a turn, answers permission prompts, and — via
+ * the pickers above the input — switches the agent or model mid-conversation.
  */
 import { IconArrowUp, IconLoader2, IconPlayerStop } from "@tabler/icons-react"
+import { useQueryClient } from "@tanstack/react-query"
 import { useLayoutEffect, useRef, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { ChatMessageView } from "@/components/chats/ChatMessages"
+import { agentIcon } from "@/components/threads/agent-icons"
+import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { CHAT_AGENTS } from "@/features/chats/entity/agents"
+import type { ChatAgent, ChatSummary } from "@/lib/api/types"
 import {
   cancelChatTurn,
   respondChatPermission,
   sendChatPrompt,
+  setChatAgent,
+  setChatModel,
   useChatStream,
 } from "@/lib/chat/chat-stream"
-import type { ChatSummary } from "@/lib/api/types"
+import { setUiPrefs } from "@/lib/ui-prefs"
 
 export function ChatView({ chat }: { chat: ChatSummary }) {
-  const { messages, status, busy, error } = useChatStream(chat.id)
+  const { messages, status, busy, error, agent, model, models } = useChatStream(
+    chat.id
+  )
+  const queryClient = useQueryClient()
   const [draft, setDraft] = useState("")
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const stickToBottom = useRef(true)
@@ -43,6 +59,17 @@ export function ChatView({ chat }: { chat: ChatSummary }) {
     sendChatPrompt(chat.id, text)
     setDraft("")
   }
+
+  const changeAgent = (next: ChatAgent) => {
+    if (next === agent) return
+    setChatAgent(chat.id, next)
+    // Remember the choice for the next "+" and refresh the sidebar's agent icon.
+    setUiPrefs({ lastChatAgent: next })
+    void queryClient.invalidateQueries({ queryKey: ["get", "/api/chats"] })
+  }
+
+  // The agent picker reflects the live agent once config arrives, else the row.
+  const activeAgent: ChatAgent = agent ?? chat.agent
 
   const empty = messages.length === 0
 
@@ -86,41 +113,102 @@ export function ChatView({ chat }: { chat: ChatSummary }) {
       )}
 
       <div className="border-t p-3">
-        <div className="mx-auto flex max-w-3xl items-end gap-2">
-          <Textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault()
-                submit()
-              }
-            }}
-            rows={1}
-            placeholder={`Message ${chat.title}…`}
-            className="max-h-48"
-          />
-          {busy ? (
-            <Button
-              size="icon"
-              variant="outline"
-              className="size-9 shrink-0 rounded-full"
-              aria-label="Stop"
-              onClick={() => cancelChatTurn(chat.id)}
+        <div className="mx-auto max-w-3xl">
+          {/* Agent + model pickers — choose the agent, and a model within it
+              (only agents that advertise models over ACP show a model list). */}
+          <div className="mb-1.5 flex items-center gap-1.5">
+            <Select
+              value={activeAgent}
+              onValueChange={(v) => changeAgent(v as ChatAgent)}
             >
-              <IconPlayerStop className="size-4" />
-            </Button>
-          ) : (
-            <Button
-              size="icon"
-              className="size-9 shrink-0 rounded-full"
-              aria-label="Send"
-              disabled={draft.trim().length === 0}
-              onClick={submit}
-            >
-              <IconArrowUp className="size-4" />
-            </Button>
-          )}
+              <SelectTrigger
+                size="sm"
+                className="h-7 w-auto gap-1.5"
+                aria-label="Agent"
+              >
+                {(() => {
+                  const Icon = agentIcon(activeAgent)
+                  return (
+                    <Icon className="size-3.5 shrink-0 text-muted-foreground" />
+                  )
+                })()}
+              </SelectTrigger>
+              <SelectContent>
+                {CHAT_AGENTS.map((a) => {
+                  const Icon = agentIcon(a.kind)
+                  return (
+                    <SelectItem key={a.kind} value={a.kind}>
+                      <span className="flex items-center gap-2">
+                        <Icon className="size-4 shrink-0 text-muted-foreground" />
+                        {a.label}
+                      </span>
+                    </SelectItem>
+                  )
+                })}
+              </SelectContent>
+            </Select>
+
+            {models.length > 0 && (
+              <Select
+                value={model ?? ""}
+                onValueChange={(v) => v && setChatModel(chat.id, v)}
+              >
+                <SelectTrigger
+                  size="sm"
+                  className="h-7 w-auto max-w-56 gap-1.5"
+                  aria-label="Model"
+                >
+                  <span className="truncate">
+                    {models.find((m) => m.modelId === model)?.name ?? "Model"}
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  {models.map((m) => (
+                    <SelectItem key={m.modelId} value={m.modelId}>
+                      {m.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          <div className="flex items-end gap-2">
+            <Textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault()
+                  submit()
+                }
+              }}
+              rows={1}
+              placeholder={`Message ${chat.title}…`}
+              className="max-h-48"
+            />
+            {busy ? (
+              <Button
+                size="icon"
+                variant="outline"
+                className="size-9 shrink-0 rounded-full"
+                aria-label="Stop"
+                onClick={() => cancelChatTurn(chat.id)}
+              >
+                <IconPlayerStop className="size-4" />
+              </Button>
+            ) : (
+              <Button
+                size="icon"
+                className="size-9 shrink-0 rounded-full"
+                aria-label="Send"
+                disabled={draft.trim().length === 0}
+                onClick={submit}
+              >
+                <IconArrowUp className="size-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

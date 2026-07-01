@@ -184,6 +184,9 @@ export const Chat = Schema.Struct({
    * `session/load` after the subprocess is gone (server restart / app reopen).
    * null until the first session is created. */
   agentSessionId: Schema.NullOr(Schema.String),
+  /** The selected model id for the current agent (null → the agent's default).
+   * Reset when the agent changes, since models are agent-specific. */
+  model: Schema.NullOr(Schema.String),
   createdAt: Schema.String,
   updatedAt: Schema.String,
   messages: Schema.Array(ChatMessage),

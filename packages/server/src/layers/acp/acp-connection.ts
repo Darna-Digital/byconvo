@@ -9,7 +9,7 @@
  * `spawn`.
  */
 import { spawn } from "node:child_process"
-import { Readable, Writable } from "node:stream"
+import { Readable } from "node:stream"
 import {
   ClientSideConnection,
   ndJsonStream,
@@ -22,6 +22,7 @@ import {
   type ReadTextFileResponse,
   type RequestPermissionRequest,
   type RequestPermissionResponse,
+  type SessionModelState,
   type SessionNotification,
   type WriteTextFileRequest,
   type WriteTextFileResponse,
@@ -42,10 +43,18 @@ export interface AcpClientHandlers {
 /** What the manager needs from a live agent connection. */
 export interface AcpConnection {
   initialize: () => Promise<InitializeResponse>
-  newSession: (cwd: string) => Promise<{ sessionId: string }>
-  loadSession: (sessionId: string, cwd: string) => Promise<void>
+  newSession: (
+    cwd: string
+  ) => Promise<{ sessionId: string; models: SessionModelState | null }>
+  loadSession: (
+    sessionId: string,
+    cwd: string
+  ) => Promise<{ models: SessionModelState | null }>
   prompt: (sessionId: string, blocks: ContentBlock[]) => Promise<PromptResponse>
   cancel: (sessionId: string) => Promise<void>
+  /** Select a model for the session. Sends `session/set_model` directly (see
+   * spawnAcpConnection) to sidestep an SDK bug. Fire-and-forget. */
+  setModel: (sessionId: string, modelId: string) => void
   /** Best-effort tail of the agent's stderr, for spawn/crash diagnostics. */
   stderr: () => string
   kill: () => void
@@ -89,15 +98,29 @@ export const spawnAcpConnection: ConnectFn = (agent, cwd, handlers, onExit) => {
   child.on("error", (err) => fireExit({ code: null, error: err.message }))
 
   // The SDK frames newline-delimited JSON over Web streams; child_process gives
-  // Node streams, so bridge them with node:stream's `toWeb`.
-  // `toWeb` yields a Web stream whose chunk type carries `ArrayBufferLike`;
-  // ndJsonStream wants the `ArrayBuffer`-specialised `Uint8Array`. They only
-  // differ in that buffer parameter, so a direct assertion bridges them.
+  // Node streams. We build the outbound Web stream ourselves (rather than
+  // `Writable.toWeb`) so `setModel` can also write a correctly-framed request
+  // straight to the child's stdin — a workaround for an SDK bug where
+  // ClientSideConnection.setSessionModel mistakenly sends `session/set_mode`.
+  // Both paths write whole ndJSON frames to the same Node stream, which
+  // serialises writes, so framing stays intact.
+  const stdin = child.stdin
+  const encoder = new TextEncoder()
+  const output = new WritableStream<Uint8Array>({
+    write: (chunk) =>
+      new Promise<void>((resolve, reject) => {
+        stdin.write(chunk, (err) => (err ? reject(err) : resolve()))
+      }),
+  })
   const stream = ndJsonStream(
-    Writable.toWeb(child.stdin) as WritableStream<Uint8Array>,
+    output,
     Readable.toWeb(child.stdout) as ReadableStream<Uint8Array>
   )
   const conn = new ClientSideConnection(() => handlers, stream)
+
+  // Injected requests use ids well clear of the SDK's (which start at 0 and
+  // increment), so the agent's replies can't collide with the SDK's pending map.
+  let injectedId = 2_000_000_000
 
   return {
     initialize: () =>
@@ -110,13 +133,31 @@ export const spawnAcpConnection: ConnectFn = (agent, cwd, handlers, onExit) => {
       }),
     newSession: async (sessionCwd) => {
       const res = await conn.newSession({ cwd: sessionCwd, mcpServers: [] })
-      return { sessionId: res.sessionId }
+      return { sessionId: res.sessionId, models: res.models ?? null }
     },
     loadSession: async (sessionId, sessionCwd) => {
-      await conn.loadSession({ sessionId, cwd: sessionCwd, mcpServers: [] })
+      const res = await conn.loadSession({
+        sessionId,
+        cwd: sessionCwd,
+        mcpServers: [],
+      })
+      return { models: res.models ?? null }
     },
     prompt: (sessionId, blocks) => conn.prompt({ sessionId, prompt: blocks }),
     cancel: (sessionId) => conn.cancel({ sessionId }),
+    setModel: (sessionId, modelId) => {
+      const frame = `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: injectedId++,
+        method: "session/set_model",
+        params: { sessionId, modelId },
+      })}\n`
+      try {
+        stdin.write(encoder.encode(frame))
+      } catch {
+        // child already gone
+      }
+    },
     stderr: () => stderrTail,
     kill: () => {
       try {

@@ -29,6 +29,9 @@ export const acpSessionManager = createAcpSessionManager({
         ...c,
         messages: [...update.messages],
         agentSessionId: update.agentSessionId,
+        initialPrompt: update.initialPrompt,
+        agent: update.agent,
+        model: update.model,
         updatedAt: new Date().toISOString(),
       }))
     } catch {
@@ -36,6 +39,12 @@ export const acpSessionManager = createAcpSessionManager({
     }
   },
 })
+
+// Never leave orphaned agent subprocesses behind when the server stops. The
+// `exit` event fires once the process is actually terminating (including after
+// Effect's NodeRuntime handles SIGINT/SIGTERM), so a single sync hook is enough
+// and doesn't race the runtime's own graceful shutdown.
+process.on("exit", () => acpSessionManager.killAll())
 
 /** Kill a chat's live agent (called when the chat is deleted). */
 export const killChatSession = (chatId: string): void =>

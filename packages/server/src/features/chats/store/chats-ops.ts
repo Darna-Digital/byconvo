@@ -98,6 +98,7 @@ export const createChat = (
   taskKey: input.taskKey,
   initialPrompt: input.initialPrompt,
   agentSessionId: null,
+  model: null,
   createdAt: now,
   updatedAt: now,
   messages: [],
