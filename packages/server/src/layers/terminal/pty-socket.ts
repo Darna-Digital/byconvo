@@ -476,6 +476,7 @@ const startSession = (ws: WebSocket, request: IncomingMessage) => {
   const agent = parseAgent(url.searchParams.get("agent"))
   const cols = Number(url.searchParams.get("cols")) || 80
   const rows = Number(url.searchParams.get("rows")) || 24
+  const theme = url.searchParams.get("theme") === "light" ? "light" : "dark"
 
   // Re-attach to a live session for this thread instead of spawning a new one.
   if (id !== null && id.length > 0) {
@@ -534,6 +535,13 @@ const startSession = (ws: WebSocket, request: IncomingMessage) => {
       env: {
         ...process.env,
         TERM: "xterm-256color",
+        // Advertise the terminal's background brightness the way real terminal
+        // emulators do (rxvt-style "fg;bg" colour indices). Agent CLIs like
+        // Claude Code read this to pick readable text colours; without it they
+        // assume a light background and paint text black — invisible on our
+        // dark theme. This is synchronous at spawn, unlike the OSC 11 query
+        // whose browser→server round-trip can miss the CLI's detection window.
+        COLORFGBG: theme === "dark" ? "15;0" : "0;15",
         ...(id !== null && id.length > 0 ? buildSessionEnv(cwd, id) : {}),
       },
     })
