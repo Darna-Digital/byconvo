@@ -42,16 +42,18 @@ export interface AcpLaunchSpec {
 
 /**
  * How to launch an agent's ACP server. We prefer a globally-installed binary
- * (`bin`) and fall back to running the npm package with `npx`. Preferring the
- * installed binary is faster (no npx cold start) and more reliable: some
- * adapters (e.g. codex-acp) ship their real executable as a platform-specific
- * *optional* npm dependency, which npx sometimes fails to install — a global
- * `npm i -g` gets it right, and then byconvo uses that binary directly.
+ * (`bin`) and fall back to running the npm package with `pnpm dlx`, then `npx`.
+ * Preferring the installed binary is faster (no dlx/npx cold start) and more
+ * reliable: some adapters (e.g. codex-acp) ship their real executable as a
+ * platform-specific *optional* npm dependency, which `npx` sometimes fails to
+ * install (`Cannot find package @zed-industries/codex-acp-darwin-arm64`).
+ * `pnpm dlx` and a global install both get it right, and then byconvo uses the
+ * binary directly.
  */
 interface AgentLaunch {
   /** The command run when the binary is already on PATH. */
   readonly bin: string
-  /** The npm package to `npx` when the binary isn't installed (if any). */
+  /** The npm package to run via `pnpm dlx` / `npx` when not installed (if any). */
   readonly npxPackage?: string
 }
 
@@ -84,7 +86,7 @@ export const acpLaunch = (agent: ChatAgent): AcpLaunchSpec => {
   const fallback =
     npxPackage === undefined
       ? `echo "could not start ${probe} — is it installed and on your PATH?" 1>&2; exit 127`
-      : `command -v npx >/dev/null 2>&1 && exec npx --yes ${npxPackage} || { echo "could not start ${probe} — install it (npm i -g ${npxPackage}) or ensure npx is on your PATH" 1>&2; exit 127; }`
+      : `command -v pnpm >/dev/null 2>&1 && exec pnpm dlx ${npxPackage} || command -v npx >/dev/null 2>&1 && exec npx --yes ${npxPackage} || { echo "could not start ${probe} — install it (pnpm add -g ${npxPackage}) or ensure pnpm/npx is on your PATH" 1>&2; exit 127; }`
   return {
     file: userShell(),
     args: [
