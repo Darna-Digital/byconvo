@@ -40,36 +40,58 @@ export interface AcpLaunchSpec {
   readonly args: ReadonlyArray<string>
 }
 
-/** The bare ACP-server command for an agent (before the login-shell wrapper). */
-const acpCommand = (agent: ChatAgent): string => {
-  switch (agent) {
-    case "claude":
-      return "npx --yes @zed-industries/claude-code-acp"
-    case "codex":
-      return "npx --yes @zed-industries/codex-acp"
-    case "opencode":
-      return "opencode acp"
-  }
+/**
+ * How to launch an agent's ACP server. We prefer a globally-installed binary
+ * (`bin`) and fall back to running the npm package with `npx`. Preferring the
+ * installed binary is faster (no npx cold start) and more reliable: some
+ * adapters (e.g. codex-acp) ship their real executable as a platform-specific
+ * *optional* npm dependency, which npx sometimes fails to install — a global
+ * `npm i -g` gets it right, and then byconvo uses that binary directly.
+ */
+interface AgentLaunch {
+  /** The command run when the binary is already on PATH. */
+  readonly bin: string
+  /** The npm package to `npx` when the binary isn't installed (if any). */
+  readonly npxPackage?: string
+}
+
+const LAUNCHES: Record<ChatAgent, AgentLaunch> = {
+  claude: {
+    bin: "claude-code-acp",
+    npxPackage: "@zed-industries/claude-code-acp",
+  },
+  codex: {
+    bin: "codex-acp",
+    npxPackage: "@zed-industries/codex-acp",
+  },
+  // opencode ships a single self-contained binary; `opencode acp` is native.
+  opencode: { bin: "opencode acp" },
 }
 
 const userShell = (): string => process.env["SHELL"] ?? "bash"
 
 /**
  * Build the login-shell invocation that runs `agent`'s ACP server. Mirrors
- * ../threads/agents.ts `agentInShell`: `command -v` first so a missing CLI fails
- * with a clear message instead of a corrupt handshake, then `exec` into it. The
- * command tokens are fixed literals (never user input), so they need no quoting.
+ * ../threads/agents.ts `agentInShell`: run through `$SHELL -lic` so the CLI
+ * inherits the developer's real PATH, `command -v` first so a missing CLI fails
+ * with a clear message instead of a corrupt handshake, then `exec` into it —
+ * preferring the installed binary, falling back to `npx <package>`. The command
+ * tokens are fixed literals (never user input), so they need no quoting.
  */
 export const acpLaunch = (agent: ChatAgent): AcpLaunchSpec => {
-  const cmd = acpCommand(agent)
-  const probe = cmd.split(" ")[0]
+  const { bin, npxPackage } = LAUNCHES[agent]
+  const probe = bin.split(" ")[0]
+  const fallback =
+    npxPackage === undefined
+      ? `echo "could not start ${probe} — is it installed and on your PATH?" 1>&2; exit 127`
+      : `command -v npx >/dev/null 2>&1 && exec npx --yes ${npxPackage} || { echo "could not start ${probe} — install it (npm i -g ${npxPackage}) or ensure npx is on your PATH" 1>&2; exit 127; }`
   return {
     file: userShell(),
     args: [
       "-l",
       "-i",
       "-c",
-      `command -v ${probe} >/dev/null 2>&1 && exec ${cmd} || { echo "could not start ${probe} — is it installed and on your PATH?" 1>&2; exit 127; }`,
+      `command -v ${probe} >/dev/null 2>&1 && exec ${bin} || { ${fallback}; }`,
     ],
   }
 }
