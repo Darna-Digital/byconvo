@@ -513,6 +513,20 @@ const startSession = (ws: WebSocket, request: IncomingMessage) => {
       captureAgent = agent
     }
   }
+  // Pin Claude Code's UI theme to the terminal's, so it never renders its
+  // user-message background or text (near-)black on the opposite background.
+  // Claude auto-detects the theme from COLORFGBG / an OSC 11 probe, but that is
+  // unreliable in the packaged desktop app (the launchd env carries no
+  // TERM_PROGRAM, and the OSC 11 reply must round-trip through the socket), so
+  // it can guess wrong there even though it works in dev. `--settings` with just
+  // the theme is deterministic and merges over the user's other settings. (theme
+  // is our own "light"|"dark" literal — never user input — so it needs no
+  // escaping beyond the single-quoted JSON.)
+  if (agent === "claude") {
+    const themeArg = `--settings '{"theme":"${theme}"}'`
+    sessionArgs =
+      sessionArgs.length > 0 ? `${sessionArgs} ${themeArg}` : themeArg
+  }
   const program: PtyProgram = agentPtyProgram(agent, sessionArgs)
 
   const nodePty = loadNodePty()
