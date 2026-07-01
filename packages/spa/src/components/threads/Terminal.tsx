@@ -97,7 +97,7 @@ const ensureLiveTerminal = (
     const { term, safeFit } = mounted
 
     const ws = new WebSocket(
-      ptySocketUrl({ id, agent, cols: term.cols, rows: term.rows })
+      ptySocketUrl({ id, agent, cols: term.cols, rows: term.rows, theme })
     )
     const sendResize = () => {
       if (ws.readyState === WebSocket.OPEN)

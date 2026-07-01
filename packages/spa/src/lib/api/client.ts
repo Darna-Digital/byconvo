@@ -42,6 +42,10 @@ export const ptySocketUrl = (params: {
   agent: string
   cols: number
   rows: number
+  /** Terminal theme, so the PTY can advertise its background brightness
+   * (COLORFGBG) and agent CLIs pick readable colours. Only used on a fresh
+   * spawn. */
+  theme: "light" | "dark"
 }): string => {
   const origin =
     desktopApiBaseUrl ??
@@ -54,6 +58,7 @@ export const ptySocketUrl = (params: {
   url.searchParams.set("agent", params.agent)
   url.searchParams.set("cols", String(params.cols))
   url.searchParams.set("rows", String(params.rows))
+  url.searchParams.set("theme", params.theme)
   return url.toString()
 }
 
