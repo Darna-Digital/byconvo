@@ -63,6 +63,25 @@ export const ptySocketUrl = (params: {
 }
 
 /**
+ * The ACP chat stream WebSocket URL for a chat. Same origin/port and `/api` ws
+ * routing as {@link ptySocketUrl}; the server keys a persistent ACP agent
+ * session by chat id, so the conversation survives reconnects. Unlike the PTY
+ * socket this carries structured JSON events (message deltas, tool calls,
+ * permission prompts), not raw terminal bytes.
+ */
+export const chatSocketUrl = (id: string): string => {
+  const origin =
+    desktopApiBaseUrl ??
+    (typeof window === "undefined"
+      ? "http://localhost"
+      : window.location.origin)
+  const url = new URL("/api/chats/stream", origin)
+  url.protocol = url.protocol === "https:" ? "wss:" : "ws:"
+  url.searchParams.set("id", id)
+  return url.toString()
+}
+
+/**
  * The PTY WebSocket URL for a Local Dev command's running process. Same
  * origin/port and `/api` ws routing as {@link ptySocketUrl}; the server attaches
  * the socket to the process the DevProcessManager already owns for `command`.

@@ -16,6 +16,7 @@ import { Route as WorkspaceThreadsRouteImport } from './routes/_workspace/thread
 import { Route as WorkspaceTasksRouteImport } from './routes/_workspace/tasks'
 import { Route as WorkspaceLocalDevRouteImport } from './routes/_workspace/local-dev'
 import { Route as WorkspaceDocsRouteImport } from './routes/_workspace/docs'
+import { Route as WorkspaceChatsRouteImport } from './routes/_workspace/chats'
 import { Route as AppCommitRouteImport } from './routes/_app/commit'
 import { Route as AppReviewIndexRouteImport } from './routes/_app/review/index'
 import { Route as AppBrowseIndexRouteImport } from './routes/_app/browse/index'
@@ -56,6 +57,11 @@ const WorkspaceDocsRoute = WorkspaceDocsRouteImport.update({
   path: '/docs',
   getParentRoute: () => WorkspaceRoute,
 } as any)
+const WorkspaceChatsRoute = WorkspaceChatsRouteImport.update({
+  id: '/chats',
+  path: '/chats',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
 const AppCommitRoute = AppCommitRouteImport.update({
   id: '/commit',
   path: '/commit',
@@ -90,6 +96,7 @@ const AppBrowseCommitShaRoute = AppBrowseCommitShaRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/commit': typeof AppCommitRoute
+  '/chats': typeof WorkspaceChatsRoute
   '/docs': typeof WorkspaceDocsRoute
   '/local-dev': typeof WorkspaceLocalDevRoute
   '/tasks': typeof WorkspaceTasksRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/commit': typeof AppCommitRoute
+  '/chats': typeof WorkspaceChatsRoute
   '/docs': typeof WorkspaceDocsRoute
   '/local-dev': typeof WorkspaceLocalDevRoute
   '/tasks': typeof WorkspaceTasksRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_workspace': typeof WorkspaceRouteWithChildren
   '/_app/commit': typeof AppCommitRoute
+  '/_workspace/chats': typeof WorkspaceChatsRoute
   '/_workspace/docs': typeof WorkspaceDocsRoute
   '/_workspace/local-dev': typeof WorkspaceLocalDevRoute
   '/_workspace/tasks': typeof WorkspaceTasksRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/commit'
+    | '/chats'
     | '/docs'
     | '/local-dev'
     | '/tasks'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/commit'
+    | '/chats'
     | '/docs'
     | '/local-dev'
     | '/tasks'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_workspace'
     | '/_app/commit'
+    | '/_workspace/chats'
     | '/_workspace/docs'
     | '/_workspace/local-dev'
     | '/_workspace/tasks'
@@ -227,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/docs'
       fullPath: '/docs'
       preLoaderRoute: typeof WorkspaceDocsRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/_workspace/chats': {
+      id: '/_workspace/chats'
+      path: '/chats'
+      fullPath: '/chats'
+      preLoaderRoute: typeof WorkspaceChatsRouteImport
       parentRoute: typeof WorkspaceRoute
     }
     '/_app/commit': {
@@ -297,6 +316,7 @@ const AppRouteChildren: AppRouteChildren = {
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface WorkspaceRouteChildren {
+  WorkspaceChatsRoute: typeof WorkspaceChatsRoute
   WorkspaceDocsRoute: typeof WorkspaceDocsRoute
   WorkspaceLocalDevRoute: typeof WorkspaceLocalDevRoute
   WorkspaceTasksRoute: typeof WorkspaceTasksRoute
@@ -304,6 +324,7 @@ interface WorkspaceRouteChildren {
 }
 
 const WorkspaceRouteChildren: WorkspaceRouteChildren = {
+  WorkspaceChatsRoute: WorkspaceChatsRoute,
   WorkspaceDocsRoute: WorkspaceDocsRoute,
   WorkspaceLocalDevRoute: WorkspaceLocalDevRoute,
   WorkspaceTasksRoute: WorkspaceTasksRoute,

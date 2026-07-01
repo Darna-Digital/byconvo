@@ -43,6 +43,12 @@ export type ThreadEntry = Thread["entries"][number]
 /** Which agent runs a thread: raw shell or an agent CLI. */
 export type AgentKind = Thread["agent"]
 
+export type ChatSummary = Ok<paths["/api/chats"]["get"]>[number]
+export type Chat = Ok<paths["/api/chats/{id}"]["get"]>
+export type ChatMessage = Chat["messages"][number]
+/** Which coding agent drives a chat over ACP. */
+export type ChatAgent = Chat["agent"]
+
 export type DocSummary = Ok<paths["/api/docs"]["get"]>[number]
 export type Doc = Ok<paths["/api/docs/{id}"]["get"]>
 
@@ -86,6 +92,7 @@ export type AppMode =
   | "review"
   | "browse"
   | "threads"
+  | "chats"
   | "docs"
   | "tasks"
   | "local-dev"

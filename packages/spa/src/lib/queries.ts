@@ -30,6 +30,16 @@ export const useThread = (id: string | null) =>
     { enabled: id !== null }
   )
 
+export const useChats = () => api.useQuery("get", "/api/chats")
+
+export const useChat = (id: string | null) =>
+  api.useQuery(
+    "get",
+    "/api/chats/{id}",
+    { params: { path: { id: id ?? "" } } },
+    { enabled: id !== null }
+  )
+
 export const useDocs = () => api.useQuery("get", "/api/docs")
 
 export const useDoc = (id: string | null) =>

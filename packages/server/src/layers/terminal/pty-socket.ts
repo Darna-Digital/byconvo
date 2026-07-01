@@ -43,6 +43,7 @@ import {
 } from "../../features/threads/agents.ts"
 import type { AgentKind } from "../../features/threads/schema/threads.schema.model.ts"
 import { getCurrentRepo } from "../workspace/current-repo.ts"
+import { ACP_CHAT_PATH, startAcpSession } from "../acp/acp-socket.ts"
 import { recentAgentSessions } from "./agent-session-capture.ts"
 import { DEV_PTY_PATH, startDevSession } from "./dev-process-manager.ts"
 
@@ -699,6 +700,15 @@ export const attachPtyServer = (server: Server): void => {
     if (pathname === DEV_PTY_PATH) {
       wss.handleUpgrade(request, socket, head, (ws) =>
         startDevSession(ws, request)
+      )
+      return
+    }
+    // ACP chats stream over the same dispatcher: a long-lived, structured
+    // agent conversation keyed by chat id (the agent subprocess outlives the
+    // socket, like a PTY session).
+    if (pathname === ACP_CHAT_PATH) {
+      wss.handleUpgrade(request, socket, head, (ws) =>
+        startAcpSession(ws, request)
       )
       return
     }

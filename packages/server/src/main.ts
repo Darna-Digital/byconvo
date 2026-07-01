@@ -17,6 +17,8 @@ import { FetchHttpClient, HttpRouter } from "effect/unstable/http"
 import { HttpApiBuilder, HttpApiScalar } from "effect/unstable/httpapi"
 import { createServer } from "node:http"
 import { Api } from "./api.ts"
+import { ChatsController } from "./features/chats/http/chats.controller.ts"
+import { ChatsLive } from "./features/chats/layer/chats.layer.live.ts"
 import { CommentsController } from "./features/comments/http/comments.controller.ts"
 import { CommentsLive } from "./features/comments/layer/comments.layer.live.ts"
 import { DocsController } from "./features/docs/http/docs.controller.ts"
@@ -70,7 +72,8 @@ const ApiLive = Layer.mergeAll(
   Layer.provide(ThreadsController),
   Layer.provide(DocsController),
   Layer.provide(TasksController),
-  Layer.provide(LocalDevController)
+  Layer.provide(LocalDevController),
+  Layer.provide(ChatsController)
 )
 
 /** Stateless feature services, resolved per request. */
@@ -84,6 +87,7 @@ const RequestServices = Layer.mergeAll(
   DocsLive,
   TasksLive,
   LocalDevLive,
+  ChatsLive,
   DevRuntimeLive
 )
 

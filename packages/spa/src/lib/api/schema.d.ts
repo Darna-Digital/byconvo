@@ -900,6 +900,38 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/chats": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["chats.list"]
+    put?: never
+    post: operations["chats.create"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/chats/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["chats.get"]
+    put?: never
+    post?: never
+    delete: operations["chats.remove"]
+    options?: never
+    head?: never
+    patch: operations["chats.rename"]
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -4798,6 +4830,690 @@ export interface operations {
         content: {
           "application/json": {
             ok: boolean
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "chats.list": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            /** @enum {string} */
+            agent: "claude" | "codex" | "opencode"
+            branch: string
+            taskKey: string | null
+            createdAt: string
+            updatedAt: string
+            messageCount: number
+            lastMessage: string | null
+          }[]
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "chats.create": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          title?: string
+          /** @enum {string} */
+          agent?: "claude" | "codex" | "opencode"
+          branch?: string
+          taskKey?: string
+          initialPrompt?: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            /** @enum {string} */
+            agent: "claude" | "codex" | "opencode"
+            branch: string
+            taskKey: string | null
+            initialPrompt: string
+            agentSessionId: string | null
+            createdAt: string
+            updatedAt: string
+            messages: (
+              | {
+                  /** @enum {string} */
+                  _tag: "user"
+                  id: string
+                  text: string
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "agent"
+                  id: string
+                  text: string
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "thought"
+                  id: string
+                  text: string
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "toolCall"
+                  id: string
+                  toolCallId: string
+                  title: string
+                  kind:
+                    | (
+                        | "read"
+                        | "edit"
+                        | "delete"
+                        | "move"
+                        | "search"
+                        | "execute"
+                        | "think"
+                        | "fetch"
+                        | "switch_mode"
+                        | "other"
+                      )
+                    | null
+                  /** @enum {string} */
+                  status: "pending" | "in_progress" | "completed" | "failed"
+                  rawInput: unknown | null
+                  content: (
+                    | {
+                        /** @enum {string} */
+                        type: "text"
+                        text: string
+                      }
+                    | {
+                        /** @enum {string} */
+                        type: "diff"
+                        path: string
+                        oldText: string | null
+                        newText: string
+                      }
+                    | {
+                        /** @enum {string} */
+                        type: "terminal"
+                        terminalId: string
+                      }
+                  )[]
+                  locations: string[]
+                  createdAt: string
+                  updatedAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "plan"
+                  id: string
+                  entries: {
+                    content: string
+                    /** @enum {string} */
+                    priority: "high" | "medium" | "low"
+                    /** @enum {string} */
+                    status: "pending" | "in_progress" | "completed"
+                  }[]
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "permission"
+                  id: string
+                  requestId: string
+                  toolCallId: string | null
+                  title: string
+                  options: {
+                    optionId: string
+                    name: string
+                    /** @enum {string} */
+                    kind:
+                      | "allow_once"
+                      | "allow_always"
+                      | "reject_once"
+                      | "reject_always"
+                  }[]
+                  outcome: {
+                    /** @enum {string} */
+                    outcome: "selected" | "cancelled"
+                    optionId: string | null
+                  } | null
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "turnEnd"
+                  id: string
+                  /** @enum {string} */
+                  stopReason:
+                    | "end_turn"
+                    | "max_tokens"
+                    | "max_turn_requests"
+                    | "refusal"
+                    | "cancelled"
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "error"
+                  id: string
+                  message: string
+                  createdAt: string
+                }
+            )[]
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "chats.get": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            /** @enum {string} */
+            agent: "claude" | "codex" | "opencode"
+            branch: string
+            taskKey: string | null
+            initialPrompt: string
+            agentSessionId: string | null
+            createdAt: string
+            updatedAt: string
+            messages: (
+              | {
+                  /** @enum {string} */
+                  _tag: "user"
+                  id: string
+                  text: string
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "agent"
+                  id: string
+                  text: string
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "thought"
+                  id: string
+                  text: string
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "toolCall"
+                  id: string
+                  toolCallId: string
+                  title: string
+                  kind:
+                    | (
+                        | "read"
+                        | "edit"
+                        | "delete"
+                        | "move"
+                        | "search"
+                        | "execute"
+                        | "think"
+                        | "fetch"
+                        | "switch_mode"
+                        | "other"
+                      )
+                    | null
+                  /** @enum {string} */
+                  status: "pending" | "in_progress" | "completed" | "failed"
+                  rawInput: unknown | null
+                  content: (
+                    | {
+                        /** @enum {string} */
+                        type: "text"
+                        text: string
+                      }
+                    | {
+                        /** @enum {string} */
+                        type: "diff"
+                        path: string
+                        oldText: string | null
+                        newText: string
+                      }
+                    | {
+                        /** @enum {string} */
+                        type: "terminal"
+                        terminalId: string
+                      }
+                  )[]
+                  locations: string[]
+                  createdAt: string
+                  updatedAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "plan"
+                  id: string
+                  entries: {
+                    content: string
+                    /** @enum {string} */
+                    priority: "high" | "medium" | "low"
+                    /** @enum {string} */
+                    status: "pending" | "in_progress" | "completed"
+                  }[]
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "permission"
+                  id: string
+                  requestId: string
+                  toolCallId: string | null
+                  title: string
+                  options: {
+                    optionId: string
+                    name: string
+                    /** @enum {string} */
+                    kind:
+                      | "allow_once"
+                      | "allow_always"
+                      | "reject_once"
+                      | "reject_always"
+                  }[]
+                  outcome: {
+                    /** @enum {string} */
+                    outcome: "selected" | "cancelled"
+                    optionId: string | null
+                  } | null
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "turnEnd"
+                  id: string
+                  /** @enum {string} */
+                  stopReason:
+                    | "end_turn"
+                    | "max_tokens"
+                    | "max_turn_requests"
+                    | "refusal"
+                    | "cancelled"
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "error"
+                  id: string
+                  message: string
+                  createdAt: string
+                }
+            )[]
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "chats.remove": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["StorageError"]
+        }
+      }
+    }
+  }
+  "chats.rename": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          title: string
+          branch?: string
+          taskKey?: string | null
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            /** @enum {string} */
+            agent: "claude" | "codex" | "opencode"
+            branch: string
+            taskKey: string | null
+            initialPrompt: string
+            agentSessionId: string | null
+            createdAt: string
+            updatedAt: string
+            messages: (
+              | {
+                  /** @enum {string} */
+                  _tag: "user"
+                  id: string
+                  text: string
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "agent"
+                  id: string
+                  text: string
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "thought"
+                  id: string
+                  text: string
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "toolCall"
+                  id: string
+                  toolCallId: string
+                  title: string
+                  kind:
+                    | (
+                        | "read"
+                        | "edit"
+                        | "delete"
+                        | "move"
+                        | "search"
+                        | "execute"
+                        | "think"
+                        | "fetch"
+                        | "switch_mode"
+                        | "other"
+                      )
+                    | null
+                  /** @enum {string} */
+                  status: "pending" | "in_progress" | "completed" | "failed"
+                  rawInput: unknown | null
+                  content: (
+                    | {
+                        /** @enum {string} */
+                        type: "text"
+                        text: string
+                      }
+                    | {
+                        /** @enum {string} */
+                        type: "diff"
+                        path: string
+                        oldText: string | null
+                        newText: string
+                      }
+                    | {
+                        /** @enum {string} */
+                        type: "terminal"
+                        terminalId: string
+                      }
+                  )[]
+                  locations: string[]
+                  createdAt: string
+                  updatedAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "plan"
+                  id: string
+                  entries: {
+                    content: string
+                    /** @enum {string} */
+                    priority: "high" | "medium" | "low"
+                    /** @enum {string} */
+                    status: "pending" | "in_progress" | "completed"
+                  }[]
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "permission"
+                  id: string
+                  requestId: string
+                  toolCallId: string | null
+                  title: string
+                  options: {
+                    optionId: string
+                    name: string
+                    /** @enum {string} */
+                    kind:
+                      | "allow_once"
+                      | "allow_always"
+                      | "reject_once"
+                      | "reject_always"
+                  }[]
+                  outcome: {
+                    /** @enum {string} */
+                    outcome: "selected" | "cancelled"
+                    optionId: string | null
+                  } | null
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "turnEnd"
+                  id: string
+                  /** @enum {string} */
+                  stopReason:
+                    | "end_turn"
+                    | "max_tokens"
+                    | "max_turn_requests"
+                    | "refusal"
+                    | "cancelled"
+                  createdAt: string
+                }
+              | {
+                  /** @enum {string} */
+                  _tag: "error"
+                  id: string
+                  message: string
+                  createdAt: string
+                }
+            )[]
           }
         }
       }
