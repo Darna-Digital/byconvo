@@ -49,10 +49,10 @@ export const buildChatAssignmentSettings = (
   catalog: ChatModelCatalog | undefined
 ): ChatSettings => {
   const defaults = catalog?.defaults
-  const providerEntry = catalog?.providers.find(
+  const providerEntry = catalog?.providers?.find(
     (entry) => entry.id === provider
   )
-  const providerDefaultModel = providerEntry?.models.find(
+  const providerDefaultModel = providerEntry?.models?.find(
     (model) => model.id === defaults?.model
   )?.id
   const fallbackModel =
@@ -109,6 +109,8 @@ export const buildTaskAssignmentTitle = (
   provider: ChatProviderKind
 ): string => {
   const instruction = instructionWithoutChatProviderMention(body, provider)
-  const summary = instruction.length > 0 ? instruction.slice(0, 40) : card.title
+  const cleanInstruction = instruction.replace(/\s+/g, " ")
+  const summary =
+    cleanInstruction.length > 0 ? cleanInstruction.slice(0, 40) : card.title
   return `${card.key} - ${summary}`
 }
