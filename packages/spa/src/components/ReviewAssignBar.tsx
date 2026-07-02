@@ -1,8 +1,8 @@
 /**
  * ReviewAssignBar — a Figma-style floating bottom bar that appears while you have
  * local review comments (left in the commit/PR diff or a code view). It lets you
- * pick an agent and hand the comments off to it: a new terminal thread is started
- * with the comments as its prompt. Dismissable; it re-appears when you leave more.
+ * pick an agent and hand the comments off to it: a new chat is started with the
+ * comments as its prompt. Dismissable; it re-appears when you leave more.
  */
 import { IconX } from "@tabler/icons-react"
 import { useState } from "react"
@@ -14,11 +14,24 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select"
+import { isChatProviderKind } from "@/features/chats/functions/chat-assignment.functions"
 import { AGENTS, agentLabel } from "@/features/threads/entity/agents"
-import type { AgentKind } from "@/lib/api/types"
+import type { ChatProviderKind } from "@/lib/api/types"
 
-/** Agent CLIs that can be assigned (excludes the plain shell). */
-const ASSIGNABLE = AGENTS.filter((a) => a.kind !== "terminal")
+/** Agent CLIs that can be assigned to chat flows (excludes the plain shell). */
+const ASSIGNABLE: ReadonlyArray<{
+  kind: ChatProviderKind
+  label: string
+  hint: string
+}> = AGENTS.filter(
+  (
+    agent
+  ): agent is {
+    kind: ChatProviderKind
+    label: string
+    hint: string
+  } => isChatProviderKind(agent.kind)
+)
 
 export function ReviewAssignBar({
   count,
@@ -26,12 +39,17 @@ export function ReviewAssignBar({
   onDismiss,
 }: {
   count: number
-  onAssign: (agent: AgentKind) => Promise<void> | void
+  onAssign: (agent: ChatProviderKind) => Promise<void> | void
   onDismiss: () => void
 }) {
-  const [agent, setAgent] = useState<AgentKind>("claude")
+  const [agent, setAgent] = useState<ChatProviderKind>("claude")
   const [busy, setBusy] = useState(false)
   const AgentIcon = agentIcon(agent)
+
+  const changeAgent = (value: string) => {
+    if (!isChatProviderKind(value)) return
+    setAgent(value)
+  }
 
   const assign = async () => {
     if (busy) return
@@ -53,7 +71,7 @@ export function ReviewAssignBar({
           </span>
         </span>
         <div className="h-5 w-px bg-border" />
-        <Select value={agent} onValueChange={(v) => v && setAgent(v)}>
+        <Select value={agent} onValueChange={changeAgent}>
           <SelectTrigger
             size="sm"
             className="h-8 w-auto min-w-32 gap-1.5 rounded-full border-0 bg-transparent shadow-none hover:bg-muted"

@@ -90,6 +90,19 @@ export function useChatsActions() {
       }
       return started
     },
+    startWithTitle: async (
+      settings: ChatSettings,
+      branch: string,
+      title: string,
+      text: string
+    ) => {
+      const started = await fns.startWithTitle(settings, branch, title, text)
+      if (started !== null) {
+        prependChat(started)
+        invalidate()
+      }
+      return started
+    },
     send: async (id: string, text: string) => {
       const sent = await fns.send(id, text)
       if (sent !== null) invalidate()
