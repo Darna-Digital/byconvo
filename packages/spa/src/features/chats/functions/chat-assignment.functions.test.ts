@@ -83,10 +83,30 @@ describe("chat assignment helpers", () => {
   })
 
   it("builds review assignment title and prompt", () => {
-    const comments = [
-      { filePath: "src/a.ts", lineNumber: 12, body: "Fix this" },
-      { filePath: "src/b.ts", lineNumber: 5, body: "Rename that" },
-    ] as ReadonlyArray<ReviewComment>
+    const comments: ReadonlyArray<ReviewComment> = [
+      {
+        id: "comment-1",
+        filePath: "src/a.ts",
+        side: "additions",
+        lineNumber: 12,
+        body: "Fix this",
+        author: "local",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        target: "worktree",
+        source: "local",
+      },
+      {
+        id: "comment-2",
+        filePath: "src/b.ts",
+        side: "additions",
+        lineNumber: 5,
+        body: "Rename that",
+        author: "local",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        target: "worktree",
+        source: "local",
+      },
+    ]
 
     expect(buildReviewAssignmentTitle(comments.length)).toBe(
       "Fix 2 review comments"

@@ -46,8 +46,8 @@ export function ReviewAssignBar({
   const [busy, setBusy] = useState(false)
   const AgentIcon = agentIcon(agent)
 
-  const changeAgent = (value: string) => {
-    if (!isChatProviderKind(value)) return
+  const changeAgent = (value: ChatProviderKind | null) => {
+    if (value === null) return
     setAgent(value)
   }
 
