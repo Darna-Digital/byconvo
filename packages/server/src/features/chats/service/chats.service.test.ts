@@ -3,6 +3,7 @@ import { Effect } from "effect"
 import { describe, expect } from "vitest"
 import { ChatsMemory } from "../layer/chats.layer.memory.ts"
 import { CHAT_MODEL_CATALOG } from "../providers.ts"
+import type { Chat } from "../schema/chats.schema.model.ts"
 import { ChatsService } from "./chats.service.ts"
 
 const newChat = {
@@ -111,6 +112,100 @@ describe("ChatsService", () => {
       expect(updated.effort).toBe("low")
       expect(updated.mode).toBe("plan")
       expect(updated.access).toBe("fullAccess")
+    }).pipe(Effect.provide(layer))
+  })
+
+  it.effect(
+    "switching provider clears the native session and broadcasts a snapshot",
+    () => {
+      const seeded: Chat = {
+        id: "c-seed-1",
+        title: "My chat",
+        provider: "claude",
+        model: "claude-opus-4-8",
+        effort: "high",
+        access: "fullAccess",
+        mode: "build",
+        branch: "main",
+        sessionId: "claude-session-abc",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        messages: [],
+        activities: [],
+        latestTurn: null,
+      }
+      const { layer, runtime } = ChatsMemory([seeded])
+      return Effect.gen(function* () {
+        const chats = yield* ChatsService
+        const updated = yield* chats.update(seeded.id, {
+          provider: "codex",
+          model: "gpt-5.5",
+        })
+        // Each CLI can only resume its own sessions — the id must be dropped.
+        expect(updated.provider).toBe("codex")
+        expect(updated.model).toBe("gpt-5.5")
+        expect(updated.sessionId).toBeNull()
+        // Open composers get a fresh snapshot so the switch shows up live.
+        expect(runtime.calls.broadcastSnapshot).toContain(seeded.id)
+      }).pipe(Effect.provide(layer))
+    }
+  )
+
+  it.effect(
+    "a provider switch without a model falls back to the CLI default",
+    () => {
+      const seeded: Chat = {
+        id: "c-seed-2",
+        title: "My chat",
+        provider: "claude",
+        model: "claude-opus-4-8",
+        effort: "high",
+        access: "fullAccess",
+        mode: "build",
+        branch: "main",
+        sessionId: "claude-session-xyz",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        messages: [],
+        activities: [],
+        latestTurn: null,
+      }
+      const { layer } = ChatsMemory([seeded])
+      return Effect.gen(function* () {
+        const chats = yield* ChatsService
+        const updated = yield* chats.update(seeded.id, { provider: "opencode" })
+        expect(updated.provider).toBe("opencode")
+        expect(updated.model).toBe("")
+        expect(updated.sessionId).toBeNull()
+      }).pipe(Effect.provide(layer))
+    }
+  )
+
+  it.effect("a same-provider settings patch keeps the native session", () => {
+    const seeded: Chat = {
+      id: "c-seed-3",
+      title: "My chat",
+      provider: "claude",
+      model: "claude-opus-4-8",
+      effort: "high",
+      access: "fullAccess",
+      mode: "build",
+      branch: "main",
+      sessionId: "claude-session-keep",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+      messages: [],
+      activities: [],
+      latestTurn: null,
+    }
+    const { layer } = ChatsMemory([seeded])
+    return Effect.gen(function* () {
+      const chats = yield* ChatsService
+      const updated = yield* chats.update(seeded.id, {
+        model: "claude-fable-5",
+      })
+      expect(updated.model).toBe("claude-fable-5")
+      expect(updated.sessionId).toBe("claude-session-keep")
     }).pipe(Effect.provide(layer))
   })
 

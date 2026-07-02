@@ -17,9 +17,13 @@ export const NewChat = Schema.Struct({
 })
 export type NewChat = typeof NewChat.Type
 
-/** Every field optional — a settings/title patch from the composer. */
+/** Every field optional — a settings/title patch from the composer.
+ * `provider` may change too (switching the chat's agent mid-conversation);
+ * the store drops the native session id when it does, since each CLI can only
+ * resume its own sessions. */
 export const UpdateChat = Schema.Struct({
   title: Schema.optionalKey(Schema.String),
+  provider: Schema.optionalKey(ChatProviderKind),
   model: Schema.optionalKey(Schema.String),
   effort: Schema.optionalKey(ChatEffort),
   access: Schema.optionalKey(ChatAccess),

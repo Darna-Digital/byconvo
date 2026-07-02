@@ -7,9 +7,9 @@
  * item-based (current experimental JSON):
  *   {type:"thread.started", thread_id}
  *   {type:"item.started"|"item.updated"|"item.completed",
- *    item:{id, item_type:"assistant_message"|"reasoning"|"command_execution"|
- *          "file_change"|"mcp_tool_call"|"web_search"|…, text?, command?,
- *          exit_code?, status?}}
+ *    item:{id, type (older builds: item_type):"agent_message"|
+ *          "assistant_message"|"reasoning"|"command_execution"|"file_change"|
+ *          "mcp_tool_call"|"web_search"|…, text?, command?, exit_code?, status?}}
  *   {type:"turn.completed", usage} | {type:"turn.failed", error:{message}}
  *
  * legacy (msg envelope):
@@ -62,7 +62,11 @@ export const createCodexTurnParser = (): TurnParser => {
     if (!isRecord(item)) return []
     const itemType = asString(item["item_type"]) ?? asString(item["type"]) ?? ""
     switch (itemType) {
+      // Current codex names the reply item `agent_message`; older/experimental
+      // builds used `assistant_message`. Accept both — missing this drops the
+      // whole reply and the turn renders empty.
       case "assistant_message":
+      case "agent_message":
         return phase === "completed"
           ? appendText(asString(item["text"]) ?? "")
           : []

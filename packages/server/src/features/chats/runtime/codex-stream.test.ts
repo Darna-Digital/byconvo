@@ -28,6 +28,20 @@ describe("createCodexTurnParser (item dialect)", () => {
     expect(parser.text()).toBe("First.\n\nSecond.")
   })
 
+  it("captures the current `agent_message` reply keyed by `type`", () => {
+    // Real shape from codex-cli 0.142.5: item.type (not item_type) is
+    // "agent_message" (not "assistant_message"). Missing this drops the reply.
+    const parser = createCodexTurnParser()
+    const events = parser.push(
+      line({
+        type: "item.completed",
+        item: { id: "item_0", type: "agent_message", text: "pong" },
+      })
+    )
+    expect(events).toEqual([{ type: "delta", text: "pong" }])
+    expect(parser.text()).toBe("pong")
+  })
+
   it("maps command execution items to tool activities", () => {
     const parser = createCodexTurnParser()
     const started = parser.push(

@@ -60,16 +60,20 @@ export const makeMemoryChatsRepository = (seed: ReadonlyArray<Chat> = []) =>
       update: (id, input: UpdateChatInput) =>
         Effect.gen(function* () {
           const existing = yield* find(yield* Ref.get(store), id)
+          const provider = input.provider ?? existing.provider
+          const providerChanged = provider !== existing.provider
           const updated: Chat = {
             ...existing,
             title:
               input.title !== undefined && input.title.trim().length > 0
                 ? input.title.trim()
                 : existing.title,
-            model: input.model ?? existing.model,
+            provider,
+            model: input.model ?? (providerChanged ? "" : existing.model),
             effort: input.effort ?? existing.effort,
             access: input.access ?? existing.access,
             mode: input.mode ?? existing.mode,
+            sessionId: providerChanged ? null : existing.sessionId,
             updatedAt: now(),
           }
           yield* Ref.update(store, (all) =>

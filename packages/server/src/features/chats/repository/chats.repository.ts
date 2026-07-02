@@ -30,6 +30,7 @@ export interface CreateChatInput {
 /** `undefined` leaves a field untouched. */
 export interface UpdateChatInput {
   readonly title?: string
+  readonly provider?: ChatProviderKind
   readonly model?: string
   readonly effort?: ChatEffort
   readonly access?: ChatAccess

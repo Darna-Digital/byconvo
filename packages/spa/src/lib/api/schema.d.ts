@@ -3655,6 +3655,8 @@ export interface operations {
       content: {
         "application/json": {
           title?: string
+          /** @enum {string} */
+          provider?: "claude" | "codex" | "opencode"
           model?: string
           /** @enum {string} */
           effort?: "low" | "medium" | "high"

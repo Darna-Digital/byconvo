@@ -68,8 +68,14 @@ export const make = Effect.gen(function* () {
     // Tear down the live turn/sockets so a deleted chat leaves no orphans.
     Effect.flatMap(repo.remove(id), () => runtime.kill(id))
 
+  const update: ChatsServiceShape["update"] = (id, input) =>
+    // Push the patched settings (model/provider/effort/…) to open composers so
+    // an agent switch shows up live instead of after the next turn.
+    Effect.tap(repo.update(id, input), () => runtime.broadcastSnapshot(id))
+
   return ChatsService.of({
     ...repo,
+    update,
     remove,
     send,
     stop,

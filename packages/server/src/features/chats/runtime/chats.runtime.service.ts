@@ -8,6 +8,7 @@ import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
 import { getCurrentRepo } from "../../../layers/workspace/current-repo.ts"
 import {
+  broadcastChatSnapshot,
   isTurnRunning,
   killChatRuntime,
   startChatTurn,
@@ -26,6 +27,8 @@ export interface ChatRuntimeShape {
   readonly stop: (chatId: string) => Effect.Effect<boolean>
   /** Full teardown (process + sockets) for a deleted chat. */
   readonly kill: (chatId: string) => Effect.Effect<void>
+  /** Replay a fresh snapshot to watchers after an out-of-band settings patch. */
+  readonly broadcastSnapshot: (chatId: string) => Effect.Effect<void>
 }
 
 export class ChatRuntime extends Context.Service<
@@ -44,6 +47,11 @@ export const liveLayer: Layer.Layer<ChatRuntime> = Layer.succeed(ChatRuntime)(
       }),
     stop: (chatId) => Effect.sync(() => stopChatTurn(chatId)),
     kill: (chatId) => Effect.sync(() => killChatRuntime(chatId)),
+    broadcastSnapshot: (chatId) =>
+      Effect.sync(() => {
+        const repoPath = getCurrentRepo()
+        if (repoPath !== null) broadcastChatSnapshot(repoPath, chatId)
+      }),
   })
 )
 
@@ -53,6 +61,7 @@ export interface MemoryChatRuntime {
     readonly start: Array<{ chatId: string; text: string }>
     readonly stop: string[]
     readonly kill: string[]
+    readonly broadcastSnapshot: string[]
   }
   /** Mutate to simulate a running turn / a start failure. */
   readonly state: { running: Set<string>; startResult: StartTurnResult }
@@ -60,7 +69,12 @@ export interface MemoryChatRuntime {
 
 /** Test seam: records calls, never spawns anything. */
 export const memoryChatRuntime = (): MemoryChatRuntime => {
-  const calls: MemoryChatRuntime["calls"] = { start: [], stop: [], kill: [] }
+  const calls: MemoryChatRuntime["calls"] = {
+    start: [],
+    stop: [],
+    kill: [],
+    broadcastSnapshot: [],
+  }
   const state: MemoryChatRuntime["state"] = {
     running: new Set(),
     startResult: { ok: true },
@@ -82,6 +96,10 @@ export const memoryChatRuntime = (): MemoryChatRuntime => {
         Effect.sync(() => {
           calls.kill.push(chatId)
           state.running.delete(chatId)
+        }),
+      broadcastSnapshot: (chatId) =>
+        Effect.sync(() => {
+          calls.broadcastSnapshot.push(chatId)
         }),
     })
   )

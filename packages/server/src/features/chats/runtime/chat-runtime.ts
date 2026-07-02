@@ -24,7 +24,11 @@ import type { IncomingMessage } from "node:http"
 import type { WebSocket } from "ws"
 import { recentAgentSessions } from "../../../layers/terminal/agent-session-capture.ts"
 import { getCurrentRepo } from "../../../layers/workspace/current-repo.ts"
-import { chatTurnProgram, type ChatTurnSession } from "../providers.ts"
+import {
+  chatTurnProgram,
+  withHistory,
+  type ChatTurnSession,
+} from "../providers.ts"
 import type {
   Chat,
   ChatActivity,
@@ -110,6 +114,23 @@ const snapshotChat = (repoPath: string, chat: Chat): Chat => {
     if (settled !== undefined) return settled
   }
   return chat
+}
+
+/**
+ * Replay a fresh `{snapshot}` to every socket watching a chat. Called after an
+ * out-of-band mutation (a settings/provider patch) so open composers reflect
+ * the new state immediately instead of waiting for the next turn or reconnect.
+ */
+export const broadcastChatSnapshot = (
+  repoPath: string,
+  chatId: string
+): void => {
+  const sockets = watchers.get(chatId)
+  if (sockets === undefined || sockets.size === 0) return
+  const chat = findChat(repoPath, chatId)
+  if (chat === undefined) return
+  const snapshot = snapshotChat(repoPath, chat)
+  for (const ws of sockets) send(ws, { snapshot })
 }
 
 const handleStreamEvent = (live: LiveTurn, event: TurnEvent): void => {
@@ -274,7 +295,11 @@ export const startChatTurn = (
     chat.provider === "claude"
       ? { id: chat.sessionId ?? randomUUID(), resume: chat.sessionId !== null }
       : { id: chat.sessionId, resume: chat.sessionId !== null }
-  const program = chatTurnProgram(chat, text, session)
+  // Resuming a native session carries the history already; a fresh one (e.g.
+  // just after switching the chat's agent) doesn't, so replay the transcript
+  // into the prompt. The persisted user message keeps the raw text.
+  const prompt = session.resume ? text : withHistory(chat.messages, text)
+  const program = chatTurnProgram(chat, prompt, session)
   const started = appendTurnStart(repoPath, chatId, {
     turn,
     userMessage,

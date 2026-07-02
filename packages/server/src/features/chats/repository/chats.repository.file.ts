@@ -83,16 +83,25 @@ export const makeFileChatsRepository = Effect.gen(function* () {
   const update: ChatsRepo["update"] = (id, input: UpdateChatInput) =>
     withFile((repoPath) => {
       const existing = requireChat(repoPath, id)
+      const provider = input.provider ?? existing.provider
+      // Switching the chat's agent invalidates the native session — each CLI
+      // mints and can only resume its own — so drop the id (the next turn
+      // starts the new agent fresh). A provider change without an explicit
+      // model also falls back to that CLI's default rather than keeping the
+      // previous agent's model id.
+      const providerChanged = provider !== existing.provider
       const updated: Chat = {
         ...existing,
         title:
           input.title !== undefined && input.title.trim().length > 0
             ? input.title.trim()
             : existing.title,
-        model: input.model ?? existing.model,
+        provider,
+        model: input.model ?? (providerChanged ? "" : existing.model),
         effort: input.effort ?? existing.effort,
         access: input.access ?? existing.access,
         mode: input.mode ?? existing.mode,
+        sessionId: providerChanged ? null : existing.sessionId,
         updatedAt: new Date().toISOString(),
       }
       writeChats(

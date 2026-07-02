@@ -1,6 +1,23 @@
 import { describe, expect, it } from "vitest"
-import { CHAT_MODEL_CATALOG, chatTurnProgram } from "./providers.ts"
-import type { Chat } from "./schema/chats.schema.model.ts"
+import {
+  CHAT_MODEL_CATALOG,
+  chatTurnProgram,
+  withHistory,
+} from "./providers.ts"
+import type { Chat, ChatMessage } from "./schema/chats.schema.model.ts"
+
+const msg = (
+  role: ChatMessage["role"],
+  text: string,
+  streaming = false
+): ChatMessage => ({
+  id: `m-${role}-${text.slice(0, 4)}`,
+  role,
+  text,
+  turnId: "turn-1",
+  streaming,
+  createdAt: "",
+})
 
 const chat = (overrides: Partial<Chat> = {}): Chat => ({
   id: "c-1",
@@ -86,6 +103,35 @@ describe("chatTurnProgram", () => {
       "exec 'opencode' 'run' '--model' 'opencode/big-pickle'"
     )
     expect(cmd).toContain("'--session' 'ses_1'")
+  })
+})
+
+describe("withHistory", () => {
+  it("returns the prompt unchanged when there is no prior history", () => {
+    expect(withHistory([], "hello")).toBe("hello")
+  })
+
+  it("prepends a transcript of prior messages for a fresh agent", () => {
+    const out = withHistory(
+      [msg("user", "add a button"), msg("assistant", "done, added it")],
+      "now make it blue"
+    )
+    expect(out).toContain("<conversation_history>")
+    expect(out).toContain("User: add a button")
+    expect(out).toContain("Assistant: done, added it")
+    // The new prompt is last, after the history block.
+    expect(out.indexOf("now make it blue")).toBeGreaterThan(
+      out.indexOf("</conversation_history>")
+    )
+  })
+
+  it("skips blank/streaming placeholder messages", () => {
+    const out = withHistory(
+      [msg("user", "hi"), msg("assistant", "   ", true)],
+      "next"
+    )
+    expect(out).toContain("User: hi")
+    expect(out).not.toContain("Assistant:")
   })
 })
 

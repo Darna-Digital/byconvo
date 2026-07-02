@@ -31,6 +31,7 @@ export const ChatsController = HttpApiBuilder.group(Api, "chats", (handlers) =>
       Effect.flatMap(ChatsService, (s) =>
         s.update(params.id, {
           title: payload.title,
+          provider: payload.provider,
           model: payload.model,
           effort: payload.effort,
           access: payload.access,

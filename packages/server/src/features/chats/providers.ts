@@ -11,6 +11,7 @@
  */
 import type {
   Chat,
+  ChatMessage,
   ChatModelCatalog,
   ChatProviderKind,
 } from "./schema/chats.schema.model.ts"
@@ -157,6 +158,36 @@ const inLoginShell = (
     `command -v ${cli} >/dev/null 2>&1 && exec ${parts.map(quote).join(" ")} || { echo "could not start ${cli} — is it installed and on your PATH?" >&2; exit 127; }`,
   ],
 })
+
+/**
+ * A turn's prompt, with the prior conversation prepended when the agent has no
+ * native session to resume — the case right after the chat's agent is switched
+ * (a fresh CLI knows nothing of what came before). Within one provider the CLI
+ * resumes its own session and carries the history itself, so this is a no-op
+ * (empty history → the prompt unchanged). Streaming/blank messages are skipped.
+ */
+export const withHistory = (
+  messages: ReadonlyArray<ChatMessage>,
+  prompt: string
+): string => {
+  const prior = messages.filter((m) => m.text.trim().length > 0)
+  if (prior.length === 0) return prompt
+  const transcript = prior
+    .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.text}`)
+    .join("\n\n")
+  return [
+    "You are continuing an existing conversation. For context, here is the",
+    "transcript so far (it may have been produced by a different agent):",
+    "",
+    "<conversation_history>",
+    transcript,
+    "</conversation_history>",
+    "",
+    "Reply to this latest message, using the history above for context:",
+    "",
+    prompt,
+  ].join("\n")
+}
 
 /**
  * Build the streaming one-turn invocation for `chat`. The prompt goes through
