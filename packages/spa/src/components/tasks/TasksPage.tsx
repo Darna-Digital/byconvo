@@ -1,6 +1,6 @@
 /**
  * TasksPage — a Trello-style board persisted per repo. Cards carry a short
- * stable key (e.g. "T-3") that can be referenced from a terminal thread. Cards
+ * stable key (e.g. "T-3") that can be referenced from an agent chat. Cards
  * are dragged between the fixed columns; the column drop handler moves them.
  */
 import {
@@ -39,37 +39,44 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { useChatsActions } from "@/features/chats/adapters/chats.hook.adapter"
+import {
+  buildChatAssignmentSettings,
+  buildTaskAssignmentPrompt,
+  buildTaskAssignmentTitle,
+  isChatProviderKind,
+  mentionedChatProvider,
+  trailingAgentMention,
+} from "@/features/chats/functions/chat-assignment.functions"
 import { useTasksActions } from "@/features/tasks/adapters/tasks.hook.adapter"
-import { useThreadsActions } from "@/features/threads/adapters/threads.hook.adapter"
 import { AGENTS } from "@/features/threads/entity/agents"
-import type { AgentKind, TasksCard, TasksColumn } from "@/lib/api/types"
-import { useRepo, useTasks } from "@/lib/queries"
+import type { ChatProviderKind, TasksCard, TasksColumn } from "@/lib/api/types"
+import { useChatModels, useRepo, useTasks } from "@/lib/queries"
 import { timeAgo } from "@/lib/relative-time"
 import { cn } from "@/lib/utils"
 
-/** Agent CLIs that can be @-mentioned in a comment (excludes the plain shell). */
-const MENTIONABLE = AGENTS.filter((a) => a.kind !== "terminal")
-
-/** Detect a trailing "@partial" the user is typing, for the mention picker. */
-const trailingMention = (value: string): string | null => {
-  const m = /(?:^|\s)@(\w*)$/.exec(value)
-  return m === null ? null : m[1]
-}
-
-/** The first @-mentioned agent in a comment body, if any. */
-const mentionedAgent = (body: string): AgentKind | null => {
-  for (const a of MENTIONABLE) {
-    if (new RegExp(`(?:^|\\s)@${a.kind}\\b`, "i").test(body)) return a.kind
-  }
-  return null
-}
+/** Agent CLIs that can be @-mentioned into a chat (excludes the plain shell). */
+const MENTIONABLE: ReadonlyArray<{
+  kind: ChatProviderKind
+  label: string
+  hint: string
+}> = AGENTS.filter(
+  (
+    agent
+  ): agent is {
+    kind: ChatProviderKind
+    label: string
+    hint: string
+  } => isChatProviderKind(agent.kind)
+)
 
 export function TasksPage() {
   const tasks = useTasks()
   const board = tasks.data ?? null
   const actions = useTasksActions(board)
-  const threadActions = useThreadsActions()
+  const chatActions = useChatsActions()
   const repo = useRepo()
+  const chatModels = useChatModels()
   const navigate = useNavigate()
   const currentBranch = repo.data?.currentBranch ?? ""
   const [addingTo, setAddingTo] = useState<TasksColumn | null>(null)
@@ -173,11 +180,11 @@ export function TasksPage() {
 
   const onCommentChange = (value: string) => {
     setNewComment(value)
-    setMentionQuery(trailingMention(value))
+    setMentionQuery(trailingAgentMention(value))
   }
 
   // Replace the "@partial" being typed with a full "@agent " mention.
-  const insertMention = (kind: AgentKind) => {
+  const insertMention = (kind: ChatProviderKind) => {
     setNewComment((v) =>
       v.replace(/(^|\s)@\w*$/, (_m, p: string) => `${p}@${kind} `)
     )
@@ -196,36 +203,26 @@ export function TasksPage() {
     const body = newComment.trim()
     if (body.length === 0) return
     const parentId = replyTo?.id ?? null
-    const agent = mentionedAgent(body)
+    const agent = mentionedChatProvider(body)
     try {
       await actions.addComment(card.id, body, parentId)
       setNewComment("")
       setReplyTo(null)
       setMentionQuery(null)
-      // Tagging an agent spins up a terminal thread seeded with the task + the
-      // comment, then jumps to it.
-      if (agent !== null) {
-        const instruction = body
-          .replace(new RegExp(`(?:^|\\s)@${agent}\\b`, "i"), "")
-          .trim()
-        const initialPrompt = [
-          `You are working on task ${card.key}: ${card.title}.`,
-          card.description.trim().length > 0
-            ? `\n\n${card.description.trim()}`
-            : "",
-          `\n\nAddress this comment:\n${instruction.length > 0 ? instruction : body}`,
-        ].join("")
-        await threadActions.spawnForTask({
-          agent,
-          branch: currentBranch,
-          taskKey: card.key,
-          title: `${card.key} · ${instruction.slice(0, 40) || card.title}`,
-          initialPrompt,
-        })
-        toast.success(`Started ${agent} on ${card.key}`)
-        setEditing(null)
-        void navigate({ to: "/threads" })
-      }
+      if (agent === null) return
+      const started = await chatActions.startWithTitle(
+        buildChatAssignmentSettings(agent, chatModels.data),
+        currentBranch,
+        buildTaskAssignmentTitle(card, body, agent),
+        buildTaskAssignmentPrompt(card, body, agent)
+      )
+      if (started === null) return
+      toast.success(`Started ${agent} on ${card.key}`)
+      setEditing(null)
+      void navigate({
+        to: "/chats/$chatId",
+        params: { chatId: started.id },
+      })
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "could not add comment"
@@ -393,8 +390,8 @@ export function TasksPage() {
       <header className="flex items-center gap-2 border-b px-4 py-2">
         <span className="text-sm font-medium">Tasks board</span>
         <span className="text-xs text-muted-foreground">
-          Reference a task by its key (e.g. {board?.prefix ?? "T"}-1) in a
-          thread, or have an agent resolve it via{" "}
+          Reference a task by its key (e.g. {board?.prefix ?? "T"}-1) in an
+          agent chat, or have an agent resolve it via{" "}
           <code className="rounded bg-muted px-1">
             GET /api/tasks/&#123;ref&#125;
           </code>
@@ -677,7 +674,7 @@ export function TasksPage() {
             />
 
             {/* Comments — reply, or @-mention an agent (e.g. @claude) to spin
-                up a thread seeded with this task + comment. */}
+                up a chat seeded with this task + comment. */}
             <div className="flex flex-col gap-2">
               <div className="text-xs font-medium text-muted-foreground">
                 Comments
@@ -768,7 +765,7 @@ export function TasksPage() {
                   disabled={newComment.trim().length === 0}
                   onClick={() => void addComment()}
                 >
-                  {mentionedAgent(newComment) !== null
+                  {mentionedChatProvider(newComment) !== null
                     ? "Send"
                     : replyTo !== null
                       ? "Reply"

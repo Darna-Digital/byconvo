@@ -29,6 +29,33 @@ describe("createChatsFunctions", () => {
     expect(calls.send).toHaveLength(0)
   })
 
+  it("startWithTitle creates a titled chat then sends the prompt", async () => {
+    const { deps, calls } = mockChatsDependencies()
+    const fns = createChatsFunctions(deps)
+    const result = await fns.startWithTitle(
+      settings,
+      "feature",
+      "  Fix review comments  ",
+      "  address these comments  "
+    )
+    expect(result).not.toBeNull()
+    expect(calls.create).toEqual([
+      { ...settings, branch: "feature", title: "Fix review comments" },
+    ])
+    expect(calls.send).toEqual([{ id: "c-1", text: "address these comments" }])
+  })
+
+  it("startWithTitle drops blank titles and blank prompts", async () => {
+    const { deps, calls } = mockChatsDependencies()
+    const fns = createChatsFunctions(deps)
+    const blank = await fns.startWithTitle(settings, "main", "Fix it", "   ")
+    const untitled = await fns.startWithTitle(settings, "main", "   ", "go")
+    expect(blank).toBeNull()
+    expect(untitled).not.toBeNull()
+    expect(calls.create).toEqual([{ ...settings, branch: "main" }])
+    expect(calls.send).toEqual([{ id: "c-1", text: "go" }])
+  })
+
   it("send trims and skips blank prompts", async () => {
     const { deps, calls } = mockChatsDependencies()
     const fns = createChatsFunctions(deps)

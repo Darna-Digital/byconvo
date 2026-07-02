@@ -73,6 +73,13 @@ export interface ChatsFunctions {
     branch: string,
     text: string
   ) => Promise<Chat | null>
+  /** Create a titled chat, then immediately send the first prompt. */
+  readonly startWithTitle: (
+    settings: ChatSettings,
+    branch: string,
+    title: string,
+    text: string
+  ) => Promise<Chat | null>
   /** Send a prompt; returns null (no-op) when it is blank. */
   readonly send: (id: string, text: string) => Promise<Chat | null>
   /** Patch composer settings on an existing chat. */

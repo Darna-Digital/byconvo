@@ -42,22 +42,28 @@ import { ModeRail } from "@/components/layout/ModeRail"
 import { ResizeHandle } from "@/components/layout/ResizeHandle"
 import { TopBar } from "@/components/layout/TopBar"
 import { FileSidebar } from "@/components/tree/FileSidebar"
+import { useChatsActions } from "@/features/chats/adapters/chats.hook.adapter"
+import {
+  buildChatAssignmentSettings,
+  buildReviewAssignmentPrompt,
+  buildReviewAssignmentTitle,
+} from "@/features/chats/functions/chat-assignment.functions"
 import { useCommentsActions } from "@/features/comments/adapters/comments.hook.adapter"
 import { useDiffFunctions } from "@/features/diff/adapters/diff.hook.adapter"
 import { useGitActions } from "@/features/git-actions/adapters/git-actions.hook.adapter"
-import { useThreadsActions } from "@/features/threads/adapters/threads.hook.adapter"
 import { fetchClient } from "@/lib/api/client"
 import {
   diffTargetKey,
   emptyLogQuery,
-  type AgentKind,
   type AppMode,
+  type ChatProviderKind,
   type DiffTarget,
   type LogQuery,
   type ReviewComment,
 } from "@/lib/api/types"
 import {
   useBranches,
+  useChatModels,
   useComments,
   useDiffText,
   useFiles,
@@ -89,7 +95,7 @@ export function AppShell() {
   const diffFns = useDiffFunctions()
   const git = useGitActions()
   const comments = useCommentsActions()
-  const threadActions = useThreadsActions()
+  const chatActions = useChatsActions()
   const queryClient = useQueryClient()
 
   const pathname = useRouterState({ select: (s) => s.location.pathname })
@@ -105,6 +111,7 @@ export function AppShell() {
   // --- queries ---------------------------------------------------------------
   const workspace = useWorkspace()
   const repo = useRepo()
+  const chatModels = useChatModels()
   const files = useFiles()
   const branches = useBranches()
   const remoteBranches = useRemoteBranches()
@@ -288,24 +295,24 @@ export function AppShell() {
     reviewCountRef.current = visibleComments.length
   }, [visibleComments.length])
 
-  const assignReviewToAgent = async (agent: AgentKind) => {
+  const assignReviewToAgent = async (agent: ChatProviderKind) => {
     if (visibleComments.length === 0) return
     const plural = visibleComments.length === 1 ? "" : "s"
-    const lines = visibleComments
-      .map((c) => `- ${c.filePath}:${c.lineNumber} — ${c.body}`)
-      .join("\n")
     try {
-      await threadActions.spawnForTask({
-        agent,
-        branch: repo.data?.currentBranch ?? "",
-        taskKey: null,
-        title: `Fix ${visibleComments.length} review comment${plural}`,
-        initialPrompt: `Address these review comments in the codebase:\n\n${lines}`,
-      })
+      const started = await chatActions.startWithTitle(
+        buildChatAssignmentSettings(agent, chatModels.data),
+        repo.data?.currentBranch ?? "",
+        buildReviewAssignmentTitle(visibleComments.length),
+        buildReviewAssignmentPrompt(visibleComments)
+      )
+      if (started === null) return
       toast.success(
         `Started ${agent} on ${visibleComments.length} comment${plural}`
       )
-      void navigate({ to: "/threads" })
+      void navigate({
+        to: "/chats/$chatId",
+        params: { chatId: started.id },
+      })
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "could not start agent"
