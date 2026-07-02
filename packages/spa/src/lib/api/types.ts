@@ -43,6 +43,21 @@ export type ThreadEntry = Thread["entries"][number]
 /** Which agent runs a thread: raw shell or an agent CLI. */
 export type AgentKind = Thread["agent"]
 
+export type ChatSummary = Ok<paths["/api/chats"]["get"]>[number]
+export type Chat = Ok<paths["/api/chats/{id}"]["get"]>
+export type ChatMessage = Chat["messages"][number]
+export type ChatActivity = Chat["activities"][number]
+export type ChatTurn = NonNullable<Chat["latestTurn"]>
+export type ChatTurnState = ChatTurn["state"]
+/** Which agent backs a chat (only Claude Code streams today). */
+export type ChatProviderKind = Chat["provider"]
+export type ChatEffort = Chat["effort"]
+export type ChatAccess = Chat["access"]
+export type ChatMode = Chat["mode"]
+export type ChatModelCatalog = Ok<paths["/api/chats/models"]["get"]>
+export type ChatModelProvider = ChatModelCatalog["providers"][number]
+export type ChatModel = ChatModelProvider["models"][number]
+
 export type DocSummary = Ok<paths["/api/docs"]["get"]>[number]
 export type Doc = Ok<paths["/api/docs/{id}"]["get"]>
 
@@ -85,6 +100,7 @@ export type AppMode =
   | "commit"
   | "review"
   | "browse"
+  | "chats"
   | "threads"
   | "docs"
   | "tasks"

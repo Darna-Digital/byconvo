@@ -5,6 +5,7 @@ import {
   IconGitFork,
   IconGitPullRequest,
   IconListCheck,
+  IconMessages,
   IconPlayerPlay,
   IconTerminal2,
 } from "@tabler/icons-react"
@@ -59,6 +60,12 @@ const GIT_MODES: ModeDef[] = [
 
 // The workspace modes (rendered by WorkspaceShell).
 const WORKSPACE_MODES: ModeDef[] = [
+  {
+    mode: "chats",
+    to: "/chats",
+    label: "Agent threads",
+    icon: IconMessages,
+  },
   {
     mode: "threads",
     to: "/threads",

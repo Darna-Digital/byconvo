@@ -88,6 +88,17 @@ export class GitHubError extends Schema.TaggedErrorClass<GitHubError>()(
   }
 }
 
+/** A chat already has a turn running — one turn at a time per chat. */
+export class ChatBusy extends Schema.TaggedErrorClass<ChatBusy>()(
+  "ChatBusy",
+  { chatId: Schema.String },
+  { httpApiStatus: 409 }
+) {
+  override get message(): string {
+    return `chat ${this.chatId} is already running a turn — stop it first`
+  }
+}
+
 /** A request referenced something that does not exist (bad sha, file, etc.). */
 export class NotFound extends Schema.TaggedErrorClass<NotFound>()(
   "NotFound",

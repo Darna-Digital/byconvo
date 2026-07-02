@@ -4,6 +4,7 @@
  * darna-stack `api.ts`.
  */
 import { HttpApi } from "effect/unstable/httpapi"
+import { ChatsApi } from "./features/chats/http/chats.api.ts"
 import { CommentsApi } from "./features/comments/http/comments.api.ts"
 import { DocsApi } from "./features/docs/http/docs.api.ts"
 import { GitMessageApi } from "./features/git-message/http/git-message.api.ts"
@@ -21,6 +22,7 @@ export class Api extends HttpApi.make("byconvo")
   .add(GitHubApi)
   .add(GitMessageApi)
   .add(ThreadsApi)
+  .add(ChatsApi)
   .add(DocsApi)
   .add(TasksApi)
   .add(LocalDevApi)

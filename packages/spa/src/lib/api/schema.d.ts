@@ -596,6 +596,86 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/chats": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["chats.list"]
+    put?: never
+    post: operations["chats.create"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/chats/models": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["chats.models"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/chats/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["chats.get"]
+    put?: never
+    post?: never
+    delete: operations["chats.remove"]
+    options?: never
+    head?: never
+    patch: operations["chats.update"]
+    trace?: never
+  }
+  "/api/chats/{id}/messages": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["chats.send"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/chats/{id}/stop": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["chats.stop"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   "/api/docs": {
     parameters: {
       query?: never
@@ -940,6 +1020,11 @@ export interface components {
       /** @enum {string} */
       _tag: "NotFound"
       reason: string
+    }
+    ChatBusy: {
+      /** @enum {string} */
+      _tag: "ChatBusy"
+      chatId: string
     }
   }
   responses: never
@@ -3142,6 +3227,676 @@ export interface operations {
         }
         content: {
           "application/json": components["schemas"]["NoRepoSelected"]
+        }
+      }
+      /** @description StorageError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["StorageError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "chats.list": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            /** @enum {string} */
+            provider: "claude" | "codex" | "opencode"
+            model: string
+            branch: string
+            createdAt: string
+            updatedAt: string
+            messageCount: number
+            lastMessage: string | null
+            turnState:
+              | ("running" | "completed" | "interrupted" | "error")
+              | null
+          }[]
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected | ChatBusy */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["NoRepoSelected"]
+            | components["schemas"]["ChatBusy"]
+        }
+      }
+      /** @description StorageError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["StorageError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "chats.create": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          title?: string
+          /** @enum {string} */
+          provider?: "claude" | "codex" | "opencode"
+          model?: string
+          /** @enum {string} */
+          effort?: "low" | "medium" | "high"
+          /** @enum {string} */
+          access?: "supervised" | "acceptEdits" | "fullAccess"
+          /** @enum {string} */
+          mode?: "build" | "plan"
+          branch?: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            /** @enum {string} */
+            provider: "claude" | "codex" | "opencode"
+            model: string
+            /** @enum {string} */
+            effort: "low" | "medium" | "high"
+            /** @enum {string} */
+            access: "supervised" | "acceptEdits" | "fullAccess"
+            /** @enum {string} */
+            mode: "build" | "plan"
+            branch: string
+            sessionId: string | null
+            createdAt: string
+            updatedAt: string
+            messages: {
+              id: string
+              /** @enum {string} */
+              role: "user" | "assistant"
+              text: string
+              turnId: string
+              streaming: boolean
+              createdAt: string
+            }[]
+            activities: {
+              id: string
+              turnId: string
+              kind: string
+              /** @enum {string} */
+              tone: "info" | "tool" | "error"
+              summary: string
+              detail: string | null
+              createdAt: string
+            }[]
+            latestTurn: {
+              id: string
+              /** @enum {string} */
+              state: "running" | "completed" | "interrupted" | "error"
+              startedAt: string
+              endedAt: string | null
+              errorMessage: string | null
+              totalCostUsd: number | null
+            } | null
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected | ChatBusy */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["NoRepoSelected"]
+            | components["schemas"]["ChatBusy"]
+        }
+      }
+      /** @description StorageError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["StorageError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "chats.models": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            providers: {
+              /** @enum {string} */
+              id: "claude" | "codex" | "opencode"
+              label: string
+              models: {
+                id: string
+                label: string
+              }[]
+            }[]
+            defaults: {
+              /** @enum {string} */
+              provider: "claude" | "codex" | "opencode"
+              model: string
+              /** @enum {string} */
+              effort: "low" | "medium" | "high"
+              /** @enum {string} */
+              access: "supervised" | "acceptEdits" | "fullAccess"
+              /** @enum {string} */
+              mode: "build" | "plan"
+            }
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected | ChatBusy */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["NoRepoSelected"]
+            | components["schemas"]["ChatBusy"]
+        }
+      }
+      /** @description StorageError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["StorageError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "chats.get": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            /** @enum {string} */
+            provider: "claude" | "codex" | "opencode"
+            model: string
+            /** @enum {string} */
+            effort: "low" | "medium" | "high"
+            /** @enum {string} */
+            access: "supervised" | "acceptEdits" | "fullAccess"
+            /** @enum {string} */
+            mode: "build" | "plan"
+            branch: string
+            sessionId: string | null
+            createdAt: string
+            updatedAt: string
+            messages: {
+              id: string
+              /** @enum {string} */
+              role: "user" | "assistant"
+              text: string
+              turnId: string
+              streaming: boolean
+              createdAt: string
+            }[]
+            activities: {
+              id: string
+              turnId: string
+              kind: string
+              /** @enum {string} */
+              tone: "info" | "tool" | "error"
+              summary: string
+              detail: string | null
+              createdAt: string
+            }[]
+            latestTurn: {
+              id: string
+              /** @enum {string} */
+              state: "running" | "completed" | "interrupted" | "error"
+              startedAt: string
+              endedAt: string | null
+              errorMessage: string | null
+              totalCostUsd: number | null
+            } | null
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected | ChatBusy */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["NoRepoSelected"]
+            | components["schemas"]["ChatBusy"]
+        }
+      }
+      /** @description StorageError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["StorageError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "chats.remove": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected | ChatBusy */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["NoRepoSelected"]
+            | components["schemas"]["ChatBusy"]
+        }
+      }
+      /** @description StorageError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["StorageError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "chats.update": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          title?: string
+          /** @enum {string} */
+          provider?: "claude" | "codex" | "opencode"
+          model?: string
+          /** @enum {string} */
+          effort?: "low" | "medium" | "high"
+          /** @enum {string} */
+          access?: "supervised" | "acceptEdits" | "fullAccess"
+          /** @enum {string} */
+          mode?: "build" | "plan"
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            /** @enum {string} */
+            provider: "claude" | "codex" | "opencode"
+            model: string
+            /** @enum {string} */
+            effort: "low" | "medium" | "high"
+            /** @enum {string} */
+            access: "supervised" | "acceptEdits" | "fullAccess"
+            /** @enum {string} */
+            mode: "build" | "plan"
+            branch: string
+            sessionId: string | null
+            createdAt: string
+            updatedAt: string
+            messages: {
+              id: string
+              /** @enum {string} */
+              role: "user" | "assistant"
+              text: string
+              turnId: string
+              streaming: boolean
+              createdAt: string
+            }[]
+            activities: {
+              id: string
+              turnId: string
+              kind: string
+              /** @enum {string} */
+              tone: "info" | "tool" | "error"
+              summary: string
+              detail: string | null
+              createdAt: string
+            }[]
+            latestTurn: {
+              id: string
+              /** @enum {string} */
+              state: "running" | "completed" | "interrupted" | "error"
+              startedAt: string
+              endedAt: string | null
+              errorMessage: string | null
+              totalCostUsd: number | null
+            } | null
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected | ChatBusy */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["NoRepoSelected"]
+            | components["schemas"]["ChatBusy"]
+        }
+      }
+      /** @description StorageError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["StorageError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "chats.send": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": {
+          text: string
+        }
+      }
+    }
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            id: string
+            title: string
+            /** @enum {string} */
+            provider: "claude" | "codex" | "opencode"
+            model: string
+            /** @enum {string} */
+            effort: "low" | "medium" | "high"
+            /** @enum {string} */
+            access: "supervised" | "acceptEdits" | "fullAccess"
+            /** @enum {string} */
+            mode: "build" | "plan"
+            branch: string
+            sessionId: string | null
+            createdAt: string
+            updatedAt: string
+            messages: {
+              id: string
+              /** @enum {string} */
+              role: "user" | "assistant"
+              text: string
+              turnId: string
+              streaming: boolean
+              createdAt: string
+            }[]
+            activities: {
+              id: string
+              turnId: string
+              kind: string
+              /** @enum {string} */
+              tone: "info" | "tool" | "error"
+              summary: string
+              detail: string | null
+              createdAt: string
+            }[]
+            latestTurn: {
+              id: string
+              /** @enum {string} */
+              state: "running" | "completed" | "interrupted" | "error"
+              startedAt: string
+              endedAt: string | null
+              errorMessage: string | null
+              totalCostUsd: number | null
+            } | null
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected | ChatBusy */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["NoRepoSelected"]
+            | components["schemas"]["ChatBusy"]
+        }
+      }
+      /** @description StorageError | TerminalError */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["StorageError"]
+            | components["schemas"]["TerminalError"]
+        }
+      }
+    }
+  }
+  "chats.stop": {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": {
+            ok: boolean
+          }
+        }
+      }
+      /** @description NotFound */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["NotFound"]
+        }
+      }
+      /** @description NoRepoSelected | ChatBusy */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json":
+            | components["schemas"]["NoRepoSelected"]
+            | components["schemas"]["ChatBusy"]
         }
       }
       /** @description StorageError | TerminalError */

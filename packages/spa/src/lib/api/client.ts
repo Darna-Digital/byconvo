@@ -63,6 +63,24 @@ export const ptySocketUrl = (params: {
 }
 
 /**
+ * The event-stream WebSocket URL for an agent chat. Same origin/port and
+ * `/api` ws routing as {@link ptySocketUrl}; the server replays the chat
+ * snapshot on connect and pushes turn events (deltas/activities) as they
+ * stream. Read-only — mutations go through the REST API.
+ */
+export const chatStreamUrl = (chatId: string): string => {
+  const origin =
+    desktopApiBaseUrl ??
+    (typeof window === "undefined"
+      ? "http://localhost"
+      : window.location.origin)
+  const url = new URL("/api/chats/stream", origin)
+  url.protocol = url.protocol === "https:" ? "wss:" : "ws:"
+  url.searchParams.set("chat", chatId)
+  return url.toString()
+}
+
+/**
  * The PTY WebSocket URL for a Local Dev command's running process. Same
  * origin/port and `/api` ws routing as {@link ptySocketUrl}; the server attaches
  * the socket to the process the DevProcessManager already owns for `command`.
