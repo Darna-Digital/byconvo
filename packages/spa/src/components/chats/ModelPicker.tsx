@@ -117,7 +117,7 @@ export function ModelPicker({
       >
         <ProviderIcon
           provider={current?.provider ?? "claude"}
-          className="size-3.5"
+          className="size-3.5 text-muted-foreground"
         />
         <span className="max-w-40 truncate">
           {current?.label ?? (model.length > 0 ? model : "Model")}
@@ -151,8 +151,8 @@ export function ModelPicker({
                 title={p.label}
                 onClick={() => setRail(p.id)}
                 className={cn(
-                  "flex size-9 items-center justify-center rounded-lg hover:bg-muted",
-                  rail === p.id && "bg-muted"
+                  "flex size-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted",
+                  rail === p.id && "bg-muted text-foreground"
                 )}
               >
                 <ProviderIcon provider={p.id} className="size-4.5" />
