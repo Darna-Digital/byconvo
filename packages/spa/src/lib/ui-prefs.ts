@@ -31,6 +31,8 @@ export interface UiPrefs {
   commitMessageHeight: number
   /** Which agent CLI drafts commit messages via the "Generate" button. */
   commitAgent: CommitAgent
+  /** Model ids starred in the chat composer's model picker. */
+  chatModelFavorites: string[]
 }
 
 const STORE_KEY = "byconvo-ui"
@@ -56,6 +58,7 @@ const defaults: Omit<UiPrefs, "resolvedTheme"> = {
   commitFilesHeight: 180,
   commitMessageHeight: 80,
   commitAgent: "claude",
+  chatModelFavorites: [],
 }
 
 function load(): UiPrefs {
@@ -96,6 +99,7 @@ function persist() {
       commitFilesHeight,
       commitMessageHeight,
       commitAgent,
+      chatModelFavorites,
     } = state
     window.localStorage.setItem(
       STORE_KEY,
@@ -110,6 +114,7 @@ function persist() {
         commitFilesHeight,
         commitMessageHeight,
         commitAgent,
+        chatModelFavorites,
       })
     )
     window.localStorage.setItem(THEME_KEY, state.theme)

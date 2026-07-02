@@ -18,9 +18,15 @@ export const useComments = () => api.useQuery("get", "/api/comments")
 /** The in-progress merge/rebase operation and its remaining conflicts. */
 export const useMergeState = () => api.useQuery("get", "/api/merge-state")
 
-// --- Threads / Docs / Tasks (workspace features) --------------------------
+// --- Threads / Chats / Docs / Tasks (workspace features) ------------------
 
 export const useThreads = () => api.useQuery("get", "/api/threads")
+
+/** Agent chats (structured conversations, distinct from terminal threads). */
+export const useChats = () => api.useQuery("get", "/api/chats")
+
+/** The static provider/model catalog behind the composer's model picker. */
+export const useChatModels = () => api.useQuery("get", "/api/chats/models")
 
 export const useThread = (id: string | null) =>
   api.useQuery(

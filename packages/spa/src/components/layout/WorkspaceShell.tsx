@@ -24,13 +24,15 @@ import {
 import { cn } from "@/lib/utils"
 
 const modeForPath = (pathname: string): AppMode =>
-  pathname.startsWith("/docs")
-    ? "docs"
-    : pathname.startsWith("/tasks")
-      ? "tasks"
-      : pathname.startsWith("/local-dev")
-        ? "local-dev"
-        : "threads"
+  pathname.startsWith("/chats")
+    ? "chats"
+    : pathname.startsWith("/docs")
+      ? "docs"
+      : pathname.startsWith("/tasks")
+        ? "tasks"
+        : pathname.startsWith("/local-dev")
+          ? "local-dev"
+          : "threads"
 
 export function WorkspaceShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })

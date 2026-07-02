@@ -42,6 +42,10 @@ import {
   type PtyProgram,
 } from "../../features/threads/agents.ts"
 import type { AgentKind } from "../../features/threads/schema/threads.schema.model.ts"
+import {
+  CHAT_STREAM_PATH,
+  startChatStream,
+} from "../../features/chats/runtime/chat-runtime.ts"
 import { getCurrentRepo } from "../workspace/current-repo.ts"
 import { recentAgentSessions } from "./agent-session-capture.ts"
 import { DEV_PTY_PATH, startDevSession } from "./dev-process-manager.ts"
@@ -699,6 +703,14 @@ export const attachPtyServer = (server: Server): void => {
     if (pathname === DEV_PTY_PATH) {
       wss.handleUpgrade(request, socket, head, (ws) =>
         startDevSession(ws, request)
+      )
+      return
+    }
+    // Agent-chat event streams (features/chats) — read-only push sockets fed
+    // by the chat turn runtime, sharing this dispatcher like Local Dev does.
+    if (pathname === CHAT_STREAM_PATH) {
+      wss.handleUpgrade(request, socket, head, (ws) =>
+        startChatStream(ws, request)
       )
       return
     }
