@@ -1,21 +1,12 @@
 /**
- * Per-provider glyphs for the model picker and composer trigger. Monochrome
- * like every other icon in the app (ModeRail, composer selectors): no brand
- * tints — they inherit the surrounding text color, so context decides
- * muted vs. foreground.
+ * Per-provider glyphs for the model picker and composer trigger. These are the
+ * same brand marks the terminal threads use in their agent menu/sidebar (a chat
+ * provider *is* one of those agent CLIs), so both surfaces read identically —
+ * `agentIcon` is the single source. Monochrome via `currentColor`, so context
+ * decides muted vs. foreground.
  */
-import {
-  IconBrandOpenai,
-  IconSparkles,
-  IconSquareRoundedLetterO,
-} from "@tabler/icons-react"
+import { agentIcon } from "@/components/threads/agent-icons"
 import type { ChatProviderKind } from "@/lib/api/types"
-
-const ICONS: Record<ChatProviderKind, typeof IconSparkles> = {
-  claude: IconSparkles,
-  codex: IconBrandOpenai,
-  opencode: IconSquareRoundedLetterO,
-}
 
 export function ProviderIcon({
   provider,
@@ -24,6 +15,7 @@ export function ProviderIcon({
   provider: ChatProviderKind
   className?: string
 }) {
-  const Icon = ICONS[provider]
+  // ChatProviderKind (claude | codex | opencode) is a subset of AgentKind.
+  const Icon = agentIcon(provider)
   return <Icon className={className} />
 }
